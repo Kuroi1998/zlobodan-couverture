@@ -3,6 +3,7 @@ import { escapeAttr, escapeHtml, escapeJsonForScript, escapeUrl } from "@/lib/se
 import { containsUnsafeKeys } from "@/lib/security/body";
 import { parseUuidParam, PaginationSchema, SearchTermSchema } from "@/lib/validations/identifiers";
 import { QuoteRequestSchema } from "@/lib/validations/quote-schemas";
+import { INTERVENTION_OPTIONS, QUOTE_DEFAULTS, ROOF_TYPE_OPTIONS } from "@/domain/quote-options";
 import { allowedSortColumns, resolveOrderBy } from "@/lib/db/sort";
 import { assertSafeOutboundUrl, isPrivateAddress } from "@/lib/security/ssrf";
 
@@ -138,9 +139,11 @@ describe("Tri dynamique", () => {
 
 describe("Formulaire public de devis", () => {
   const valid = {
-    interventionType: "reparation",
-    roofType: "ardoise",
-    surface: "120",
+    // Valeurs tirees du domaine : la fixture ne peut plus encoder un
+    // vocabulaire different de celui reellement propose a l utilisateur.
+    interventionType: QUOTE_DEFAULTS.interventionType,
+    roofType: QUOTE_DEFAULTS.roofType,
+    surface: QUOTE_DEFAULTS.surface,
     postalCode: "1050",
     city: "Ixelles",
     fullName: "Jean Peeters",
@@ -159,6 +162,25 @@ describe("Formulaire public de devis", () => {
       expect(QuoteRequestSchema.safeParse({ ...valid, postalCode: payload }).success).toBe(false);
       expect(QuoteRequestSchema.safeParse({ ...valid, phone: payload }).success).toBe(false);
       expect(QuoteRequestSchema.safeParse({ ...valid, email: payload }).success).toBe(false);
+    }
+  });
+
+  /**
+   * Garde de contrat client/serveur.
+   *
+   * La liste des interventions etait ecrite deux fois, avec un vocabulaire
+   * different de part et d'autre : quatre des sept options proposees a
+   * l'utilisateur etaient rejetees en 400. Ce test echoue desormais si une
+   * option affichable cesse d'etre acceptee par la validation.
+   */
+  test("chaque option affichee est acceptee par la validation serveur", () => {
+    for (const option of INTERVENTION_OPTIONS) {
+      const parsed = QuoteRequestSchema.safeParse({ ...valid, interventionType: option.id });
+      expect(parsed.success, `intervention refusee : ${option.id}`).toBe(true);
+    }
+    for (const option of ROOF_TYPE_OPTIONS) {
+      const parsed = QuoteRequestSchema.safeParse({ ...valid, roofType: option.id });
+      expect(parsed.success, `couverture refusee : ${option.id}`).toBe(true);
     }
   });
 

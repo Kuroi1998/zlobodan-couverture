@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { StepWizard } from "@/components/devis/StepWizard";
+import { QuoteWizard } from "@/components/devis/QuoteWizard";
 import { siteConfig } from "@/config/site";
 import { ShieldCheck, Clock, Award, Phone } from "lucide-react";
 
@@ -29,7 +29,7 @@ export default function DevisPage() {
 
         {/* Wizard Component Wrapper */}
         <Suspense fallback={<div className="text-center py-12 text-slate-400">Chargement du configurateur devis...</div>}>
-          <StepWizard />
+          <QuoteWizard />
         </Suspense>
 
         {/* Guarantees Box below wizard */}

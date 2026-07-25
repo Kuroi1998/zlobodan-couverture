@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
 import { FormDataState } from "../quote-form.types";
+import { SURFACE_OPTIONS } from "@/domain/quote-options";
 
 interface Step3Props {
   formData: FormDataState;
@@ -8,13 +9,11 @@ interface Step3Props {
 }
 
 export const Step3SurfaceUrgency: React.FC<Step3Props> = ({ formData, setFormData }) => {
-  const surfaceOptions = [
-    { id: "less_50", label: "Moins de 50 m²", desc: "Petite toiture ou annexe" },
-    { id: "50-100", label: "50 à 100 m²", desc: "Maison unifamiliale standard" },
-    { id: "100-150", label: "100 à 150 m²", desc: "Grande propriété ou longère" },
-    { id: "more_150", label: "Plus de 150 m²", desc: "Immeuble ou villa d'exception" },
-    { id: "unknown", label: "Je ne sais pas", desc: "Métré effectué lors de la visite" },
-  ];
+  const surfaceOptions = SURFACE_OPTIONS.map((o) => ({
+    id: o.id,
+    label: o.label,
+    desc: o.hint ?? "",
+  }));
 
   return (
     <div className="space-y-6">
