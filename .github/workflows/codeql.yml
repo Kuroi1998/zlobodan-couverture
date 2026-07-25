@@ -1,0 +1,39 @@
+name: CodeQL - Analyse de Sécurité
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  schedule:
+    - cron: '0 6 * * 1' # Chaque lundi à 6h00 UTC
+
+jobs:
+  analyze:
+    name: Analyse CodeQL JavaScript/TypeScript
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript-typescript']
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Initialisation de CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Exécution de l'analyse CodeQL
+        uses: github/codeql-action/analyze@v3

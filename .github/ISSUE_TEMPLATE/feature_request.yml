@@ -1,0 +1,19 @@
+name: 🚀 Proposition de Fonctionnalité
+description: Proposer une nouvelle fonctionnalité ou amélioration.
+title: "[FEAT]: "
+labels: ["feature", "enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin utilisateur
+      description: À quel problème ou besoin cette fonctionnalité répond-elle ?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Fonctionnalité proposée
+      description: Décrivez précisément la solution ou le fonctionnement souhaité.
+    validations:
+      required: true

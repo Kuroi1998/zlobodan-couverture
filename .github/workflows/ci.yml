@@ -1,0 +1,41 @@
+name: CI - Integration Continue
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate:
+    name: Validation, Tests & Compilation Next.js
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Vérification du Linting ESLint
+        run: npm run lint
+
+      - name: Vérification de la contrainte de taille (< 400 lignes)
+        run: npm run check:size
+
+      - name: Exécution des tests automatisés Vitest
+        run: npm run test
+
+      - name: Compilation Next.js SSG
+        run: npm run build
