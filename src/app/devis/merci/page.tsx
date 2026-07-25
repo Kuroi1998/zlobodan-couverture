@@ -1,6 +1,5 @@
-import React from "react";
 import Link from "next/link";
-import { CheckCircle2, Phone, Home, FileText, ArrowRight } from "lucide-react";
+import { CheckCircle2, Phone, Home, ArrowRight } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
 export const metadata = {

@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { siteConfig } from "@/config/site";
 import { requirePageAuth } from "@/lib/security/guards";
 import {
   LayoutDashboard,
@@ -22,7 +21,7 @@ export const metadata = {
 // Zone authentifiée : jamais de rendu statique, la session est lue à chaque requête.
 export const dynamic = "force-dynamic";
 
-export default async function ClientPortalLayout({ children }: { children: React.ReactNode }) {
+export default async function ClientPortalLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const account = await requirePageAuth("/mon-compte");
 
   return (

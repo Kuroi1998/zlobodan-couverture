@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MapPin, Search, CheckCircle2, AlertCircle, Phone } from "lucide-react";
+import { MapPin, Search, CheckCircle2, AlertCircle } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { villesData } from "@/data/villes";
 import { LeafletMap } from "@/components/home/LeafletMap";

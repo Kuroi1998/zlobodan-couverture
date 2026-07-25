@@ -46,7 +46,7 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
             const isOpen = openIndex === idx;
             return (
               <div
-                key={idx}
+                key={item.question}
                 className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-200"
               >
                 <button

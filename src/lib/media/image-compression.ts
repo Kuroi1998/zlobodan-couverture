@@ -1,55 +1,61 @@
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Échec du chargement de l'image."));
+    img.src = src;
+  });
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = () => reject(new Error("Échec de la lecture du fichier image."));
+    reader.readAsDataURL(file);
+  });
+}
+
 /**
  * Compression d'image côté client avant envoi avec le formulaire de devis.
  */
 export async function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<File> {
-  return new Promise((resolve) => {
-    // Si ce n'est pas une image ou si le navigateur n'a pas FileReader / Canvas, retourner le fichier tel quel
-    if (!file.type.startsWith("image/") || typeof window === "undefined") {
-      return resolve(file);
+  if (!file.type.startsWith("image/") || typeof window === "undefined") {
+    return file;
+  }
+
+  try {
+    const dataUrl = await readFileAsDataUrl(file);
+    const img = await loadImage(dataUrl);
+
+    const canvas = document.createElement("canvas");
+    let width = img.width;
+    let height = img.height;
+
+    if (width > maxWidth) {
+      height = Math.round((height * maxWidth) / width);
+      width = maxWidth;
     }
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+    canvas.width = width;
+    canvas.height = height;
 
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
 
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
+    ctx.drawImage(img, 0, 0, width, height);
 
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality)
+    );
 
-        canvas.width = width;
-        canvas.height = height;
+    if (!blob) return file;
 
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(file);
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return resolve(file);
-            const compressedFile = new File([blob], file.name, {
-              type: "image/jpeg",
-              lastModified: Date.now(),
-            });
-            resolve(compressedFile);
-          },
-          "image/jpeg",
-          quality
-        );
-      };
-
-      img.onerror = () => resolve(file);
-    };
-
-    reader.onerror = () => resolve(file);
-  });
+    return new File([blob], file.name, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+  } catch {
+    return file;
+  }
 }

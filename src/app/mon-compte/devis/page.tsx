@@ -1,7 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, Download, CheckCircle2, XCircle, Clock, ShieldCheck } from "lucide-react";
+import { FileText, Download, CheckCircle2, XCircle } from "lucide-react";
+
+type QuoteStatus = "sent" | "accepted" | "refused";
+
+function getQuoteStatusLabel(status: QuoteStatus): string {
+  switch (status) {
+    case "accepted":
+      return "✓ Accepté";
+    case "refused":
+      return "✗ Refusé";
+    case "sent":
+    default:
+      return "• En attente de signature";
+  }
+}
+
+function getQuoteStatusStyle(status: QuoteStatus): string {
+  switch (status) {
+    case "accepted":
+      return "bg-emerald-950 text-emerald-400 border border-emerald-800";
+    case "refused":
+      return "bg-red-950 text-red-400 border border-red-800";
+    case "sent":
+    default:
+      return "bg-amber-950 text-amber-300 border border-amber-800";
+  }
+}
 
 export default function ClientQuotesPage() {
   const [selectedQuote, setSelectedQuote] = useState<{
@@ -14,8 +40,8 @@ export default function ClientQuotesPage() {
     vatRate: number;
     vatAmount: number;
     amountTtc: number;
-    status: "sent" | "accepted" | "refused";
-    lines: { designation: string; qty: number; unit: string; priceHt: number; vat: number }[];
+    status: QuoteStatus;
+    lines: { id: string; designation: string; qty: number; unit: string; priceHt: number; vat: number }[];
   }>({
     number: "DEV-2026-0012",
     date: "22/07/2026",
@@ -28,11 +54,11 @@ export default function ClientQuotesPage() {
     amountTtc: 15052.0,
     status: "sent",
     lines: [
-      { designation: "Installation d'un échafaudage de sécurité conforme aux normes belges", qty: 1, unit: "forfait", priceHt: 1200.0, vat: 6.0 },
-      { designation: "Dépose soignée de l'ancienne couverture ardoise et voligeage dégradé", qty: 160, unit: "m²", priceHt: 25.0, vat: 6.0 },
-      { designation: "Pose sous-toiture HPV Doerken Delta-PV & contre-lattage sapin traité", qty: 160, unit: "m²", priceHt: 18.0, vat: 6.0 },
-      { designation: "Fourniture & pose d'ardoises naturelles Cupa clouées avec crochets inox 18/10", qty: 160, unit: "m²", priceHt: 35.0, vat: 6.0 },
-      { designation: "Façonnage & pose de gouttières demi-rondes en zinc Rheinzink 0.7mm avec soudures étain", qty: 24, unit: "m", priceHt: 45.0, vat: 6.0 },
+      { id: "l1", designation: "Installation d'un échafaudage de sécurité conforme aux normes belges", qty: 1, unit: "forfait", priceHt: 1200.0, vat: 6.0 },
+      { id: "l2", designation: "Dépose soignée de l'ancienne couverture ardoise et voligeage dégradé", qty: 160, unit: "m²", priceHt: 25.0, vat: 6.0 },
+      { id: "l3", designation: "Pose sous-toiture HPV Doerken Delta-PV & contre-lattage sapin traité", qty: 160, unit: "m²", priceHt: 18.0, vat: 6.0 },
+      { id: "l4", designation: "Fourniture & pose d'ardoises naturelles Cupa clouées avec crochets inox 18/10", qty: 160, unit: "m²", priceHt: 35.0, vat: 6.0 },
+      { id: "l5", designation: "Façonnage & pose de gouttières demi-rondes en zinc Rheinzink 0.7mm avec soudures étain", qty: 24, unit: "m", priceHt: 45.0, vat: 6.0 },
     ],
   });
 
@@ -59,13 +85,12 @@ export default function ClientQuotesPage() {
             ? "✅ Devis accepté avec succès ! Horodatage et IP enregistrés dans le registre d'audit."
             : "ℹ️ Devis refusé."
         );
+      } else {
+        setFeedbackMsg(data.error || "Échec du traitement de votre demande.");
       }
-    } catch (err) {
-      setFeedbackMsg("✅ Action enregistrée avec horodatage et preuve d'IP.");
-      setSelectedQuote((prev) => ({
-        ...prev,
-        status: action === "accept" ? "accepted" : "refused",
-      }));
+    } catch (err: unknown) {
+      console.error("Erreur lors de la prise de décision sur le devis :", err);
+      setFeedbackMsg("Une erreur est survenue lors de l'enregistrement de votre décision.");
     } finally {
       setIsProcessing(false);
     }
@@ -103,15 +128,9 @@ export default function ClientQuotesPage() {
                 Devis {selectedQuote.number}
               </h2>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  selectedQuote.status === "accepted"
-                    ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                    : selectedQuote.status === "refused"
-                    ? "bg-red-950 text-red-400 border border-red-800"
-                    : "bg-amber-950 text-amber-300 border border-amber-800"
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-extrabold ${getQuoteStatusStyle(selectedQuote.status)}`}
               >
-                {selectedQuote.status === "accepted" ? "✓ Accepté" : selectedQuote.status === "refused" ? "✗ Refusé" : "• En attente de signature"}
+                {getQuoteStatusLabel(selectedQuote.status)}
               </span>
             </div>
             <p className="text-xs text-slate-400">Émis le {selectedQuote.date} • Valable jusqu'au {selectedQuote.validity}</p>
@@ -142,8 +161,8 @@ export default function ClientQuotesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {selectedQuote.lines.map((line, i) => (
-                <tr key={i} className="hover:bg-slate-800/40 transition">
+              {selectedQuote.lines.map((line) => (
+                <tr key={line.id} className="hover:bg-slate-800/40 transition">
                   <td className="p-3 font-medium text-white">{line.designation}</td>
                   <td className="p-3 text-center">{line.qty}</td>
                   <td className="p-3 text-center text-slate-400">{line.unit}</td>

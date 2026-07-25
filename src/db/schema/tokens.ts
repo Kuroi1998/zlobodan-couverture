@@ -13,10 +13,10 @@ export const emailVerificationTokens = pgTable(
     usedAt: timestamp("used_at", { mode: "date", withTimezone: true }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    userIdIdx: index("idx_email_verify_user_id").on(table.userId),
-    tokenHashIdx: index("idx_email_verify_token_hash").on(table.tokenHash),
-  })
+  (table) => [
+    index("idx_email_verify_user_id").on(table.userId),
+    index("idx_email_verify_token_hash").on(table.tokenHash),
+  ]
 );
 
 export const passwordResetTokens = pgTable(
@@ -31,8 +31,8 @@ export const passwordResetTokens = pgTable(
     usedAt: timestamp("used_at", { mode: "date", withTimezone: true }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    userIdIdx: index("idx_pwd_reset_user_id").on(table.userId),
-    tokenHashIdx: index("idx_pwd_reset_token_hash").on(table.tokenHash),
-  })
+  (table) => [
+    index("idx_pwd_reset_user_id").on(table.userId),
+    index("idx_pwd_reset_token_hash").on(table.tokenHash),
+  ]
 );

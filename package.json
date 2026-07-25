@@ -15,7 +15,9 @@
     "test:watch": "vitest",
     "check:bundle": "node scripts/check-client-bundle.js",
     "db:migrate": "drizzle-kit migrate",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:strict": "next lint --max-warnings 0",
+    "validate": "npm run typecheck && npm run lint:strict && npm run check:size && npm run test && npm run build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

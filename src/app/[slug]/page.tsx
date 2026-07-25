@@ -6,7 +6,7 @@ import { siteConfig } from "@/config/site";
 import { servicesData } from "@/data/services";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
-import { MapPin, ShieldCheck, Phone, FileText, CheckCircle2, Clock, Award, ArrowRight } from "lucide-react";
+import { MapPin, Phone, CheckCircle2, Clock, ArrowRight, FileText, ShieldCheck, Award } from "lucide-react";
 
 export async function generateStaticParams() {
   return Object.values(villesData).map((v) => ({

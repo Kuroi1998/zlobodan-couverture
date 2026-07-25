@@ -1,5 +1,3 @@
-import { siteConfig } from "../config/site";
-
 async function main() {
   console.log("🌱 Seeding Zlobodan DB demo dataset...");
   console.log(" - Default Admin User: admin@zlobodan-couverture.be (Role: admin)");

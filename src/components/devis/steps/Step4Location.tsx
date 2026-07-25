@@ -30,11 +30,13 @@ export const Step4Location: React.FC<Step4Props> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 uppercase">
+          <label htmlFor="quote-postalcode" className="text-xs font-bold text-slate-700 uppercase">
             Code Postal Belge *
           </label>
           <div className="relative">
             <input
+              id="quote-postalcode"
+              name="postalCode"
               type="text"
               value={formData.postalCode}
               onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
@@ -47,10 +49,12 @@ export const Step4Location: React.FC<Step4Props> = ({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 uppercase">
+          <label htmlFor="quote-city" className="text-xs font-bold text-slate-700 uppercase">
             Commune Belge *
           </label>
           <input
+            id="quote-city"
+            name="city"
             type="text"
             value={formData.city}
             onChange={(e) => setFormData({ ...formData, city: e.target.value })}

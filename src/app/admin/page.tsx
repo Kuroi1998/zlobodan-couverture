@@ -1,6 +1,5 @@
-import React from "react";
 import Link from "next/link";
-import { Inbox, FileText, Receipt, HardHat, ShieldCheck, ArrowRight } from "lucide-react";
+import { Inbox, FileText, Receipt, HardHat } from "lucide-react";
 
 export default function AdminDashboardPage() {
   return (

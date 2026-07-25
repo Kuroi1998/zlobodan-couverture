@@ -18,8 +18,8 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    emailIdx: index("idx_users_email").on(table.email),
-    roleIdx: index("idx_users_role").on(table.role),
-  })
+  (table) => [
+    index("idx_users_email").on(table.email),
+    index("idx_users_role").on(table.role),
+  ]
 );

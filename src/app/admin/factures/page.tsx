@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Receipt, Download, ShieldCheck, ArrowRight } from "lucide-react";
+import { Receipt, Download } from "lucide-react";
 
 export default function AdminInvoicesPage() {
-  const [invoices, setInvoices] = useState([
+  const [invoices] = useState([
     { number: "FACT-2026-0004", quote: "DEV-2026-0012", client: "M. Jean Peeters", amountTtc: 4850.0, status: "issued", date: "24/07/2026" },
     { number: "FACT-2026-0003", quote: "DEV-2026-0008", client: "Mme Marie Dupont", amountTtc: 1250.0, status: "paid", date: "15/07/2026" },
     { number: "FACT-2026-0002", quote: "DEV-2026-0005", client: "Société Sprl Brabant", amountTtc: 8900.0, status: "paid", date: "02/06/2026" },

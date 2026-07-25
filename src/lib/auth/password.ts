@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { assertSafeOutboundUrl } from "@/lib/security/ssrf";
 
 const BCRYPT_ROUNDS = 12;
