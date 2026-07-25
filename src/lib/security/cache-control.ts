@@ -82,7 +82,27 @@ export function applyCachePolicy(
   // En-tête propriétaire Cloudflare : il l'emporte sur les règles de page.
   response.headers.set("Cloudflare-CDN-Cache-Control", PRIVATE_CACHE_VALUE);
   response.headers.set("Pragma", "no-cache");
-  response.headers.set("Vary", "Cookie, Authorization");
+
+  // `Vary` est *complété* plutôt que remplacé.
+  //
+  // LIMITE MESURÉE (serveur réel, pas lecture de code) : sur les réponses que
+  // Next.js rend lui-même — pages et handlers de route — il réécrit `Vary`
+  // intégralement après le middleware avec ses propres valeurs (`RSC`,
+  // `Next-Router-State-Tree`…). Nos jetons y sont donc perdus.
+  //
+  // Ils tiennent en revanche sur les réponses fabriquées ici même (refus CSRF,
+  // leurres). Ce n'est pas gênant en pratique : `Cache-Control: no-store` est
+  // présent sur *toutes* les réponses privées et prime — un cache conforme ne
+  // doit pas les stocker du tout, ce qui rend `Vary` sans objet. La règle de
+  // contournement CDN du runbook reste la seconde barrière.
+  const existingVary = response.headers.get("Vary");
+  const varyParts = existingVary ? existingVary.split(",").map((v) => v.trim()) : [];
+  for (const token of ["Cookie", "Authorization"]) {
+    if (!varyParts.some((v) => v.toLowerCase() === token.toLowerCase())) {
+      varyParts.push(token);
+    }
+  }
+  response.headers.set("Vary", varyParts.join(", "));
 
   return response;
 }

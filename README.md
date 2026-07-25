@@ -2,116 +2,182 @@
 
 # Zlobodan Couverture SRL — Plateforme Web & Espace Client Belgique
 
-> Plateforme web professionnelle et sécurisée développée pour l'entreprise **Zlobodan Couverture SRL** (couverture-zinguerie à Bruxelles, Brabant Wallon et Wallonie).
+> Site vitrine et portail client d'une entreprise de couverture-zinguerie belge
+> (Bruxelles, Brabant wallon, Wallonie). Demande de devis en ligne, espace
+> client (devis, factures, chantiers, documents) et back-office de gestion.
 
 ![Statut](https://img.shields.io/badge/statut-développement-orange)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![Accès](https://img.shields.io/badge/dépôt-privé-red)
 ![Next.js](https://img.shields.io/badge/Next.js-14.2.35-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue)
 
 ---
 
-## 📋 Présentation
+## Stack technique
 
-**Zlobodan Couverture** est une plateforme web full-stack moderne combinant un site vitrine haute conversion localisé pour la Belgique, un configurateur interactif de devis en 5 étapes, un **Espace Client (`/mon-compte`)** complet et un **Back-Office d'Administration (`/admin`)**. La sécurité applicative (conformité OWASP Top 10) est traitée comme la priorité numéro un du projet.
-
-### Fonctionnalités disponibles
-- **Site vitrine SEO localisé** : Landing pages dédiées par commune belge (Bruxelles, Waterloo, Uccle, Wavre, Ixelles, Namur, Liège).
-- **Carte interactive Leaflet / OpenStreetMap** : Centrée sur Bruxelles avec cercle d'intervention de 40 km et marqueurs cliquables sans clé payante Google Maps.
-- **Wizard Devis 5 étapes** : Formulaire interactif avec compression d'image client-side, géolocalisation de code postal belge et protection Honeypot anti-spam.
-- **Authentification & Sécurité OWASP** : Mots de passe bcrypt cost 12, vérification k-anonymité HaveIBeenPwned, TOTP 2FA, Captcha Turnstile, cookies `httpOnly` et middleware de sécurité (CSP, HSTS, DENY, nosniff).
-- **Espace Client (`/mon-compte`)** : Suivi des devis avec acceptation/refus en ligne horodaté + preuve d'IP hachée dans l'audit log, factures immuables, suivi de chantier par étapes (photos avant/pendant/après), messagerie et paramètres RGPD.
-- **Back-Office Admin (`/admin`)** : Traitement des demandes entrantes, composition de devis, conversion devis → facture immuable (`FACT-2026-XXXX`) et consultation du registre d'audit append-only.
-- **Générateur PDF Côté Serveur** : Édition des devis et factures PDF avec l'ensemble des mentions légales belges obligatoires (N° BCE `BE 0849.201.394`, Décennale AXA `AXA-BE-84920139`).
-
----
-
-## 🛠️ Technologies Utilisées
-
-| Domaine | Technologie |
-|---|---|
-| **Front-end** | React 18 / Next.js 14 App Router / TypeScript 5.4 |
-| **Back-end & API** | Node.js / Next.js Route Handlers |
-| **Base de données** | PostgreSQL / Drizzle ORM |
-| **Styles & UI** | Vanilla CSS / Tailwind CSS / Lucide Icons |
-| **Cartographie** | Leaflet / OpenStreetMap |
-| **Sécurité & Auth** | bcryptjs / speakeasy (TOTP 2FA) / Zod / sharp (Purge EXIF) |
-| **Tests & CI** | Vitest / GitHub Actions / Dependabot / CodeQL |
+| Domaine | Choix |
+| :--- | :--- |
+| Framework | Next.js 14 (App Router), React 18 |
+| Langage | TypeScript strict |
+| Style | Tailwind CSS |
+| Base de données | PostgreSQL via Drizzle ORM (pilote `postgres.js`) |
+| Validation | Zod |
+| Authentification | Sessions en base, bcrypt coût 12, TOTP |
+| Anti-automate | Cloudflare Turnstile |
+| Limitation de débit | Upstash Redis (API REST) |
+| Cartographie | Leaflet, auto-hébergé |
+| Tests | Vitest |
 
 ---
 
-## 🚀 Installation & Démarrage
+## Prérequis
 
-### Prérequis
-- Node.js version `20.x` ou supérieure
-- npm version `10.x` ou supérieure
-- Base de données PostgreSQL (Supabase, Neon ou instance locale)
-
-### 1. Clonage du dépôt & Installation
-```bash
-git clone git@github.com:USERNAME/zlobodan-couverture.git
-cd zlobodan-couverture
-npm install
-```
-
-### 2. Configuration des variables d'environnement
-```bash
-cp .env.example .env.local
-```
-
-### 3. Exécution des migrations & Seeding
-```bash
-npm run db:push
-npm run db:seed
-```
-
-### 4. Lancement en développement
-```bash
-npm run dev
-```
-Le site est disponible sur `http://localhost:3000`.
+- Node.js 20 ou supérieur
+- PostgreSQL 14 ou supérieur
+- npm 10 ou supérieur
 
 ---
 
-## 📜 Scripts Disponibles
+## Installation
 
-| Commande | Description |
-|---|---|
-| `npm run dev` | Lance le serveur de développement Next.js |
-| `npm run build` | Effectue la compilation statique SSG de production |
-| `npm run start` | Lance le serveur de production |
-| `npm run test` | Exécute la suite de tests automatisés Vitest |
-| `npm run check:size` | Vérifie que 100% des fichiers font moins de 400 lignes |
-| `npm run lint` | Analyse la qualité du code avec ESLint |
+```bash
+npm ci                  # installation reproductible depuis le lockfile
+cp .env.example .env    # puis renseigner les variables (voir ci-dessous)
+npm run db:generate     # génère les migrations depuis le schéma
+npm run db:push         # applique le schéma à la base
+npm run dev             # http://localhost:3000
+```
+
+> `npm ci` et jamais `npm install` en intégration : l'installation doit
+> reproduire le lockfile à l'identique. Les scripts `postinstall` sont
+> désactivés via `.npmrc` (`ignore-scripts=true`) — ils sont le principal
+> vecteur de compromission de la chaîne npm.
 
 ---
 
-## 🏗️ Architecture du Projet
+## Variables d'environnement
+
+Aucun secret n'a de valeur de repli : leur absence **interrompt le démarrage**
+en production (`src/lib/security/env.ts`). Modèle complet dans `.env.example`.
+
+| Variable | Rôle | Requise en production |
+| :--- | :--- | :---: |
+| `DATABASE_URL` | Connexion applicative, `sslmode=require` exigé | oui |
+| `MIGRATION_DATABASE_URL` | Compte de migration, privilèges distincts | recommandé |
+| `SESSION_SECRET` | Signature de session, 32 caractères minimum | oui |
+| `IP_HASH_SALT` | Sel HMAC d'anonymisation des IP, 32 caractères minimum | oui |
+| `TURNSTILE_SECRET_KEY` | Anti-automate. La clé de test Cloudflare est refusée | oui |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Clé publique du widget | oui |
+| `APP_ORIGIN` | Origine canonique. Les liens transactionnels n'utilisent **jamais** l'en-tête `Host` | oui |
+| `TRUSTED_PROXY` | `cloudflare` pour lire `CF-Connecting-IP` | oui |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Limitation de débit partagée entre instances | oui |
+| `SMTP_*` | Envoi d'emails — **transport non branché à ce jour** | non |
+
+---
+
+## Commandes
+
+| Commande | Effet |
+| :--- | :--- |
+| `npm run dev` | Serveur de développement |
+| `npm run build` | Build de production |
+| `npm start` | Sert le build |
+| `npm run lint` | ESLint — zéro avertissement toléré en CI |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Suite Vitest |
+| `npm run test:watch` | Vitest en continu |
+| `npm run check:bundle` | Vérifie qu'aucun secret n'a fui dans le bundle client |
+| `npm run check:size` | Contrôle la limite de 400 lignes par fichier |
+| `npm run db:generate` | Génère une migration depuis le schéma |
+| `npm run db:migrate` | Applique les migrations |
+| `npm run db:push` | Synchronise le schéma (développement) |
+| `npm run db:seed` | Jeu de données de démonstration |
+
+---
+
+## Architecture
 
 ```text
-.
-├── .github/              # Workflows CI/CD, modèles d'issues & PR
-├── docs/                 # Documentation bilingue FR / EN
-├── scripts/              # Scripts de validation automatique (size limit, bundle, tests)
-├── storage/              # Stockage sécurisé hors dossier public
-├── src/
-│   ├── app/              # Routes Next.js App Router (/mon-compte, /admin, /api)
-│   ├── components/       # Composants UI modulaires (< 200 lignes par fichier)
-│   ├── data/             # Données métier et SEO découpées par domaine
-│   ├── db/               # Schémas Drizzle ORM modulaires (users, quotes, invoices...)
-│   └── lib/              # Services métier, authentification et sécurité OWASP
-└── SECURITY.md           # Politique de sécurité et rapport d'audit
+src/
+├── app/               Routes, layouts et handlers d'API (App Router)
+│   ├── api/           Points d'entrée serveur
+│   ├── admin/         Back-office (rôles staff et admin)
+│   ├── mon-compte/    Espace client authentifié
+│   └── [slug]/        Pages communes générées depuis les données villes
+│
+├── components/        Composants React, groupés par fonctionnalité
+│   ├── devis/         Assistant de demande de devis (wizard + étapes)
+│   ├── home/          Sections de la page d'accueil
+│   ├── layout/        En-tête, pied de page, bandeaux
+│   ├── realisations/  Comparateur avant/après
+│   ├── reviews/       Avis clients
+│   └── seo/           Données structurées JSON-LD
+│
+├── config/            Configuration du site (raison sociale, coordonnées)
+├── data/              Contenu statique (services, réalisations, villes, FAQ)
+├── domain/            Règles métier : montants, machine à états, options de devis
+│
+├── db/                Schéma Drizzle, migrations, client
+├── lib/               Modules techniques
+│   ├── auth/          Mots de passe, sessions, TOTP, jetons
+│   ├── db/            Dépôts, tri par liste blanche, numérotation
+│   ├── media/         Compression d'images
+│   ├── security/      Gardes, CSP, CSRF, cache, débit, journal de sécurité
+│   ├── services/      Orchestration (authentification, PDF, notifications)
+│   └── validations/   Schémas Zod et normalisation
+│
+└── __tests__/         Tests unitaires et de sécurité
 ```
 
+### Responsabilité des dossiers
+
+- **`app/`** — uniquement des routes et ce qui leur est strictement propre.
+  Aucun composant réutilisable n'y vit.
+- **`config/`** — valeurs de configuration non sensibles. Jamais de secret.
+- **`data/`** — contenu éditorial structuré, sans logique.
+- **`domain/`** — règles métier indépendantes de React et du réseau : calcul de
+  TVA, transitions d'état, vocabulaire des formulaires. C'est la **source de
+  vérité** partagée entre l'interface et la validation serveur ; c'est ce qui
+  empêche l'écran et le serveur de diverger.
+- **`lib/`** — modules techniques. Ne contient aucune règle métier.
+- **`components/`** — regroupés par fonctionnalité plutôt que par type.
+
 ---
 
-## 🔒 Sécurité
+## Conventions
 
-Pour consulter la matrice complète des protections OWASP Top 10 et les modalités de signalement de faille, veuillez lire [SECURITY.md](SECURITY.md).
+- **Composants React** : `PascalCase.tsx` — `QuoteWizard.tsx`
+- **Hooks** : `useSomething.ts` — `useQuoteWizard.ts`
+- **Modules TypeScript** : `kebab-case.ts` — `rate-limiter.ts`, `quote-options.ts`
+- **Imports** : alias `@/` vers `src/`, jamais de `../../../`
+- **400 lignes maximum par fichier**, imposé par la règle ESLint `max-lines`
+- **Pas de SQL brut** : `db.execute` et `sql.raw` sont bloqués par ESLint.
+  L'unique exception, documentée et justifiée, vit dans
+  `src/lib/db/raw-queries.ts`.
 
 ---
 
-## 📄 Confidentialité
+## Sécurité
 
-**Ce dépôt est strictement privé.** Son code source, sa documentation, ses données et ses ressources graphiques ne peuvent être copiés, redistribués ou rendus publics sans autorisation écrite préalable.
+Les contrôles d'accès vivent dans les layouts et les handlers, **jamais dans le
+middleware** : CVE-2025-29927 permet de neutraliser son exécution par un
+en-tête forgé.
+
+- [`SECURITY.md`](SECURITY.md) — mesures en place, risques résiduels assumés,
+  plan de réponse à incident
+- [`docs/runbook-infrastructure.md`](docs/runbook-infrastructure.md) —
+  Cloudflare, pare-feu, TLS, rôles PostgreSQL, supervision
+- [`docs/audits/`](docs/audits/) — rapports d'audit et corrections appliquées
+
+---
+
+## Tests
+
+```bash
+npm test
+```
+
+La suite couvre le contrôle d'accès horizontal et vertical, les charges
+d'injection classiques, la pollution de prototype, la SSRF, les en-têtes CSP,
+les règles métier (montants, transitions d'état) et le contrat entre le
+formulaire de devis et sa validation serveur.
