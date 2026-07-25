@@ -1,12 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { villesData, VilleData } from "@/data/villesData";
-import { siteData } from "@/data/siteData";
-import { servicesData } from "@/data/servicesData";
+import { villesData, VilleData } from "@/data/villes";
+import { siteConfig } from "@/config/site";
+import { servicesData } from "@/data/services";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
-import { MapPin, ShieldCheck, Phone, FileText, CheckCircle2, Clock, Award, ArrowRight } from "lucide-react";
+import { MapPin, Phone, CheckCircle2, Clock, ArrowRight, FileText, ShieldCheck, Award } from "lucide-react";
 
 export async function generateStaticParams() {
   return Object.values(villesData).map((v) => ({
@@ -92,11 +92,11 @@ export default function VillePage({ params }: { params: { slug: string } }) {
                 </Link>
 
                 <a
-                  href={`tel:${siteData.phone}`}
+                  href={`tel:${siteConfig.phone}`}
                   className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-4 rounded-xl text-sm transition text-center flex items-center justify-center gap-2 border border-slate-700"
                 >
                   <Phone className="h-4 w-4 text-emerald-400" />
-                  <span>Appeler : {siteData.phoneFormatted}</span>
+                  <span>Appeler : {siteConfig.phoneFormatted}</span>
                 </a>
               </div>
 

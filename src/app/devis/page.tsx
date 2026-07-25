@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
-import { StepWizard } from "@/components/devis/StepWizard";
-import { siteData } from "@/data/siteData";
+import { QuoteWizard } from "@/components/devis/QuoteWizard";
+import { siteConfig } from "@/config/site";
 import { ShieldCheck, Clock, Award, Phone } from "lucide-react";
 
 export const metadata = {
@@ -29,7 +29,7 @@ export default function DevisPage() {
 
         {/* Wizard Component Wrapper */}
         <Suspense fallback={<div className="text-center py-12 text-slate-400">Chargement du configurateur devis...</div>}>
-          <StepWizard />
+          <QuoteWizard />
         </Suspense>
 
         {/* Guarantees Box below wizard */}
@@ -47,7 +47,7 @@ export default function DevisPage() {
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
             <Phone className="h-5 w-5 text-brand-terracotta mx-auto" />
             <p className="font-bold text-white">Besoin d'aide immédiate ?</p>
-            <p>Appelez-nous au {siteData.phoneFormatted}</p>
+            <p>Appelez-nous au {siteConfig.phoneFormatted}</p>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { ShieldCheck, Award, FileText, CheckCircle2, Zap } from "lucide-react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const ReassuranceBar: React.FC = () => {
   const getIcon = (name: string) => {
@@ -24,7 +24,7 @@ export const ReassuranceBar: React.FC = () => {
     <section className="bg-slate-900 border-y border-slate-800 py-6 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {siteData.reassuranceBadges.map((badge) => (
+          {siteConfig.reassuranceBadges.map((badge) => (
             <div
               key={badge.id}
               className="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-xl flex items-center gap-3 hover:border-slate-700 transition"

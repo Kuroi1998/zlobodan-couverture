@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { clearCounter, incrementCounter } from "./rateLimiter";
+import { clearCounter, incrementCounter } from "./rate-limiter";
 
 /**
  * Clés d'idempotence.

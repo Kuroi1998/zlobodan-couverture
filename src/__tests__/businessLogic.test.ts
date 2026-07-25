@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { calculateQuoteTotals } from "@/lib/utils/calculator";
+import { calculateQuoteTotals } from "@/domain/money";
 import { formatDocumentNumber, NUMBERING_SEQUENCES } from "@/lib/db/numbering";
 
 describe("Calculs commerciaux", () => {

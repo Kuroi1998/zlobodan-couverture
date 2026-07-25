@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionTokenFromCookie } from "@/lib/auth/session";
-import { logoutUser } from "@/lib/services/authService";
+import { logoutUser } from "@/lib/services/auth-service";
 
 export async function POST(req: NextRequest) {
   const sessionToken = getSessionTokenFromCookie();

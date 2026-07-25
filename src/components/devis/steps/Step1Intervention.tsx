@@ -1,6 +1,7 @@
 import React from "react";
 import { Home, Droplets, Sparkles, ShieldAlert, Flame, Sun, HelpCircle, CheckCircle2 } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
+import { INTERVENTION_OPTIONS } from "@/domain/quote-options";
 
 interface Step1Props {
   formData: FormDataState;
@@ -8,15 +9,23 @@ interface Step1Props {
 }
 
 export const Step1Intervention: React.FC<Step1Props> = ({ formData, setFormData }) => {
-  const interventionOptions = [
-    { id: "refection", title: "Réfection complète toiture", icon: <Home className="h-6 w-6 text-brand-terracotta" /> },
-    { id: "fuite", title: "Réparation fuite d'urgence", icon: <Droplets className="h-6 w-6 text-blue-500" /> },
-    { id: "demoussage", title: "Démoussage & Hydrofuge", icon: <Sparkles className="h-6 w-6 text-amber-500" /> },
-    { id: "gouttieres", title: "Zinguerie & Gouttières", icon: <ShieldAlert className="h-6 w-6 text-emerald-500" /> },
-    { id: "isolation", title: "Isolation toiture (Sarking/Combles)", icon: <Flame className="h-6 w-6 text-orange-500" /> },
-    { id: "velux", title: "Pose ou remplacement Velux", icon: <Sun className="h-6 w-6 text-yellow-400" /> },
-    { id: "autre", title: "Autre projet de toiture", icon: <HelpCircle className="h-6 w-6 text-slate-400" /> },
-  ];
+  // Les identifiants et libelles viennent de , partages
+  // avec la validation serveur. Seules les icones restent une affaire de rendu.
+  const ICONS: Record<string, React.ReactNode> = {
+    refection: <Home className="h-6 w-6 text-brand-terracotta" />,
+    fuite: <Droplets className="h-6 w-6 text-blue-500" />,
+    demoussage: <Sparkles className="h-6 w-6 text-amber-500" />,
+    gouttieres: <ShieldAlert className="h-6 w-6 text-emerald-500" />,
+    isolation: <Flame className="h-6 w-6 text-orange-500" />,
+    velux: <Sun className="h-6 w-6 text-yellow-400" />,
+    autre: <HelpCircle className="h-6 w-6 text-slate-400" />,
+  };
+
+  const interventionOptions = INTERVENTION_OPTIONS.map((o) => ({
+    id: o.id,
+    title: o.label,
+    icon: ICONS[o.id],
+  }));
 
   return (
     <div className="space-y-6">

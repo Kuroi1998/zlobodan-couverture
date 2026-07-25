@@ -22,12 +22,12 @@ export const invoices = pgTable(
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    numberIdx: index("idx_invoices_number").on(table.number),
-    userIdIdx: index("idx_invoices_user_id").on(table.userId),
-    quoteIdIdx: index("idx_invoices_quote_id").on(table.quoteId),
-    statusIdx: index("idx_invoices_status").on(table.status),
-  })
+  (table) => [
+    index("idx_invoices_number").on(table.number),
+    index("idx_invoices_user_id").on(table.userId),
+    index("idx_invoices_quote_id").on(table.quoteId),
+    index("idx_invoices_status").on(table.status),
+  ]
 );
 
 export const creditNotes = pgTable(
@@ -47,8 +47,8 @@ export const creditNotes = pgTable(
     pdfPath: text("pdf_path"),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    numberIdx: index("idx_credit_notes_number").on(table.number),
-    invoiceIdIdx: index("idx_credit_notes_invoice_id").on(table.invoiceId),
-  })
+  (table) => [
+    index("idx_credit_notes_number").on(table.number),
+    index("idx_credit_notes_invoice_id").on(table.invoiceId),
+  ]
 );

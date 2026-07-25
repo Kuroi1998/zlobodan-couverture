@@ -18,8 +18,8 @@ export const sessions = pgTable(
     revokedAt: timestamp("revoked_at", { mode: "date", withTimezone: true }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    userIdIdx: index("idx_sessions_user_id").on(table.userId),
-    tokenHashIdx: index("idx_sessions_token_hash").on(table.tokenHash),
-  })
+  (table) => [
+    index("idx_sessions_user_id").on(table.userId),
+    index("idx_sessions_token_hash").on(table.tokenHash),
+  ]
 );

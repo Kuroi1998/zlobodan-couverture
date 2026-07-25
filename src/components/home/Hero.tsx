@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Phone, FileText, ShieldCheck, Star, MapPin, Clock, CheckCircle2 } from "lucide-react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const Hero: React.FC = () => {
   return (
@@ -44,12 +44,12 @@ export const Hero: React.FC = () => {
 
             {/* H1 Title */}
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Couvreur-Zingueur à <span className="text-brand-terracotta">{siteData.city}</span> & Agglomération
+              Couvreur-Zingueur à <span className="text-brand-terracotta">{siteConfig.city}</span> & Agglomération
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
-              Réfection complète de toiture, recherche de fuite d'urgence 24/7, démoussage hydrofuge &amp; pose de Velux dans un rayon de <strong className="text-white font-semibold">{siteData.radiusKm} km</strong>.
+              Réfection complète de toiture, recherche de fuite d'urgence 24/7, démoussage hydrofuge &amp; pose de Velux dans un rayon de <strong className="text-white font-semibold">{siteConfig.radiusKm} km</strong>.
             </p>
 
             {/* Key USPs / Badges list */}
@@ -64,7 +64,7 @@ export const Hero: React.FC = () => {
                 <div className="bg-amber-500/20 text-amber-400 p-1 rounded">
                   <Clock className="h-4 w-4" />
                 </div>
-                <span>{siteData.responseDelay}</span>
+                <span>{siteConfig.responseDelay}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="bg-brand-terracotta/20 text-brand-terracotta p-1 rounded">
@@ -91,11 +91,11 @@ export const Hero: React.FC = () => {
               </Link>
 
               <a
-                href={`tel:${siteData.emergencyPhone}`}
+                href={`tel:${siteConfig.emergencyPhone}`}
                 className="flex items-center justify-center gap-2.5 bg-slate-800/90 border border-slate-700 hover:border-slate-500 text-white px-6 py-4 rounded-xl text-base font-semibold transition-all hover:bg-slate-800 text-center"
               >
                 <Phone className="h-5 w-5 text-emerald-400 animate-pulse" />
-                <span>Urgence 24/7 : {siteData.emergencyPhoneFormatted}</span>
+                <span>Urgence 24/7 : {siteConfig.emergencyPhoneFormatted}</span>
               </a>
             </div>
 
@@ -131,10 +131,10 @@ export const Hero: React.FC = () => {
                   <button
                     onClick={() => {
                       const val = (document.getElementById("hero-cp-input") as HTMLInputElement)?.value.trim();
-                      if (siteData.coveredPostalCodes.includes(val)) {
+                      if (siteConfig.coveredPostalCodes.includes(val)) {
                         alert(`✅ Oui ! ${val} fait partie de notre zone d'intervention directe sous 24h.`);
                       } else if (val.length === 4) {
-                        alert(`ℹ️ Le code postal belge ${val} fait partie de notre zone d'intervention. Contactez-nous au ${siteData.phoneFormatted} pour réserver votre métré.`);
+                        alert(`ℹ️ Le code postal belge ${val} fait partie de notre zone d'intervention. Contactez-nous au ${siteConfig.phoneFormatted} pour réserver votre métré.`);
                       } else {
                         alert("Veuillez saisir un code postal belge (ex: 1000, 1410, 1180, 1300, 5000...).");
                       }

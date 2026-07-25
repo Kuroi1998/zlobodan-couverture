@@ -1,5 +1,4 @@
-import React from "react";
-import { History, ShieldCheck, Lock } from "lucide-react";
+import { History, Lock } from "lucide-react";
 
 export default function AdminAuditPage() {
   const auditLogs = [

@@ -68,7 +68,11 @@ export const BeforeAfterSlider: React.FC<BeforeAfterProps> = ({
 
       <div
         ref={containerRef}
+        role="slider"
         tabIndex={0}
+        aria-valuenow={Math.round(sliderPosition)}
+        aria-valuemin={0}
+        aria-valuemax={100}
         onKeyDown={handleKeyDown}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}

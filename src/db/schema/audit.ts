@@ -13,9 +13,9 @@ export const auditLog = pgTable(
     ipHash: varchar("ip_hash", { length: 64 }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    userIdIdx: index("idx_audit_user_id").on(table.userId),
-    actionIdx: index("idx_audit_action").on(table.action),
-    targetTableIdx: index("idx_audit_target_table").on(table.targetTable),
-  })
+  (table) => [
+    index("idx_audit_user_id").on(table.userId),
+    index("idx_audit_action").on(table.action),
+    index("idx_audit_target_table").on(table.targetTable),
+  ]
 );

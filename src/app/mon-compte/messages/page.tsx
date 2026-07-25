@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageSquare, Send, User, HardHat, Check } from "lucide-react";
+import { MessageSquare, Send, User, HardHat } from "lucide-react";
 
 export default function ClientMessagesPage() {
   const [messages, setMessages] = useState([
@@ -101,8 +101,12 @@ export default function ClientMessagesPage() {
 
         {/* Input Form */}
         <form onSubmit={handleSendMessage} className="p-4 bg-slate-950 border-t border-slate-800 flex gap-3">
+          <label htmlFor="message-input" className="sr-only">Votre message</label>
           <input
+            id="message-input"
+            name="message"
             type="text"
+            aria-label="Écrivez votre message..."
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Écrivez votre message..."

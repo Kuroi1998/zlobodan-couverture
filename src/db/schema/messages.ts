@@ -16,10 +16,10 @@ export const messages = pgTable(
     content: text("content").notNull(),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    threadIdIdx: index("idx_messages_thread_id").on(table.threadId),
-    senderIdIdx: index("idx_messages_sender_id").on(table.senderId),
-    quoteIdIdx: index("idx_messages_quote_id").on(table.quoteId),
-    projectIdIdx: index("idx_messages_project_id").on(table.projectId),
-  })
+  (table) => [
+    index("idx_messages_thread_id").on(table.threadId),
+    index("idx_messages_sender_id").on(table.senderId),
+    index("idx_messages_quote_id").on(table.quoteId),
+    index("idx_messages_project_id").on(table.projectId),
+  ]
 );

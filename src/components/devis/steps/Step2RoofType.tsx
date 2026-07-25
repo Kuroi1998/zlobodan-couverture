@@ -1,6 +1,7 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
+import { ROOF_TYPE_OPTIONS } from "@/domain/quote-options";
 
 interface Step2Props {
   formData: FormDataState;
@@ -8,14 +9,11 @@ interface Step2Props {
 }
 
 export const Step2RoofType: React.FC<Step2Props> = ({ formData, setFormData }) => {
-  const roofTypeOptions = [
-    { id: "ardoise", title: "Ardoise naturelle / synthétique", subtitle: "Fréquent en Belgique & Région bruxelloise" },
-    { id: "tuile_terre_cuite", title: "Tuiles terre cuite Koramic / Pottelberg", subtitle: "Plates, romanes ou emboîtement" },
-    { id: "tuile_beton", title: "Tuiles béton", subtitle: "Gris/Rouge massif" },
-    { id: "zinc", title: "Zinc à joint debout", subtitle: "Toiture mansardée ou moderne" },
-    { id: "bac_acier", title: "Bac acier", subtitle: "Entrepôts ou annexes" },
-    { id: "je_ne_sais_pas", title: "Je ne sais pas", subtitle: "À diagnostiquer sur place par le couvreur" },
-  ];
+  const roofTypeOptions = ROOF_TYPE_OPTIONS.map((o) => ({
+    id: o.id,
+    title: o.label,
+    subtitle: o.hint ?? "",
+  }));
 
   return (
     <div className="space-y-6">

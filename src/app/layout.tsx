@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { MobileCallBar } from "@/components/layout/MobileCallBar";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,10 +23,10 @@ const barlow = Barlow({
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteData.shortName} | Couvreur-Zinguerie Bruxelles & Wallonie - Devis Gratuit 48h`,
-    template: `%s | ${siteData.shortName}`,
+    default: `${siteConfig.shortName} | Couvreur-Zinguerie Bruxelles & Wallonie - Devis Gratuit 48h`,
+    template: `%s | ${siteConfig.shortName}`,
   },
-  description: siteData.description,
+  description: siteConfig.description,
   keywords: [
     "couvreur bruxelles",
     "couvreur waterloo",
@@ -39,17 +39,17 @@ export const metadata: Metadata = {
     "isolation toiture prime renolution wallonie",
     "garantie décennale toiture belgique",
   ],
-  authors: [{ name: siteData.name }],
-  creator: siteData.name,
+  authors: [{ name: siteConfig.name }],
+  creator: siteConfig.name,
   metadataBase: new URL("https://zlobodan-couverture.be"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: siteData.name,
-    description: siteData.description,
+    title: siteConfig.name,
+    description: siteConfig.description,
     url: "https://zlobodan-couverture.be",
-    siteName: siteData.name,
+    siteName: siteConfig.name,
     locale: "fr_BE",
     type: "website",
     images: [
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
         url: "/images/hero-roof.webp",
         width: 1200,
         height: 630,
-        alt: `${siteData.name} Couvreur en Belgique`,
+        alt: `${siteConfig.name} Couvreur en Belgique`,
       },
     ],
   },
@@ -75,9 +75,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="fr" className={`${inter.variable} ${barlow.variable}`}>
       <head>

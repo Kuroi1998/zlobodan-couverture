@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { clearCounter, incrementCounter, readCounter } from "./rateLimiter";
+import { clearCounter, incrementCounter, readCounter } from "./rate-limiter";
 
 /**
  * Blocage progressif de l'authentification.

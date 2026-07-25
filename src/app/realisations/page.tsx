@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { realisationsData, RealisationItem } from "@/data/realisationsData";
+import { realisationsData, RealisationItem } from "@/data/realisations";
 import { BeforeAfterSlider } from "@/components/realisations/BeforeAfterSlider";
 import { MapPin, Clock, ArrowRight, Star } from "lucide-react";
 

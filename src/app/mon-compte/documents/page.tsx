@@ -1,9 +1,10 @@
 import React from "react";
-import { FolderOpen, Download, FileText, ShieldCheck, Camera } from "lucide-react";
+import { FolderOpen, Download, FileText, ShieldCheck } from "lucide-react";
 
 export default function ClientDocumentsPage() {
   const documentsList = [
     {
+      id: "doc-1",
       name: "Attestation Garantie Décennale Belge AXA 2026",
       type: "Garantie Décennale",
       size: "1.4 Mo",
@@ -12,6 +13,7 @@ export default function ClientDocumentsPage() {
       icon: <ShieldCheck className="h-5 w-5 text-emerald-400" />,
     },
     {
+      id: "doc-2",
       name: "Devis Officiel Signé #DEV-2026-0012",
       type: "Devis",
       size: "620 Ko",
@@ -20,6 +22,7 @@ export default function ClientDocumentsPage() {
       icon: <FileText className="h-5 w-5 text-brand-terracotta" />,
     },
     {
+      id: "doc-3",
       name: "Facture d'acompte #FACT-2026-0004",
       type: "Facture Immuable",
       size: "450 Ko",
@@ -28,6 +31,7 @@ export default function ClientDocumentsPage() {
       icon: <FileText className="h-5 w-5 text-blue-400" />,
     },
     {
+      id: "doc-4",
       name: "Dossier Technique Fiches Produits Cupa & Doerken",
       type: "Fiche Technique",
       size: "3.2 Mo",
@@ -52,9 +56,9 @@ export default function ClientDocumentsPage() {
 
       {/* Documents List Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {documentsList.map((doc, idx) => (
+        {documentsList.map((doc) => (
           <div
-            key={idx}
+            key={doc.id}
             className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between gap-4 hover:border-slate-700 transition"
           >
             <div className="flex items-center gap-3">

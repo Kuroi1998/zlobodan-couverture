@@ -1,6 +1,6 @@
 import React from "react";
 import { Upload, X, Send } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
 
 interface Step5Props {
   formData: FormDataState;
@@ -47,10 +47,12 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 uppercase">
+          <label htmlFor="quote-fullname" className="text-xs font-bold text-slate-700 uppercase">
             Nom &amp; Prénom *
           </label>
           <input
+            id="quote-fullname"
+            name="fullName"
             type="text"
             required
             value={formData.fullName}
@@ -61,10 +63,12 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-slate-700 uppercase">
+          <label htmlFor="quote-phone" className="text-xs font-bold text-slate-700 uppercase">
             Numéro de Téléphone *
           </label>
           <input
+            id="quote-phone"
+            name="phone"
             type="tel"
             required
             value={formData.phone}
@@ -76,10 +80,12 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-slate-700 uppercase">
+        <label htmlFor="quote-email" className="text-xs font-bold text-slate-700 uppercase">
           Adresse Email *
         </label>
         <input
+          id="quote-email"
+          name="email"
           type="email"
           required
           value={formData.email}
@@ -90,10 +96,12 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-slate-700 uppercase">
+        <label htmlFor="quote-description" className="text-xs font-bold text-slate-700 uppercase">
           Précisions complémentaires (facultatif)
         </label>
         <textarea
+          id="quote-description"
+          name="description"
           rows={3}
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -104,10 +112,10 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
 
       {/* Photo Drag & Drop Upload */}
       <div className="space-y-3">
-        <label className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+        <span className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center justify-between">
           <span>Ajouter des photos du chantier (5 max)</span>
           <span className="text-slate-400 font-normal">Compression auto client-side</span>
-        </label>
+        </span>
 
         <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-brand-terracotta transition bg-slate-50">
           <input
@@ -136,7 +144,7 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
         {photos.length > 0 && (
           <div className="flex flex-wrap gap-3 pt-2">
             {photos.map((item, idx) => (
-              <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+              <div key={item.preview} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
                 {/* next/image ne sait pas traiter une URL blob: locale, seule
                     source disponible pour prévisualiser avant envoi. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -144,6 +152,7 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
                 <button
                   type="button"
                   onClick={() => removePhoto(idx)}
+                  aria-label={`Supprimer photo ${idx + 1}`}
                   className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow"
                 >
                   <X className="h-3 w-3" />

@@ -19,10 +19,10 @@ export const quoteRequests = pgTable(
     status: varchar("status", { length: 30 }).notNull().default("pending"), // 'pending' | 'reviewed' | 'converted'
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    emailIdx: index("idx_quote_req_email").on(table.email),
-    userIdIdx: index("idx_quote_req_user_id").on(table.userId),
-  })
+  (table) => [
+    index("idx_quote_req_email").on(table.email),
+    index("idx_quote_req_user_id").on(table.userId),
+  ]
 );
 
 export const quotes = pgTable(
@@ -43,11 +43,11 @@ export const quotes = pgTable(
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    numberIdx: index("idx_quotes_number").on(table.number),
-    userIdIdx: index("idx_quotes_user_id").on(table.userId),
-    statusIdx: index("idx_quotes_status").on(table.status),
-  })
+  (table) => [
+    index("idx_quotes_number").on(table.number),
+    index("idx_quotes_user_id").on(table.userId),
+    index("idx_quotes_status").on(table.status),
+  ]
 );
 
 export const quoteLines = pgTable(
@@ -63,7 +63,7 @@ export const quoteLines = pgTable(
     unitPriceHt: numeric("unit_price_ht", { precision: 12, scale: 2 }).notNull().default("0.00"),
     vatRate: numeric("vat_rate", { precision: 5, scale: 2 }).notNull().default("6.00"), // 6.00% (TVA Belgique)
   },
-  (table) => ({
-    quoteIdIdx: index("idx_quote_lines_quote_id").on(table.quoteId),
-  })
+  (table) => [
+    index("idx_quote_lines_quote_id").on(table.quoteId),
+  ]
 );

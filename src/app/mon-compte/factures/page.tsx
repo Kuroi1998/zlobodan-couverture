@@ -1,5 +1,4 @@
-import React from "react";
-import { Receipt, Download, ShieldCheck, AlertCircle } from "lucide-react";
+import { Receipt, Download, ShieldCheck } from "lucide-react";
 
 export default function ClientInvoicesPage() {
   const invoicesList = [

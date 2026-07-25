@@ -24,5 +24,5 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - **Espace Client (`/mon-compte`)** : Suivi des devis avec acceptation/refus en ligne horodaté + preuve d'IP hachée dans l'audit log, factures immuables et suivi de chantier par étapes.
 - **Back-Office Administration (`/admin`)** : Composition de devis, conversion devis → facture immuable et vue du registre d'audit append-only.
 - **Générateur PDF Côté Serveur** : Édition des devis et factures PDF avec toutes les mentions légales belges obligatoires (BCE `BE 0849.201.394`, Décennale AXA `AXA-BE-84920139`).
-- **Suite de Tests Automatisés** : 50/50 tests réussis sous Vitest et vérification automatique de la taille des fichiers (`npm run check:size`).
+- **Suite de Tests Automatisés** : 105/105 tests réussis sous Vitest et vérification automatique de la taille des fichiers (`npm run check:size`).
 - **Documentation Bilingue** : Documentation complète en français et en anglais (`README`, `SECURITY`, `CONTRIBUTING`, `ARCHITECTURE`, `DATABASE`, `API`).

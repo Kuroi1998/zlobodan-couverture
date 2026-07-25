@@ -6,7 +6,7 @@ import {
   toCents,
   fromCents,
   centsToNumeric,
-} from "@/lib/domain/money";
+} from "@/domain/money";
 import {
   assertInvoiceTransition,
   assertQuoteTransition,
@@ -15,7 +15,7 @@ import {
   isQuoteAcceptable,
   isQuoteMutable,
   TransitionError,
-} from "@/lib/domain/state-machine";
+} from "@/domain/state-machine";
 import {
   NEVER_USER_WRITABLE,
   pickAllowedFields,

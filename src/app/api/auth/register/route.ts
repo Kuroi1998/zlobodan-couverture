@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RegisterSchema } from "@/lib/validations/authSchemas";
-import { registerUser } from "@/lib/services/authService";
-import { toPublicAuthError } from "@/lib/services/authErrors";
+import { RegisterSchema } from "@/lib/validations/auth-schemas";
+import { registerUser } from "@/lib/services/auth-service";
+import { toPublicAuthError } from "@/lib/services/auth-errors";
 import { enforceRateLimit } from "@/lib/security/rate-limit-guard";
 import { getTrustedIp } from "@/lib/security/request-context";
 import { readJsonBody } from "@/lib/security/body";

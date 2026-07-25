@@ -31,6 +31,39 @@ export interface ResourceOwnership {
   userId?: string | null;
 }
 
+const CLIENT_ALLOWED_ACTIONS: ReadonlySet<ActionType> = new Set<ActionType>([
+  "read",
+  "download",
+  "accept",
+  "refuse",
+  "create",
+]);
+
+function canStaff(action: ActionType, resourceType: ResourceType): boolean {
+  if (resourceType === "audit_log" && action === "delete") return false;
+  if (resourceType === "users" && action === "delete") return false;
+  return true;
+}
+
+function canClient(
+  action: ActionType,
+  resourceType: ResourceType,
+  user: AuthUser,
+  resourceObject?: ResourceOwnership
+): boolean {
+  if (resourceType === "audit_log") return false;
+  if (resourceType === "users" && action === "manage") return false;
+
+  if (resourceObject) {
+    const resourceOwnerId = resourceObject.ownerId ?? resourceObject.userId ?? null;
+    if (!resourceOwnerId || resourceOwnerId !== user.id) {
+      return false;
+    }
+  }
+
+  return CLIENT_ALLOWED_ACTIONS.has(action);
+}
+
 /**
  * Fonction d'autorisation unifiée centralisée CAN(user, action, resource)
  * Vérifie systématiquement les permissions côté serveur.
@@ -43,41 +76,14 @@ export function can(
 ): boolean {
   if (!user) return false;
 
-  // Admin : Tous les privilèges
-  if (user.role === "admin") return true;
-
-  // Staff : Gestion devis, factures, chantiers, messages, documents
-  if (user.role === "staff") {
-    if (resourceType === "audit_log" && action === "delete") return false; // Audit append-only
-    if (resourceType === "users" && action === "delete") return false; // Seul admin supprime
-    return true;
-  }
-
-  // Client : Contrôle d'accès strict sur ses propres ressources uniquement
-  if (user.role === "client") {
-    if (resourceType === "audit_log") return false; // Seul staff/admin consulte l'audit
-    if (resourceType === "users" && action === "manage") return false;
-
-    // Contrôle d'appartenance en refus par défaut.
-    //
-    // La version précédente lisait `ownerId || userId` puis n'appliquait le
-    // test que si le résultat était vérité : une ressource orpheline, ou un
-    // objet partiellement chargé, franchissait donc le contrôle (audit F1).
-    // Ici, fournir une ressource sans propriétaire identifiable est un refus.
-    if (resourceObject) {
-      const resourceOwnerId = resourceObject.ownerId ?? resourceObject.userId ?? null;
-      if (!resourceOwnerId) {
-        return false; // Propriétaire inconnu : on ne devine pas, on refuse.
-      }
-      if (resourceOwnerId !== user.id) {
-        return false; // Bloque l'accès croisé Client A vs Client B.
-      }
-    }
-
-    if (action === "read" || action === "download" || action === "accept" || action === "refuse" || action === "create") {
+  switch (user.role) {
+    case "admin":
       return true;
-    }
+    case "staff":
+      return canStaff(action, resourceType);
+    case "client":
+      return canClient(action, resourceType, user, resourceObject);
+    default:
+      return false;
   }
-
-  return false;
 }

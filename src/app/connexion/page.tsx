@@ -179,9 +179,11 @@ export default function ConnexionPage() {
         {activeTab === "login" ? (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300 uppercase">Adresse Email *</label>
+              <label htmlFor="login-email" className="text-xs font-bold text-slate-300 uppercase">Adresse Email *</label>
               <div className="relative">
                 <input
+                  id="login-email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -194,9 +196,11 @@ export default function ConnexionPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300 uppercase">Mot de Passe *</label>
+              <label htmlFor="login-password" className="text-xs font-bold text-slate-300 uppercase">Mot de Passe *</label>
               <div className="relative">
                 <input
+                  id="login-password"
+                  name="password"
                   type="password"
                   required
                   value={password}
@@ -240,9 +244,11 @@ export default function ConnexionPage() {
           /* REGISTER FORM */
           <form onSubmit={handleRegisterSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300 uppercase">Adresse Email *</label>
+              <label htmlFor="register-email" className="text-xs font-bold text-slate-300 uppercase">Adresse Email *</label>
               <div className="relative">
                 <input
+                  id="register-email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -255,9 +261,11 @@ export default function ConnexionPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300 uppercase">Téléphone (facultatif)</label>
+              <label htmlFor="register-phone" className="text-xs font-bold text-slate-300 uppercase">Téléphone (facultatif)</label>
               <div className="relative">
                 <input
+                  id="register-phone"
+                  name="phone"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -269,9 +277,11 @@ export default function ConnexionPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300 uppercase">Mot de passe (12 caractères min) *</label>
+              <label htmlFor="register-password" className="text-xs font-bold text-slate-300 uppercase">Mot de passe (12 caractères min) *</label>
               <div className="relative">
                 <input
+                  id="register-password"
+                  name="password"
                   type="password"
                   required
                   minLength={12}

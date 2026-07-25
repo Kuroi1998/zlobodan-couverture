@@ -1,117 +1,98 @@
-**Langues :** Français | [English](README.en.md)
+# Zlobodan Couverture
 
-# Zlobodan Couverture SRL — Plateforme Web & Espace Client Belgique
+Plateforme web professionnelle dédiée à la présentation des services de couverture, à la demande de devis et au suivi des clients et des chantiers.
 
-> Plateforme web professionnelle et sécurisée développée pour l'entreprise **Zlobodan Couverture SRL** (couverture-zinguerie à Bruxelles, Brabant Wallon et Wallonie).
+Français | [English version](docs/en/README.md)
 
-![Statut](https://img.shields.io/badge/statut-développement-orange)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+<!-- ![Bannière Zlobodan Couverture](docs/assets/github-banner.webp) -->
+
+![Statut](https://img.shields.io/badge/statut-production_ready-green)
 ![Accès](https://img.shields.io/badge/dépôt-privé-red)
 ![Next.js](https://img.shields.io/badge/Next.js-14.2.35-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue)
 
 ---
 
-## 📋 Présentation
+## 📖 Présentation du Projet
+Zlobodan Couverture est une application Next.js monolithique offrant à la fois une vitrine commerciale, un espace client sécurisé pour le suivi des chantiers et des devis, ainsi qu'un back-office complet pour l'administration de l'entreprise.
 
-**Zlobodan Couverture** est une plateforme web full-stack moderne combinant un site vitrine haute conversion localisé pour la Belgique, un configurateur interactif de devis en 5 étapes, un **Espace Client (`/mon-compte`)** complet et un **Back-Office d'Administration (`/admin`)**. La sécurité applicative (conformité OWASP Top 10) est traitée comme la priorité numéro un du projet.
+## 🚀 Fonctionnalités
+- **Vitrine** : Présentation des services (réfection, démoussage, etc.) et réalisations.
+- **Génération de devis** : Assistant interactif (wizard) pour la demande de devis.
+- **Espace Client** : Acceptation/refus de devis, suivi des factures et progression de chantier.
+- **Back-Office** : Gestion des clients, génération de devis PDF, et journal d'audit de sécurité.
 
-### Fonctionnalités disponibles
-- **Site vitrine SEO localisé** : Landing pages dédiées par commune belge (Bruxelles, Waterloo, Uccle, Wavre, Ixelles, Namur, Liège).
-- **Carte interactive Leaflet / OpenStreetMap** : Centrée sur Bruxelles avec cercle d'intervention de 40 km et marqueurs cliquables sans clé payante Google Maps.
-- **Wizard Devis 5 étapes** : Formulaire interactif avec compression d'image client-side, géolocalisation de code postal belge et protection Honeypot anti-spam.
-- **Authentification & Sécurité OWASP** : Mots de passe bcrypt cost 12, vérification k-anonymité HaveIBeenPwned, TOTP 2FA, Captcha Turnstile, cookies `httpOnly` et middleware de sécurité (CSP, HSTS, DENY, nosniff).
-- **Espace Client (`/mon-compte`)** : Suivi des devis avec acceptation/refus en ligne horodaté + preuve d'IP hachée dans l'audit log, factures immuables, suivi de chantier par étapes (photos avant/pendant/après), messagerie et paramètres RGPD.
-- **Back-Office Admin (`/admin`)** : Traitement des demandes entrantes, composition de devis, conversion devis → facture immuable (`FACT-2026-XXXX`) et consultation du registre d'audit append-only.
-- **Générateur PDF Côté Serveur** : Édition des devis et factures PDF avec l'ensemble des mentions légales belges obligatoires (N° BCE `BE 0849.201.394`, Décennale AXA `AXA-BE-84920139`).
+## 📸 Captures d'écran récentes
 
----
+*(Le dossier `docs/screenshots/` est prêt à accueillir les captures optimisées au format WebP)*
 
-## 🛠️ Technologies Utilisées
-
+## 🛠 Technologies réellement utilisées
 | Domaine | Technologie |
-|---|---|
-| **Front-end** | React 18 / Next.js 14 App Router / TypeScript 5.4 |
-| **Back-end & API** | Node.js / Next.js Route Handlers |
-| **Base de données** | PostgreSQL / Drizzle ORM |
-| **Styles & UI** | Vanilla CSS / Tailwind CSS / Lucide Icons |
-| **Cartographie** | Leaflet / OpenStreetMap |
-| **Sécurité & Auth** | bcryptjs / speakeasy (TOTP 2FA) / Zod / sharp (Purge EXIF) |
-| **Tests & CI** | Vitest / GitHub Actions / Dependabot / CodeQL |
+| :--- | :--- |
+| Framework | Next.js 14 (App Router), React 18 |
+| Langage | TypeScript (Strict Mode) |
+| Style | Tailwind CSS |
+| Base de données | PostgreSQL via Drizzle ORM |
+| Validation | Zod |
+| Authentification | Sessions persistantes, bcrypt, TOTP 2FA |
+| Anti-automate | Cloudflare Turnstile |
+| Rate Limiting | Upstash Redis |
 
----
+## 🏗 Architecture actuelle
+Le dépôt suit une architecture modulaire :
+- `src/app/` : Routes App Router, layouts, et points d'API.
+- `src/components/` : Composants UI isolés par domaine métier.
+- `src/domain/` : Cœur de la logique métier (calculs, états).
+- `src/db/` : Schémas Drizzle et migrations.
+- `src/lib/` : Modules techniques (sécurité, authentification).
+- `docs/` : Documentation (architecture, audits, versions localisées).
 
-## 🚀 Installation & Démarrage
+## 📋 Prérequis
+- Node.js 20+
+- PostgreSQL 14+
+- npm 10+
 
-### Prérequis
-- Node.js version `20.x` ou supérieure
-- npm version `10.x` ou supérieure
-- Base de données PostgreSQL (Supabase, Neon ou instance locale)
-
-### 1. Clonage du dépôt & Installation
+## ⚙️ Installation
 ```bash
-git clone git@github.com:USERNAME/zlobodan-couverture.git
-cd zlobodan-couverture
-npm install
+npm ci                  # installation reproductible depuis le lockfile
+cp .env.example .env    # puis renseigner les variables
+npm run db:generate     # génère les migrations
+npm run db:push         # synchronise la base
+npm run dev             # lance l'application sur localhost:3000
 ```
 
-### 2. Configuration des variables d'environnement
+## 🔐 Variables d'environnement
+Un fichier `.env.example` est fourni à la racine. Aucun secret ne possède de valeur de repli dans le code.
+Principales variables :
+- `DATABASE_URL` (requise)
+- `SESSION_SECRET` (requise, 32+ caractères)
+- `TURNSTILE_SECRET_KEY` (requise)
+- `UPSTASH_REDIS_REST_URL` (requise)
+
+## 📜 Scripts disponibles
+- `npm run dev` : Lancement en développement.
+- `npm run build` : Compilation Next.js.
+- `npm run validate` : Suite complète (Lint, Typecheck, Tests, Build).
+- `npm run check:size` : Validation < 400 lignes.
+- `npm run db:seed` : Remplissage avec jeu d'essai.
+
+## 💾 Base de données
+Utilisation de **PostgreSQL** gérée par **Drizzle ORM**. Le schéma est strictement typé. L'historique d'audit est en append-only pour des raisons de traçabilité.
+
+## 🧪 Tests
+La suite **Vitest** compte 105 tests fonctionnels couvrant la logique métier, la sécurité, et les contrôles d'accès.
 ```bash
-cp .env.example .env.local
+npm run test
 ```
 
-### 3. Exécution des migrations & Seeding
-```bash
-npm run db:push
-npm run db:seed
-```
+## 🛡 Sécurité
+Le projet implémente les recommandations OWASP Top 10 : protection CSRF, CSP stricte, mots de passe hashés avec bcrypt (coût 12), et journalisation d'audit inaltérable. Voir `SECURITY.md`.
 
-### 4. Lancement en développement
-```bash
-npm run dev
-```
-Le site est disponible sur `http://localhost:3000`.
+## 🚢 Déploiement
+L'application est conçue pour un déploiement Vercel ou conteneurisé. Un proxy de confiance Cloudflare est requis en amont.
 
----
+## 🤝 Contribution
+Veuillez vous référer au fichier `CONTRIBUTING.md` pour les normes de commit (Conventional Commits) et le flux de pull requests.
 
-## 📜 Scripts Disponibles
-
-| Commande | Description |
-|---|---|
-| `npm run dev` | Lance le serveur de développement Next.js |
-| `npm run build` | Effectue la compilation statique SSG de production |
-| `npm run start` | Lance le serveur de production |
-| `npm run test` | Exécute la suite de tests automatisés Vitest |
-| `npm run check:size` | Vérifie que 100% des fichiers font moins de 400 lignes |
-| `npm run lint` | Analyse la qualité du code avec ESLint |
-
----
-
-## 🏗️ Architecture du Projet
-
-```text
-.
-├── .github/              # Workflows CI/CD, modèles d'issues & PR
-├── docs/                 # Documentation bilingue FR / EN
-├── scripts/              # Scripts de validation automatique (size limit, bundle, tests)
-├── storage/              # Stockage sécurisé hors dossier public
-├── src/
-│   ├── app/              # Routes Next.js App Router (/mon-compte, /admin, /api)
-│   ├── components/       # Composants UI modulaires (< 200 lignes par fichier)
-│   ├── data/             # Données métier et SEO découpées par domaine
-│   ├── db/               # Schémas Drizzle ORM modulaires (users, quotes, invoices...)
-│   └── lib/              # Services métier, authentification et sécurité OWASP
-└── SECURITY.md           # Politique de sécurité et rapport d'audit
-```
-
----
-
-## 🔒 Sécurité
-
-Pour consulter la matrice complète des protections OWASP Top 10 et les modalités de signalement de faille, veuillez lire [SECURITY.md](SECURITY.md).
-
----
-
-## 📄 Confidentialité
-
-**Ce dépôt est strictement privé.** Son code source, sa documentation, ses données et ses ressources graphiques ne peuvent être copiés, redistribués ou rendus publics sans autorisation écrite préalable.
+## ⚖️ Confidentialité et Droits
+Dépôt **privé**. Code source et ressources propriété exclusive de Zlobodan Couverture. Toute diffusion non autorisée est strictement interdite.

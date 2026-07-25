@@ -22,7 +22,11 @@ export const metadata = {
 // ce qui interdit toute mise en cache statique de cette zone.
 export const dynamic = "force-dynamic";
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   // Barrière verticale : aucun rôle `client` n'atteint le back-office, ni par
   // navigation, ni par accès direct à une sous-route.
   const operator = await requirePageRole(["staff", "admin"], "/admin");

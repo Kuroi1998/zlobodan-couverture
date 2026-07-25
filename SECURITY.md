@@ -109,6 +109,7 @@ Ces points sont connus, acceptés en l'état, et doivent être réévalués.
 | **Verrouillage optimiste absent sur les entités futures** | Les tables n'ont pas de colonne `version`. La décision de devis est protégée par un `UPDATE` conditionné au statut, ce qui suffit pour ce cas précis. | À ajouter lors de l'implémentation de la facturation, où plusieurs champs évoluent ensemble. |
 | **Trous dans la séquence de numérotation** | `nextval()` consomme un numéro même si la transaction est annulée. | Assumé et documenté : un trou est explicable devant un contrôle comptable, un doublon ne l'est pas. |
 | **Reconnaissance de sous-domaine orphelin** | Non vérifiable depuis le dépôt. | Le cookie `__Host-` limite la portée au domaine exact, ce qui borne l'impact d'une prise de contrôle de sous-domaine. Vérification au runbook. |
+| **`Vary: Cookie` absent des pages rendues par Next.js** | Mesuré sur un serveur réel : Next réécrit intégralement `Vary` après le middleware sur les pages et les handlers de route. Nos jetons ne tiennent que sur les réponses fabriquées par le middleware (refus CSRF, leurres). | `Cache-Control: no-store` est présent sur **toutes** les réponses privées et prime : un cache conforme ne doit pas les stocker, ce qui rend `Vary` sans objet. La règle de contournement CDN du runbook est la seconde barrière. |
 
 ---
 

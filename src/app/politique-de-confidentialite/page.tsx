@@ -1,6 +1,4 @@
-import React from "react";
-import Link from "next/link";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const metadata = {
   title: "Politique de Confidentialité & RGPD | Zlobodan Couverture",
@@ -21,7 +19,7 @@ export default function PolitiqueConfidentialitePage() {
           <section className="space-y-2">
             <h2 className="font-heading font-bold text-lg text-white">1. Collecte des Données Personnelles</h2>
             <p>
-              Dans le cadre de l'utilisation du site et de notre formulaire de devis, la société <strong>{siteData.name}</strong> est amenée à collecter des données personnelles (Nom, Prénom, Téléphone, Adresse email, Code postal, Ville, Photos du chantier).
+              Dans le cadre de l'utilisation du site et de notre formulaire de devis, la société <strong>{siteConfig.name}</strong> est amenée à collecter des données personnelles (Nom, Prénom, Téléphone, Adresse email, Code postal, Ville, Photos du chantier).
             </p>
           </section>
 
@@ -44,7 +42,7 @@ export default function PolitiqueConfidentialitePage() {
               Les données sont conservées pendant une durée maximale de 3 ans après le dernier contact commercial. Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition.
             </p>
             <p>
-              Pour exercer ces droits, vous pouvez nous adresser un email à <strong>{siteData.email}</strong> ou un courrier à l'adresse <strong>{siteData.address}, {siteData.postalCode} {siteData.city}</strong>.
+              Pour exercer ces droits, vous pouvez nous adresser un email à <strong>{siteConfig.email}</strong> ou un courrier à l'adresse <strong>{siteConfig.address}, {siteConfig.postalCode} {siteConfig.city}</strong>.
             </p>
           </section>
 

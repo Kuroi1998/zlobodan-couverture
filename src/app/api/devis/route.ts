@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { quoteRequests } from "@/db/schema/quotes";
-import { HONEYPOT_FIELD, QuoteRequestSchema } from "@/lib/validations/quoteSchemas";
+import { HONEYPOT_FIELD, QuoteRequestSchema } from "@/lib/validations/quote-schemas";
 import { enforceRateLimit } from "@/lib/security/rate-limit-guard";
 import { getTrustedIp } from "@/lib/security/request-context";
 import { recordSecurityEvent } from "@/lib/security/security-events";

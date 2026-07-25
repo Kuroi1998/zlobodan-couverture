@@ -1,5 +1,5 @@
 import React from "react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 import { Award } from "lucide-react";
 
 export const metadata = {
@@ -20,7 +20,7 @@ export default function AProposPage() {
           L'Entreprise Zlobodan Couverture SRL
         </h1>
         <p className="text-base text-slate-400">
-          Artisans couvreurs-zingueurs passionnés au service des propriétaires bruxellois et wallons depuis plus de {siteData.experienceYears} ans.
+          Artisans couvreurs-zingueurs passionnés au service des propriétaires bruxellois et wallons depuis plus de {siteConfig.experienceYears} ans.
         </p>
       </div>
 
@@ -60,7 +60,7 @@ export default function AProposPage() {
             <div className="space-y-4 text-xs text-slate-300">
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
                 <p className="font-bold text-white text-sm">Garantie Décennale AXA Belgium</p>
-                <p>Police d'assurance n° {siteData.insuranceNumber} couvrant l'étanchéité et la solidité de l'ouvrage pendant 10 ans selon la loi belge.</p>
+                <p>Police d'assurance n° {siteConfig.insuranceNumber} couvrant l'étanchéité et la solidité de l'ouvrage pendant 10 ans selon la loi belge.</p>
               </div>
 
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">

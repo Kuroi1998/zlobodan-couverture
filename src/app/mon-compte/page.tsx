@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { FileText, Receipt, HardHat, MessageSquare, ArrowRight, ShieldCheck, Clock } from "lucide-react";
+import { FileText, Receipt, HardHat, MessageSquare, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function ClientDashboardPage() {
   return (

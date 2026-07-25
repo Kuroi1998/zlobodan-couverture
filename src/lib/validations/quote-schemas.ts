@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { stripControlChars } from "./identifiers";
+import { INTERVENTION_TYPES, ROOF_TYPES } from "@/domain/quote-options";
 
 /**
  * Validation de la demande de devis publique.
@@ -30,25 +31,16 @@ const PhoneNumber = z
   .max(30, "Numéro de téléphone trop long.")
   .regex(/^[+0-9 ().-]+$/, "Numéro de téléphone invalide.");
 
-export const INTERVENTION_TYPES = [
-  "reparation",
-  "renovation",
-  "isolation",
-  "nettoyage",
-  "zinguerie",
-  "velux",
-  "urgence",
-  "autre",
-] as const;
+/**
+ * Les listes fermées viennent de `@/domain/quote-options`, source de vérité
+ * partagée avec les composants du formulaire.
+ *
+ * Elles étaient auparavant redéfinies ici avec un vocabulaire différent de
+ * celui affiché à l'utilisateur : quatre des sept interventions proposées
+ * étaient donc rejetées par la validation. Réimporter garantit qu'une
+ * divergence ne peut plus réapparaître.
+ */
 
-export const ROOF_TYPES = [
-  "ardoise",
-  "tuile",
-  "zinc",
-  "roofing",
-  "toiture-plate",
-  "autre",
-] as const;
 
 /**
  * Booléen issu d'un formulaire HTML.
@@ -63,6 +55,8 @@ const CheckboxBoolean = z.union([z.boolean(), z.string()]).transform((value) => 
   const normalized = value.trim().toLowerCase();
   return normalized === "true" || normalized === "on" || normalized === "1" || normalized === "yes";
 });
+
+export { INTERVENTION_TYPES, ROOF_TYPES };
 
 export const QuoteRequestSchema = z.object({
   // Listes fermées : une valeur hors énumération est rejetée, ce qui évite de

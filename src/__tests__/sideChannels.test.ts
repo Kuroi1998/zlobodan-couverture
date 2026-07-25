@@ -4,9 +4,9 @@ import { timingSafeEqualHex, timingSafeEqualString } from "@/lib/security/consta
 import { isPrivatePath, stripUnsafeInboundHeaders } from "@/lib/security/cache-control";
 import { normalizeEmail, sanitizeForLog, stripInvisibleChars } from "@/lib/validations/normalize";
 import { validatePasswordPolicy, passwordByteLength } from "@/lib/auth/password";
-import { detectMimeFromMagicBytes, looksLikeSvgOrXml } from "@/lib/security/magicBytes";
+import { detectMimeFromMagicBytes, looksLikeSvgOrXml } from "@/lib/security/magic-bytes";
 import { readIdempotencyHeader, buildIdempotencyKey } from "@/lib/security/idempotency";
-import { LoginSchema, RegisterSchema } from "@/lib/validations/authSchemas";
+import { LoginSchema, RegisterSchema } from "@/lib/validations/auth-schemas";
 
 /** U+FB03 : ligature « ffi », qui se decompose en "ffi" sous NFKC. */
 const LIGATURE_FFI = String.fromCharCode(0xfb03);

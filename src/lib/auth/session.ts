@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { requireIpHashSalt } from "@/lib/security/env";
 

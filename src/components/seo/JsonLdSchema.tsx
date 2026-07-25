@@ -1,7 +1,7 @@
 import React from "react";
 import { escapeJsonForScript } from "@/lib/security/encoding";
-import { siteData } from "@/data/siteData";
-import { faqData } from "@/data/faqData";
+import { siteConfig } from "@/config/site";
+import { faqData } from "@/data/faq";
 
 interface JsonLdSchemaProps {
   type?: "RoofingContractor" | "FAQPage" | "Service" | "Breadcrumb";
@@ -21,21 +21,21 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
     "@context": "https://schema.org",
     "@type": ["RoofingContractor", "LocalBusiness"],
     "@id": "https://zlobodan-couverture.be/#organization",
-    "name": siteData.name,
-    "legalName": siteData.name,
+    "name": siteConfig.name,
+    "legalName": siteConfig.name,
     "url": "https://zlobodan-couverture.be",
     "logo": "https://zlobodan-couverture.be/images/logo.png",
     "image": "https://zlobodan-couverture.be/images/hero-roof.webp",
-    "telephone": siteData.phone,
-    "email": siteData.email,
+    "telephone": siteConfig.phone,
+    "email": siteConfig.email,
     "priceRange": "€€-€€€",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": siteData.address,
-      "addressLocality": siteData.city,
-      "postalCode": siteData.postalCode,
+      "streetAddress": siteConfig.address,
+      "addressLocality": siteConfig.city,
+      "postalCode": siteConfig.postalCode,
       "addressCountry": "BE",
-      "addressRegion": siteData.region,
+      "addressRegion": siteConfig.region,
     },
     "geo": {
       "@type": "GeoCoordinates",
@@ -50,7 +50,7 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
         "closes": "19:00",
       },
     ],
-    "areaServed": siteData.coveredPostalCodes.map((cp) => ({
+    "areaServed": siteConfig.coveredPostalCodes.map((cp) => ({
       "@type": "AdministrativeArea",
       "name": `Code postal ${cp} Belgique`,
     })),
@@ -61,8 +61,8 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
       "bestRating": "5",
       "worstRating": "1",
     },
-    "vatID": siteData.tvaIntra,
-    "iso6523Code": siteData.siret,
+    "vatID": siteConfig.tvaIntra,
+    "iso6523Code": siteConfig.siret,
   };
 
   // 2. FAQPage Schema
@@ -88,8 +88,8 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
         "description": serviceDescription || serviceTitle,
         "provider": {
           "@type": "RoofingContractor",
-          "name": siteData.name,
-          "telephone": siteData.phone,
+          "name": siteConfig.name,
+          "telephone": siteConfig.phone,
         },
         "areaServed": {
           "@type": "Country",

@@ -1,14 +1,24 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const MAX_ALLOWED_LINES = 400;
 const WARNING_THRESHOLD = 300;
-const IGNORE_DIRS = ["node_modules", ".next", ".git", "dist", "build"];
-const TARGET_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".css"];
+const IGNORE_DIRS = new Set(["node_modules", ".next", ".git", "dist", "build"]);
+const TARGET_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".css"]);
 
 function countFileLines(filePath) {
   const content = fs.readFileSync(filePath, "utf-8");
   return content.split("\n").length;
+}
+
+function getFileStatus(lineCount) {
+  if (lineCount > MAX_ALLOWED_LINES) {
+    return "❌ EXCEEDS 400";
+  }
+  if (lineCount >= WARNING_THRESHOLD) {
+    return "⚠️ > 300 LINES";
+  }
+  return "✅ OK";
 }
 
 function scanDirectory(dirPath, fileList = []) {
@@ -18,12 +28,12 @@ function scanDirectory(dirPath, fileList = []) {
     const fullPath = path.join(dirPath, entry.name);
 
     if (entry.isDirectory()) {
-      if (!IGNORE_DIRS.includes(entry.name)) {
+      if (!IGNORE_DIRS.has(entry.name)) {
         scanDirectory(fullPath, fileList);
       }
     } else {
       const ext = path.extname(entry.name);
-      if (TARGET_EXTENSIONS.includes(ext)) {
+      if (TARGET_EXTENSIONS.has(ext)) {
         const lineCount = countFileLines(fullPath);
         fileList.push({
           path: fullPath.replace(process.cwd() + path.sep, ""),
@@ -42,7 +52,6 @@ const allFiles = scanDirectory(process.cwd());
 // Sort descending by line count
 allFiles.sort((a, b) => b.lines - a.lines);
 
-const warningFiles = allFiles.filter((f) => f.lines >= WARNING_THRESHOLD);
 const errorFiles = allFiles.filter((f) => f.lines > MAX_ALLOWED_LINES);
 
 console.log("\n📊 Top 15 longest files in the project:");
@@ -51,7 +60,7 @@ console.table(
     Rank: i + 1,
     File: f.path,
     Lines: f.lines,
-    Status: f.lines > MAX_ALLOWED_LINES ? "❌ EXCEEDS 400" : f.lines >= WARNING_THRESHOLD ? "⚠️ > 300 LINES" : "✅ OK",
+    Status: getFileStatus(f.lines),
   }))
 );
 

@@ -18,9 +18,9 @@ export const projects = pgTable(
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => ({
-    userIdIdx: index("idx_projects_user_id").on(table.userId),
-    quoteIdIdx: index("idx_projects_quote_id").on(table.quoteId),
-    statusIdx: index("idx_projects_status").on(table.status),
-  })
+  (table) => [
+    index("idx_projects_user_id").on(table.userId),
+    index("idx_projects_quote_id").on(table.quoteId),
+    index("idx_projects_status").on(table.status),
+  ]
 );

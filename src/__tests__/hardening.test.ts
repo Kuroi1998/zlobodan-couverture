@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { buildCspHeader, generateNonce } from "@/lib/security/csp";
 import { isDecoyAdminPath } from "@/lib/security/decoys";
-import { detectMimeFromMagicBytes } from "@/lib/security/magicBytes";
+import { detectMimeFromMagicBytes } from "@/lib/security/magic-bytes";
 import { redact } from "@/lib/security/security-events";
-import { buildSecurityEmail } from "@/lib/services/notificationService";
+import { buildSecurityEmail } from "@/lib/services/notification-service";
 import { THRESHOLDS } from "@/lib/security/login-throttle";
-import { consumeRateLimit, resetMemoryRateLimits } from "@/lib/security/rateLimiter";
+import { consumeRateLimit, resetMemoryRateLimits } from "@/lib/security/rate-limiter";
 
 describe("En-têtes — politique de sécurité du contenu", () => {
   test("aucune directive permissive ne subsiste sur les scripts", () => {

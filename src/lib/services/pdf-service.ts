@@ -1,4 +1,4 @@
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 import { escapeHtml, formatAmount } from "@/lib/security/encoding";
 
 /**
@@ -61,11 +61,11 @@ export function generateServerPdfHtml(data: PdfDocumentData): string {
 
   <div class="header">
     <div class="company-info">
-      <h1>${escapeHtml(siteData.name.toUpperCase())}</h1>
-      <p><strong>Siège social :</strong> ${escapeHtml(siteData.fullAddress)}</p>
-      <p><strong>N° BCE / TVA :</strong> ${escapeHtml(siteData.siret)}</p>
-      <p><strong>Téléphone :</strong> ${escapeHtml(siteData.phoneFormatted)} | <strong>Email :</strong> ${escapeHtml(siteData.email)}</p>
-      <p><strong>Assurance Décennale Belge :</strong> ${escapeHtml(siteData.insuranceName)} (Police n° ${escapeHtml(siteData.insuranceNumber)})</p>
+      <h1>${escapeHtml(siteConfig.name.toUpperCase())}</h1>
+      <p><strong>Siège social :</strong> ${escapeHtml(siteConfig.fullAddress)}</p>
+      <p><strong>N° BCE / TVA :</strong> ${escapeHtml(siteConfig.siret)}</p>
+      <p><strong>Téléphone :</strong> ${escapeHtml(siteConfig.phoneFormatted)} | <strong>Email :</strong> ${escapeHtml(siteConfig.email)}</p>
+      <p><strong>Assurance Décennale Belge :</strong> ${escapeHtml(siteConfig.insuranceName)} (Police n° ${escapeHtml(siteConfig.insuranceNumber)})</p>
     </div>
     <div class="doc-info">
       <h2>${title}</h2>
@@ -118,7 +118,7 @@ export function generateServerPdfHtml(data: PdfDocumentData): string {
   <div class="legal-footer">
     <p><strong>Mentions Légales Obligatoires Belges :</strong></p>
     <p>${escapeHtml(
-      `${siteData.name} — ${siteData.fullAddress} — ${siteData.siret} — Capital ${siteData.capital} — RCS ${siteData.rcs} — TVA ${siteData.tvaIntra}`
+      `${siteConfig.name} — ${siteConfig.fullAddress} — ${siteConfig.siret} — Capital ${siteConfig.capital} — RCS ${siteConfig.rcs} — TVA ${siteConfig.tvaIntra}`
     )}</p>
     <p>Conditions de règlement : Paiement à réception par virement bancaire. En cas de retard de paiement, une pénalité forfaitaire de 10% par an sera appliquée de plein droit sans mise en demeure préalable.</p>
     <p>Garantie Décennale couverte sous la loi du 31 mai 2017 pour les ouvrages de structure et d'étanchéité en Région Bruxelloise, Brabant Wallon et Wallonie.</p>

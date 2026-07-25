@@ -7,10 +7,10 @@ import { authorizeResource, denyJson, requireApiUser } from "@/lib/security/guar
 import { parseUuidParam } from "@/lib/validations/identifiers";
 import { recordSecurityEvent } from "@/lib/security/security-events";
 import { getTrustedIp } from "@/lib/security/request-context";
-import { canTransitionQuote, isQuoteAcceptable } from "@/lib/domain/state-machine";
+import { canTransitionQuote, isQuoteAcceptable } from "@/domain/state-machine";
 import { enforceRateLimit } from "@/lib/security/rate-limit-guard";
 import { hashIpAddress } from "@/lib/auth/session";
-import { logAuditEvent } from "./auditService";
+import { logAuditEvent } from "./audit-service";
 
 /**
  * Acceptation et refus de devis.

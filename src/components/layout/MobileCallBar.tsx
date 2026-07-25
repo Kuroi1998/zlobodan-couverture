@@ -3,14 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { Phone, FileText } from "lucide-react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const MobileCallBar: React.FC = () => {
   const handleCall = () => {
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "click_phone_mobile_bar", {
         event_category: "Conversion",
-        event_label: siteData.emergencyPhoneFormatted,
+        event_label: siteConfig.emergencyPhoneFormatted,
       });
     }
   };
@@ -19,7 +19,7 @@ export const MobileCallBar: React.FC = () => {
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-2.5 shadow-2xl">
       <div className="grid grid-cols-2 gap-2.5 max-w-md mx-auto">
         <a
-          href={`tel:${siteData.emergencyPhone}`}
+          href={`tel:${siteConfig.emergencyPhone}`}
           onClick={handleCall}
           className="flex items-center justify-center gap-2 bg-brand-terracotta active:bg-orange-700 text-white py-3 px-3 rounded-lg text-sm font-bold shadow-lg transition-transform active:scale-95"
         >

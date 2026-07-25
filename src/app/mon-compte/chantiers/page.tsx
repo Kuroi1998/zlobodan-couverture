@@ -1,6 +1,17 @@
 import React from "react";
 import Image from "next/image";
-import { HardHat, Calendar, CheckCircle2, Download, ShieldCheck, Camera } from "lucide-react";
+import { HardHat, CheckCircle2, Download, ShieldCheck, Camera } from "lucide-react";
+
+function getMilestoneStyle(status: string): string {
+  switch (status) {
+    case "completed":
+      return "bg-emerald-950/40 border-emerald-800/60 text-emerald-200";
+    case "in_progress":
+      return "bg-brand-terracotta/10 border-brand-terracotta/40 text-orange-200 shadow-md";
+    default:
+      return "bg-slate-950 border-slate-800 text-slate-400";
+  }
+}
 
 export default function ClientProjectsPage() {
   const projectData = {
@@ -19,31 +30,24 @@ export default function ClientProjectsPage() {
       { step: 6, label: "Réception de chantier & Attestation Décennale", status: "planned", date: "Prévu 05/08" },
     ],
     photos: [
-      { type: "Avant", title: "État initial de l'ancienne toiture", src: "/images/chantiers/before-after-01.webp" },
-      { type: "Pendant", title: "Pose sous-toiture HPV Doerken", src: "/images/chantiers/chantier-02.webp" },
-      { type: "Pendant", title: "Lattage et alignement ardoises", src: "/images/chantiers/chantier-01.webp" },
+      { id: "p1", type: "Avant", title: "État initial de l'ancienne toiture", src: "/images/chantiers/before-after-01.webp" },
+      { id: "p2", type: "Pendant", title: "Pose sous-toiture HPV Doerken", src: "/images/chantiers/chantier-02.webp" },
+      { id: "p3", type: "Pendant", title: "Lattage et alignement ardoises", src: "/images/chantiers/chantier-01.webp" },
     ],
     documents: [
-      { name: "Attestation Garantie Décennale Belge AXA (Police #AXA-BE-84920139)", size: "1.2 Mo", type: "PDF" },
-      { name: "Fiche Technique Ardoises Cupa Pizzaras & Certificat NBN", size: "850 Ko", type: "PDF" },
+      { id: "doc1", name: "Attestation Garantie Décennale AXA.pdf", size: "1.2 Mo", type: "PDF" },
+      { id: "doc2", name: "Fiche Technique Ardoises Cupa.pdf", size: "850 Ko", type: "PDF" },
     ],
   };
 
   return (
-    <div className="space-y-8">
-      
-      {/* Header */}
+    <div className="space-y-6">
       <div>
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white">
-          Suivi de Chantier en Direct
-        </h1>
-        <p className="text-sm text-slate-400">
-          Suivez quotidiennement les étapes d'avancement de vos travaux et accédez à la galerie photos et aux attestations de fin de chantier.
-        </p>
+        <h1 className="font-bold text-lg text-white">Suivi de Chantier en Direct</h1>
+        <p className="text-slate-400">Consultez les étapes d'avancement, les photos quotidiennes et vos documents d'étanchéité.</p>
       </div>
 
-      {/* Main Project Overview */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
+      <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-8">
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div className="space-y-1">
@@ -69,13 +73,7 @@ export default function ClientProjectsPage() {
             {projectData.milestones.map((m) => (
               <div
                 key={m.step}
-                className={`p-4 rounded-2xl border text-xs space-y-2 ${
-                  m.status === "completed"
-                    ? "bg-emerald-950/40 border-emerald-800/60 text-emerald-200"
-                    : m.status === "in_progress"
-                    ? "bg-brand-terracotta/10 border-brand-terracotta/40 text-orange-200 shadow-md"
-                    : "bg-slate-950 border-slate-800 text-slate-400"
-                }`}
+                className={`p-4 rounded-2xl border text-xs space-y-2 ${getMilestoneStyle(m.status)}`}
               >
                 <div className="flex items-center justify-between font-bold">
                   <span>Étape {m.step}</span>
@@ -99,8 +97,8 @@ export default function ClientProjectsPage() {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {projectData.photos.map((p, idx) => (
-              <div key={idx} className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden space-y-2">
+            {projectData.photos.map((p) => (
+              <div key={p.id} className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden space-y-2">
                 <div className="relative h-44 w-full">
                   <Image src={p.src} alt={p.title} fill className="object-cover" />
                   <span className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded text-[10px] font-bold text-white border border-slate-700">
@@ -121,8 +119,8 @@ export default function ClientProjectsPage() {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {projectData.documents.map((d, i) => (
-              <div key={i} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between text-xs">
+            {projectData.documents.map((d) => (
+              <div key={d.id} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between text-xs">
                 <div className="space-y-0.5">
                   <p className="font-bold text-white">{d.name}</p>
                   <p className="text-slate-400">{d.size} • Format {d.type}</p>

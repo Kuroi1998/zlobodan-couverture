@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Settings, ShieldCheck, Lock, Smartphone, Download, Trash2, CheckCircle2 } from "lucide-react";
+import { Settings, ShieldCheck, Lock, Smartphone, Download, Trash2 } from "lucide-react";
 
 export default function ClientSettingsPage() {
   const [feedback, setFeedback] = useState("");
@@ -45,12 +45,12 @@ export default function ClientSettingsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="space-y-1">
-            <label className="text-slate-400 font-bold uppercase">Nom complet</label>
-            <input type="text" defaultValue="Jean Peeters" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-terracotta" />
+            <label htmlFor="settings-name" className="text-slate-400 font-bold uppercase">Nom complet</label>
+            <input id="settings-name" name="fullName" type="text" defaultValue="Jean Peeters" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-terracotta" />
           </div>
           <div className="space-y-1">
-            <label className="text-slate-400 font-bold uppercase">Numéro de téléphone</label>
-            <input type="tel" defaultValue="0470 12 34 56" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-terracotta" />
+            <label htmlFor="settings-phone" className="text-slate-400 font-bold uppercase">Numéro de téléphone</label>
+            <input id="settings-phone" name="phone" type="tel" defaultValue="0470 12 34 56" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-terracotta" />
           </div>
         </div>
       </div>

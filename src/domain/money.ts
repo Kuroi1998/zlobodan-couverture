@@ -169,3 +169,39 @@ export function computeDocumentTotals(lines: QuoteLineInput[]): DocumentTotals {
 export function centsToNumeric(cents: number): string {
   return (Math.round(cents) / 100).toFixed(2);
 }
+
+/**
+ * Totaux d'un devis, en euros.
+ *
+ * Reprend l'ancien `calculateQuoteTotals` de `lib/utils/calculator.ts`, qui
+ * n'était plus qu'un passe-plat vers ce module. Le regrouper ici évite d'avoir
+ * deux points d'entrée pour le même calcul — et donc deux comportements
+ * d'arrondi possibles.
+ */
+export function calculateQuoteTotals(lines: QuoteLineInput[]): {
+  amountHt: number;
+  vatAmount: number;
+  amountTtc: number;
+} {
+  const totals = computeDocumentTotals(lines);
+  return {
+    amountHt: totals.amountHt,
+    vatAmount: totals.vatAmount,
+    amountTtc: totals.amountTtc,
+  };
+}
+
+/**
+ * Formatage monétaire pour l'affichage, en euros et locale belge francophone.
+ *
+ * Remplace `formatPrice` de l'ancien `lib/utils.ts`, qui vivait à côté d'une
+ * arithmétique flottante et n'était appelé nulle part.
+ */
+export function formatEuros(cents: number, withDecimals = true): string {
+  return new Intl.NumberFormat("fr-BE", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: withDecimals ? 2 : 0,
+    maximumFractionDigits: withDecimals ? 2 : 0,
+  }).format(fromCents(cents));
+}
