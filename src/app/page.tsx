@@ -9,7 +9,7 @@ import { GoogleReviewsCarousel } from "@/components/reviews/GoogleReviewsCarouse
 import { DynamicMapSection } from "@/components/home/DynamicMapSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
-import { FileText, Phone, ShieldCheck, ArrowRight } from "lucide-react";
+import { Phone, ShieldCheck, ArrowRight } from "lucide-react";
 import { siteData } from "@/data/siteData";
 
 export default function HomePage() {

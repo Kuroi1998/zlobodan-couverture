@@ -104,8 +104,8 @@ export const LeafletMap: React.FC = () => {
             .bindPopup(buildPopup(v.name, v.postalCode, v.slug));
         });
       })
-      .catch(() => {
-        // Une carte indisponible ne doit pas casser la page.
+      .catch((err: unknown) => {
+        console.error("Impossible de charger la carte Leaflet :", err);
       });
 
     return () => {

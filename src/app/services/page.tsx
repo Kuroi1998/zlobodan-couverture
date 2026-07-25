@@ -1,9 +1,6 @@
 import React from "react";
-import Link from "next/link";
 import { ServicesGrid } from "@/components/home/ServicesGrid";
 import { FAQSection } from "@/components/home/FAQSection";
-import { siteData } from "@/data/siteData";
-import { ShieldCheck, ArrowRight, FileText } from "lucide-react";
 
 export const metadata = {
   title: "Nos Prestations de Couverture & Zinguerie en Belgique",

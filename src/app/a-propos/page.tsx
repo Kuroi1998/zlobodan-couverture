@@ -1,7 +1,6 @@
 import React from "react";
-import Link from "next/link";
 import { siteData } from "@/data/siteData";
-import { ShieldCheck, Award, Users, Wrench, CheckCircle2, FileText, Phone } from "lucide-react";
+import { Award } from "lucide-react";
 
 export const metadata = {
   title: "À Propos | Entreprise Zlobodan Couverture Belgique",

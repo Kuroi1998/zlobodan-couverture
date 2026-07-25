@@ -26,9 +26,9 @@ export function generateNonce(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   let binary = "";
-  for (let i = 0; i < bytes.length; i += 1) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+  bytes.forEach((byte) => {
+    binary += String.fromCodePoint(byte);
+  });
   return btoa(binary);
 }
 
@@ -68,8 +68,7 @@ export function buildCspHeader(nonce: string, isProduction: boolean): string {
 
   // Deux mécanismes : `report-uri` est déprécié mais encore le plus largement
   // implémenté, `report-to` est son successeur. On émet les deux.
-  directives.push(`report-uri ${CSP_REPORT_PATH}`);
-  directives.push("report-to csp-endpoint");
+  directives.push(`report-uri ${CSP_REPORT_PATH}`, "report-to csp-endpoint");
 
   return directives.join("; ");
 }

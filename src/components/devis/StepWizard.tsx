@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
-import { siteData } from "@/data/siteData";
 import { compressImage } from "@/lib/imageCompression";
 import { FormDataState } from "./steps/types";
 import { Step1Intervention } from "./steps/Step1Intervention";
@@ -63,8 +62,9 @@ export const StepWizard: React.FC = () => {
         compressedList.push({ file: compressed, preview: previewUrl });
       }
       setPhotos((prev) => [...prev, ...compressedList]);
-    } catch (err) {
-      setErrorMsg("Erreur lors de la compression de la photo.");
+    } catch (err: unknown) {
+      console.error("Échec de la compression d'image dans l'assistant de devis :", err);
+      setErrorMsg("Erreur lors de la compression de la photo. Veuillez réessayer.");
     } finally {
       setIsCompressing(false);
     }
@@ -139,7 +139,8 @@ export const StepWizard: React.FC = () => {
 
       await fetch("/api/devis", { method: "POST", body: payload });
       router.push("/devis/merci");
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Échec de l'envoi de la demande de devis au serveur :", err);
       router.push("/devis/merci");
     } finally {
       setIsSubmitting(false);

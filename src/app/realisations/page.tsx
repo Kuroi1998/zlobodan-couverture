@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { realisationsData, RealisationItem } from "@/data/realisationsData";
 import { BeforeAfterSlider } from "@/components/realisations/BeforeAfterSlider";
-import { MapPin, Calendar, Clock, ArrowRight, Star } from "lucide-react";
+import { MapPin, Clock, ArrowRight, Star } from "lucide-react";
 
 export const metadata = {
   title: "Réalisations & Portfolio Chantiers Toiture Belgique",

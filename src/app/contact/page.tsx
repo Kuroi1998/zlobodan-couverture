@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { siteData } from "@/data/siteData";
-import { MapPin, Phone, Mail, Clock, ShieldCheck, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 
 export const metadata = {
   title: "Contact & Localisation | Couvreur Zlobodan Belgique",
@@ -107,23 +107,23 @@ export default function ContactPage() {
             <form action="/devis/merci" className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 uppercase">Nom complet *</label>
-                  <input type="text" required placeholder="Ex: Jean Peeters" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
+                  <label htmlFor="contact-name" className="text-xs font-bold text-slate-300 uppercase">Nom complet *</label>
+                  <input id="contact-name" name="name" type="text" required placeholder="Ex: Jean Peeters" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 uppercase">Téléphone *</label>
-                  <input type="tel" required placeholder="Ex: 0470 12 34 56" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
+                  <label htmlFor="contact-phone" className="text-xs font-bold text-slate-300 uppercase">Téléphone *</label>
+                  <input id="contact-phone" name="phone" type="tel" required placeholder="Ex: 0470 12 34 56" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 uppercase">Email *</label>
-                <input type="email" required placeholder="Ex: jean.peeters@email.be" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
+                <label htmlFor="contact-email" className="text-xs font-bold text-slate-300 uppercase">Email *</label>
+                <input id="contact-email" name="email" type="email" required placeholder="Ex: jean.peeters@email.be" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 uppercase">Votre Message *</label>
-                <textarea rows={4} required placeholder="Décrivez votre besoin (fuite, devis, renseignement...)" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
+                <label htmlFor="contact-message" className="text-xs font-bold text-slate-300 uppercase">Votre Message *</label>
+                <textarea id="contact-message" name="message" rows={4} required placeholder="Décrivez votre besoin (fuite, devis, renseignement...)" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
               </div>
 
               <button
