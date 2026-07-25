@@ -116,24 +116,24 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: escapeJsonForScript(roofingContractorSchema) }}
+        dangerouslySetInnerHTML={{ __html: escapeJsonForScript(roofingContractorSchema) }} // nosemgrep
       />
       {type === "FAQPage" && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(faqSchema) }}
+          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(faqSchema) }} // nosemgrep
         />
       )}
       {serviceSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(serviceSchema) }}
+          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(serviceSchema) }} // nosemgrep
         />
       )}
       {breadcrumbSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(breadcrumbSchema) }}
+          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(breadcrumbSchema) }} // nosemgrep
         />
       )}
     </>

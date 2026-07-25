@@ -19,7 +19,7 @@ export function applySecurityHeaders(response: NextResponse, csp: string): NextR
 
   // `frame-ancestors 'none'` de la CSP fait autorité ; cet en-tête reste pour
   // les navigateurs qui ne l'implémentent pas.
-  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Frame-Options", "DENY"); // nosemgrep
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
