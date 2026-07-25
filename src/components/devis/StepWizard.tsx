@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
-import { compressImage } from "@/lib/imageCompression";
+import { compressImage } from "@/lib/utils/imageCompression";
 import { FormDataState } from "./steps/types";
 import { Step1Intervention } from "./steps/Step1Intervention";
 import { Step2RoofType } from "./steps/Step2RoofType";

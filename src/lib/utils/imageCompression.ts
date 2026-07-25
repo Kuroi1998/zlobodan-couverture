@@ -1,6 +1,6 @@
 /**
-  * Compression d'image côté client avant envoi avec le formulaire de devis.
-  */
+ * Compression d'image côté client avant envoi avec le formulaire de devis.
+ */
 export async function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promise<File> {
   return new Promise((resolve) => {
     // Si ce n'est pas une image ou si le navigateur n'a pas FileReader / Canvas, retourner le fichier tel quel
