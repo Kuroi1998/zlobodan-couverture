@@ -3,6 +3,7 @@ import { buildCspHeader, CSP_REPORT_PATH, generateNonce } from "@/lib/security/c
 import { checkCsrf } from "@/lib/security/csrf";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { isDecoyAdminPath } from "@/lib/security/decoys";
+import { applyCachePolicy, stripUnsafeInboundHeaders } from "@/lib/security/cache-control";
 
 /**
  * Filtre de bordure.
@@ -26,7 +27,8 @@ export function middleware(request: NextRequest) {
   if (isDecoyAdminPath(pathname)) {
     const decoy = new NextResponse(null, { status: 404 });
     decoy.headers.set("x-zb-trap", "1");
-    return applySecurityHeaders(decoy, csp);
+    applySecurityHeaders(decoy, csp);
+    return applyCachePolicy(request, decoy);
   }
 
   // 2. Contrôle d'origine sur toute mutation d'API.
@@ -41,18 +43,29 @@ export function middleware(request: NextRequest) {
         { status: 403 }
       );
       denied.headers.set("x-zb-csrf-reason", verdict.reason);
-      return applySecurityHeaders(denied, csp);
+      applySecurityHeaders(denied, csp);
+      return applyCachePolicy(request, denied);
     }
   }
 
-  // 3. Propagation du nonce à l'application. Next.js lit l'en-tête de requête
-  //    `Content-Security-Policy` pour appliquer le nonce à ses propres scripts.
+  // 3. Neutralisation des en-têtes d'empoisonnement de cache et d'identité.
+  //    Retirés de la requête elle-même : aucun code applicatif, présent ou
+  //    futur, ne peut donc s'y fier par inadvertance.
   const requestHeaders = new Headers(request.headers);
+  const stripped = stripUnsafeInboundHeaders(requestHeaders);
+
+  // 4. Propagation du nonce à l'application. Next.js lit l'en-tête de requête
+  //    `Content-Security-Policy` pour appliquer le nonce à ses propres scripts.
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  return applySecurityHeaders(response, csp);
+  if (stripped.length > 0) {
+    response.headers.set("x-zb-stripped", String(stripped.length));
+  }
+
+  applySecurityHeaders(response, csp);
+  return applyCachePolicy(request, response);
 }
 
 export const config = {

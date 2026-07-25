@@ -7,6 +7,7 @@ import { authorizeResource, denyJson, requireApiUser } from "@/lib/security/guar
 import { parseUuidParam } from "@/lib/validations/identifiers";
 import { recordSecurityEvent } from "@/lib/security/security-events";
 import { getTrustedIp } from "@/lib/security/request-context";
+import { canTransitionQuote, isQuoteAcceptable } from "@/lib/domain/state-machine";
 import { enforceRateLimit } from "@/lib/security/rate-limit-guard";
 import { hashIpAddress } from "@/lib/auth/session";
 import { logAuditEvent } from "./auditService";
@@ -72,13 +73,30 @@ export async function handleQuoteDecision(
   if (denial) return denial;
 
   const now = new Date();
-  if (quote.status !== DECIDABLE_STATUS) {
+  const targetStatus = DECISION_TARGET_STATUS[decision];
+
+  // Transition déclarée ? La machine à états est la seule autorité : elle
+  // refuse notamment de « dé-refuser » un devis, ou d'en accepter un déjà
+  // tranché — ce qui est la garde contre la double facturation.
+  if (!canTransitionQuote(quote.status, targetStatus)) {
+    await recordSecurityEvent({
+      kind: "VALIDATION_REJECTED",
+      severity: "medium",
+      userId: auth.user.id,
+      route,
+      targetTable: "quotes",
+      targetId: quote.id,
+      detail: { control: "state-machine", from: quote.status, to: targetStatus },
+    });
     return NextResponse.json(
       { success: false, error: "Ce devis n'est plus en attente de décision." },
       { status: 409 }
     );
   }
-  if (quote.validUntil.getTime() < now.getTime()) {
+
+  // L'expiration est une donnée de temps, distincte de l'état : un devis peut
+  // être encore `sent` en base tout en ayant dépassé sa validité.
+  if (!isQuoteAcceptable(quote.status, quote.validUntil, now) && decision === "accept") {
     return NextResponse.json(
       { success: false, error: "La validité de ce devis a expiré." },
       { status: 409 }
@@ -87,7 +105,6 @@ export async function handleQuoteDecision(
 
   const ipAddress = getTrustedIp(req);
   const ipHash = ipAddress ? hashIpAddress(ipAddress) : null;
-  const targetStatus = DECISION_TARGET_STATUS[decision];
 
   // Mise à jour conditionnée au statut attendu : deux requêtes simultanées ne
   // peuvent pas trancher deux fois le même devis.

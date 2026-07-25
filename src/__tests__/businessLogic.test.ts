@@ -1,26 +1,46 @@
 import { describe, expect, test } from "vitest";
-import { calculateQuoteTotals, generateSequentialInvoiceNumber } from "@/lib/utils/calculator";
+import { calculateQuoteTotals } from "@/lib/utils/calculator";
+import { formatDocumentNumber, NUMBERING_SEQUENCES } from "@/lib/db/numbering";
 
-describe("Business Logic Unit Tests - Zlobodan Belgique", () => {
+describe("Calculs commerciaux", () => {
   test("Calcul exact des montants HT, TVA 6% Belgique et TTC", () => {
-    const lines = [
+    const totals = calculateQuoteTotals([
       { qty: 1, priceHt: 1200.0, vatRate: 6.0 },
       { qty: 160, priceHt: 35.0, vatRate: 6.0 },
-    ];
+    ]);
 
-    const totals = calculateQuoteTotals(lines);
-
-    // 1200 + (160 * 35) = 1200 + 5600 = 6800 € HT
     expect(totals.amountHt).toBe(6800.0);
-    // 6800 * 0.06 = 408 € TVA
     expect(totals.vatAmount).toBe(408.0);
-    // 6800 + 408 = 7208 € TTC
     expect(totals.amountTtc).toBe(7208.0);
   });
+});
 
-  test("Génération séquentielle continue des numéros de facture sans trou", () => {
-    const lastNumber = "FACT-2026-0004";
-    const nextNumber = generateSequentialInvoiceNumber(lastNumber, 2026);
-    expect(nextNumber).toBe("FACT-2026-0005");
+describe("Numérotation des documents", () => {
+  /**
+   * `generateSequentialInvoiceNumber(lastNumber, year)` a été supprimée : elle
+   * dérivait le numéro d'une valeur lue hors transaction, donc deux
+   * facturations simultanées obtenaient le même. Le test correspondant
+   * validait précisément le comportement vulnérable.
+   *
+   * Il ne reste ici que le formatage, qui est une fonction pure. L'unicité
+   * repose désormais sur `nextval()`, garantie par PostgreSQL et non par du
+   * code applicatif — elle se vérifie en intégration, pas en test unitaire.
+   */
+  test("le formatage respecte le format comptable belge", () => {
+    expect(formatDocumentNumber("invoice", 2026, 5)).toBe("FACT-2026-0005");
+    expect(formatDocumentNumber("quote", 2026, 12)).toBe("DEV-2026-0012");
+    expect(formatDocumentNumber("credit_note", 2026, 1)).toBe("AV-2026-0001");
+  });
+
+  test("le rembourrage tient au-delà de quatre chiffres", () => {
+    expect(formatDocumentNumber("invoice", 2026, 12345)).toBe("FACT-2026-12345");
+  });
+
+  test("les noms de séquence sont une table constante, jamais une entrée", () => {
+    expect(Object.values(NUMBERING_SEQUENCES)).toEqual([
+      "seq_invoice_number",
+      "seq_quote_number",
+      "seq_credit_note_number",
+    ]);
   });
 });

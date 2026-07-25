@@ -39,12 +39,16 @@ export function buildCspHeader(nonce: string, isProduction: boolean): string {
     // En développement et production, Next.js et Tailwind injectent des styles <style> dynamiques.
     isProduction
       ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${TURNSTILE}`
-      : `script-src 'self' 'unsafe-eval' 'unsafe-inline' ${TURNSTILE}`,
+      : `script-src 'self' 'unsafe-eval' 'unsafe-inline' ${TURNSTILE} https://unpkg.com`,
 
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+    isProduction
+      ? `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`
+      : `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
     "style-src-attr 'unsafe-inline'",
 
-    `img-src 'self' data: blob: ${MAP_TILES}`,
+    isProduction
+      ? `img-src 'self' data: blob: ${MAP_TILES} https://*.cartocdn.com`
+      : `img-src 'self' data: blob: ${MAP_TILES} https://*.cartocdn.com https://unpkg.com`,
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src 'self' ${TURNSTILE} ${MAP_TILES}`,
     `frame-src ${TURNSTILE}`,

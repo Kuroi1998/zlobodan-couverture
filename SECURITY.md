@@ -104,6 +104,11 @@ Ces points sont connus, acceptés en l'état, et doivent être réévalués.
 | **Reconnaissance d'appareil approximative** | Fondée sur le couple (empreinte d'IP, agent utilisateur) — une IP mobile change souvent. | Produit des alertes en excès plutôt qu'en défaut, ce qui est le bon sens d'erreur. |
 | **Verrouillage par (IP, compte)** | Un attaquant qui change d'IP repart à zéro sur ce compteur. | Assumé : le blocage distribué relève du WAF, seule couche qui voit l'ensemble du trafic. |
 | **CSP à nonce et cache CDN** | Un nonce par requête rend chaque réponse HTML unique, donc non cachable en page entière. | Les pages publiques restent statiques ; seules les zones authentifiées sont dynamiques. Voir le runbook. |
+| **Traitement d'image dans le processus applicatif** | `sharp` s'exécute dans le processus Node, sans worker isolé ni timeout dur. Une image malformée qui ferait boucler la bibliothèque affecterait l'instance entière. | `limitInputPixels: 25e6`, dimensions bornées à 2500 px, taille de fichier plafonnée. La mise en file d'attente reste en dette. |
+| **Idempotence non transactionnelle** | La garde s'appuie sur un compteur Redis, pas sur la base. Si Redis est injoignable, le compteur redevient local et un rejeu peut passer. | La protection de fond reste la contrainte d'unicité en base. La garde évite d'atteindre la base pour un double clic, elle ne la remplace pas. |
+| **Verrouillage optimiste absent sur les entités futures** | Les tables n'ont pas de colonne `version`. La décision de devis est protégée par un `UPDATE` conditionné au statut, ce qui suffit pour ce cas précis. | À ajouter lors de l'implémentation de la facturation, où plusieurs champs évoluent ensemble. |
+| **Trous dans la séquence de numérotation** | `nextval()` consomme un numéro même si la transaction est annulée. | Assumé et documenté : un trou est explicable devant un contrôle comptable, un doublon ne l'est pas. |
+| **Reconnaissance de sous-domaine orphelin** | Non vérifiable depuis le dépôt. | Le cookie `__Host-` limite la portée au domaine exact, ce qui borne l'impact d'une prise de contrôle de sous-domaine. Vérification au runbook. |
 
 ---
 
@@ -176,6 +181,25 @@ Procédure détaillée dans le runbook, section « Sauvegardes ». Principe : re
 3. Notifier l'Autorité de protection des données sous **72 h**.
 4. Informer les personnes concernées si le risque est élevé (art. 34 RGPD).
 5. Conserver les journaux et une copie forensique avant toute remise en état.
+
+---
+
+## 7. Boucle de durcissement continue
+
+La sécurité est un cycle, pas un état atteint. Chaque ligne indique le mécanisme qui l'exécute **réellement** — une fréquence sans exécutant est un vœu.
+
+| Fréquence | Action | Exécutant |
+| :--- | :--- | :--- |
+| **À chaque commit** | Analyse statique (Semgrep), scan de secrets (Gitleaks sur l'historique complet), `npm audit --audit-level=high`, `tsc --noEmit`, ESLint à zéro avertissement, 104 tests dont contrôle d'accès et injection, scan du bundle client | `.github/workflows/security.yml` — bloquant |
+| **Hebdomadaire** | Revue des alertes du journal de sécurité, des pics de 401/403/429, des violations CSP, des déclenchements de leurres | Manuel, à partir du collecteur (runbook §6) |
+| **Hebdomadaire** | Réaudit des dépendances figées : une vulnérabilité peut être publiée sans qu'un commit soit poussé | `schedule: cron "0 6 * * 1"` du workflow |
+| **Mensuel** | Fusion des montées de version Dependabot, revue de l'`audit_log`, **restauration réelle** d'une sauvegarde | Dependabot (hebdomadaire, hors majeures) + manuel |
+| **Trimestriel** | Scan externe (OWASP ZAP), revue des comptes et des droits PostgreSQL, rotation des secrets, test de restauration | Manuel — runbook §4 et §5 |
+| **Annuel** | Test d'intrusion externe, revue du plan de réponse à incident, revue de ce document | Manuel |
+
+Point de vigilance : la revue annuelle de ce document n'est pas une formalité. L'audit initial a trouvé une `SECURITY.md` affirmant des protections inexistantes — une documentation de sécurité fausse est pire que son absence, parce qu'elle empêche l'organisation de savoir ce qu'elle doit corriger.
+
+---
 
 ### Rotation d'un secret compromis
 

@@ -27,10 +27,9 @@ export function applySecurityHeaders(response: NextResponse, csp: string): NextR
     "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
   );
 
-  // Isolation d'origine : limite ce qu'un document tiers peut apprendre de nos
-  // fenêtres et de nos ressources.
+  // Isolation d'origine : permet le chargement des polices et ressources autorisées par la CSP.
   response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-  response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
+  response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
 
   // Divulgation de pile : retiré ici en plus de `poweredByHeader: false`,
   // pour couvrir les réponses fabriquées directement dans le middleware.

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { safeReturnPath } from "@/lib/security/urls";
 import { ShieldCheck, User, Lock, Mail, Phone, ArrowRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export default function ConnexionPage() {
@@ -40,20 +41,31 @@ export default function ConnexionPage() {
       }
 
       setSuccessMsg("Connexion réussie. Redirection vers votre espace...");
-      setTimeout(() => {
-        if (data.user?.role === "admin" || data.user?.role === "staff") {
-          router.push("/admin");
-        } else {
-          router.push("/mon-compte");
-        }
-      }, 1000);
+
+      // Destination : le paramètre `next` s'il désigne bien un chemin de ce
+      // site, sinon l'espace correspondant au rôle. `safeReturnPath` refuse
+      // les URL absolues et protocol-relative, qui feraient du domaine un
+      // tremplin de hameçonnage.
+      const isPrivileged = data.user?.role === "admin" || data.user?.role === "staff";
+      const fallback = isPrivileged ? "/admin" : "/mon-compte";
+
+      // Lu ici plutôt que via `useSearchParams()` : ce dernier force la page à
+      // sortir du prérendu statique, alors que cette valeur n'est utile qu'au
+      // moment de la soumission.
+      const requested = new URLSearchParams(window.location.search).get("next");
+      const destination = requested ? safeReturnPath(requested, fallback) : fallback;
+
+      setTimeout(() => router.push(destination), 800);
     } catch (err: any) {
-      // Direct fallback to client portal demo if dev mode
-      if (email.includes("admin")) {
-        router.push("/admin");
-      } else {
-        router.push("/mon-compte");
-      }
+      // Un échec d'authentification est affiché, jamais contourné.
+      //
+      // La version précédente redirigeait vers /admin ou /mon-compte selon que
+      // l'adresse contenait « admin » — un raccourci de développement qui
+      // masquait toute erreur et envoyait l'utilisateur vers une zone protégée
+      // sans session. Les gardes serveur le renvoyaient aussitôt vers cette
+      // page : le symptôme visible était une boucle de redirection, et la
+      // cause réelle restait invisible.
+      setErrorMsg(err?.message || "Échec de connexion.");
     } finally {
       setIsSubmitting(false);
     }
@@ -78,15 +90,19 @@ export default function ConnexionPage() {
         throw new Error(data.error || "Erreur lors de l'inscription.");
       }
 
-      setSuccessMsg("✅ Compte créé avec succès ! Redirection vers votre espace...");
-      setTimeout(() => {
-        router.push("/mon-compte");
-      }, 1200);
+      // Message neutre, aligné sur la réponse du serveur : il ne confirme pas
+      // qu'un compte vient d'être créé, ce qui permettrait d'énumérer les
+      // adresses déjà inscrites. Pas de redirection : le compte doit d'abord
+      // être vérifié par email.
+      setSuccessMsg(
+        data.message ||
+          "Si cette adresse peut être utilisée, un email de vérification vient d'être envoyé."
+      );
     } catch (err: any) {
-      setSuccessMsg("✅ Inscription validée ! Bienvenue sur votre Espace Client.");
-      setTimeout(() => {
-        router.push("/mon-compte");
-      }, 1000);
+      // Plus d'annonce de succès sur un échec : la version précédente affichait
+      // « Inscription validée » puis redirigeait, quelle que soit la réponse du
+      // serveur — y compris lorsque le mot de passe était refusé.
+      setErrorMsg(err?.message || "Erreur lors de l'inscription.");
     } finally {
       setIsSubmitting(false);
     }

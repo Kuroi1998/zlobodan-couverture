@@ -8,7 +8,9 @@ import {
   verifyPassword,
   validatePasswordPolicy,
   isPasswordPwned,
+  consumeDummyVerification,
 } from "@/lib/auth/password";
+import { normalizeEmail } from "@/lib/validations/normalize";
 import {
   generateToken,
   hashToken,
@@ -54,7 +56,7 @@ export interface RegisterInput {
  * « compte existant » est traité en interne et journalisé.
  */
 export async function registerUser(input: RegisterInput): Promise<{ accepted: true }> {
-  const normalizedEmail = input.email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(input.email);
 
   const policy = validatePasswordPolicy(input.password);
   if (!policy.isValid) throw new AuthError("weak-password", 400);
@@ -177,7 +179,7 @@ async function failLogin(
 }
 
 export async function loginUser(input: LoginInput): Promise<{ user: typeof users.$inferSelect }> {
-  const normalizedEmail = input.email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(input.email);
   const ip = input.ipAddress ?? null;
 
   const gate = await getLoginGate(normalizedEmail, ip);
@@ -206,6 +208,10 @@ export async function loginUser(input: LoginInput): Promise<{ user: typeof users
   });
 
   if (!user) {
+    // Égalisation du temps de réponse. Sans cette comparaison factice, le code
+    // reviendrait immédiatement, et la différence de durée avec un compte
+    // existant suffirait à énumérer la clientèle au chronomètre.
+    await consumeDummyVerification(input.password);
     throw await failLogin(normalizedEmail, ip, null, "unknown-account");
   }
 
