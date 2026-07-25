@@ -1,0 +1,52 @@
+# Fichiers d'environnement secrets & locaux
+.env
+.env.*
+!.env.example
+
+# Dépendances & Compilations
+node_modules/
+vendor/
+.next/
+dist/
+build/
+coverage/
+tsconfig.tsbuildinfo
+
+# Caches & Fichiers temporaires
+.cache/
+.tmp/
+temp/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers du système d'exploitation & IDE
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Clés privées, certificats & jetons
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Sauvegardes de base de données & exports SQL avec données
+database/backups/
+*.sql
+*.sqlite
+*.sqlite3
+
+# Fichiers utilisateur téléversés privés
+storage/uploads/*
+!storage/uploads/.gitkeep
+public/uploads/*
+
+# Couverture Vitest / Jest
+.vitest/
