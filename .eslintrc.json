@@ -1,0 +1,103 @@
+{
+  "extends": "next",
+  "rules": {
+    "max-lines": [
+      "error",
+      {
+        "max": 400,
+        "skipBlankLines": false,
+        "skipComments": false
+      }
+    ],
+    // Regle de style, sans portee securite : React echappe deja les noeuds de
+    // texte. Desactivee pour que l'echec de build signale une vraie violation
+    // et non une apostrophe dans un texte commercial.
+    "react/no-unescaped-entities": "off",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "child_process",
+            "message": "Aucun appel shell dans cette application. Utiliser l'API de la bibliotheque concernee (sharp, etc.), jamais exec avec une chaine construite."
+          },
+          {
+            "name": "node:child_process",
+            "message": "Aucun appel shell dans cette application. Utiliser l'API de la bibliotheque concernee (sharp, etc.), jamais exec avec une chaine construite."
+          }
+        ]
+      }
+    ],
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "db",
+        "property": "execute",
+        "message": "SQL brut interdit. Utiliser le query builder Drizzle. Exception justifiee uniquement dans src/lib/db/raw-queries.ts."
+      },
+      {
+        "object": "sql",
+        "property": "raw",
+        "message": "sql.raw n'echappe rien. Utiliser la liste blanche d'identifiants de src/lib/db/sort.ts ou un parametre lie."
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+        "message": "dangerouslySetInnerHTML interdit. Rendre le texte via React, ou passer par DOMPurify cote serveur pour du HTML riche."
+      },
+      {
+        "selector": "MemberExpression[property.name='innerHTML']",
+        "message": "innerHTML interdit. Utiliser textContent, ou un encodeur de src/lib/security/encoding.ts."
+      },
+      {
+        "selector": "MemberExpression[property.name='outerHTML']",
+        "message": "outerHTML interdit pour les memes raisons que innerHTML."
+      },
+      {
+        "selector": "CallExpression[callee.name='setTimeout'][arguments.0.type='Literal']",
+        "message": "setTimeout avec une chaine equivaut a eval. Passer une fonction."
+      },
+      {
+        "selector": "CallExpression[callee.name='setInterval'][arguments.0.type='Literal']",
+        "message": "setInterval avec une chaine equivaut a eval. Passer une fonction."
+      },
+      {
+        "selector": "CallExpression[callee.property.name=/^\\$(query|execute)RawUnsafe$/]",
+        "message": "Variante Unsafe interdite : elle concatene la requete. Utiliser la variante parametree."
+      },
+      {
+        "selector": "NewExpression[callee.name='Function']",
+        "message": "new Function equivaut a eval."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/lib/db/raw-queries.ts"],
+      "rules": {
+        "no-restricted-properties": "off",
+        "no-restricted-syntax": "off"
+      }
+    },
+    {
+      "files": ["src/components/seo/JsonLdSchema.tsx"],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    },
+    {
+      // Les tests de securite doivent contenir les charges d'attaque qu'ils
+      // verifient : une suite d'injection sans chaine "javascript:" ne teste rien.
+      "files": ["src/__tests__/**/*.ts"],
+      "rules": {
+        "no-script-url": "off"
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="slate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#sky)"/>
+  <!-- Roof structure silhouette -->
+  <polygon points="100,500 600,150 1100,500" fill="url(#slate)" stroke="#475569" stroke-width="4"/>
+  <!-- Slate tile lines -->
+  <line x1="200" y1="430" x2="1000" y2="430" stroke="#64748B" stroke-width="2" stroke-dasharray="15,10"/>
+  <line x1="300" y1="360" x2="900" y2="360" stroke="#64748B" stroke-width="2" stroke-dasharray="15,10"/>
+  <line x1="400" y1="290" x2="800" y2="290" stroke="#64748B" stroke-width="2" stroke-dasharray="15,10"/>
+  <line x1="500" y1="220" x2="700" y2="220" stroke="#64748B" stroke-width="2" stroke-dasharray="15,10"/>
+  <!-- Ridge zinc detail -->
+  <polygon points="580,150 600,135 620,150" fill="#94A3B8"/>
+  <!-- Badge overlaid -->
+  <rect x="70" y="60" width="380" height="70" rx="12" fill="#0F172A" opacity="0.9" stroke="#EA580C" stroke-width="2"/>
+  <text x="90" y="102" font-family="Arial, sans-serif" font-weight="bold" font-size="22" fill="#FFFFFF">Zlobodan Couverture-Zinguerie</text>
+  <text x="90" y="120" font-family="Arial, sans-serif" font-size="13" fill="#EA580C">Rénovation Ardoise &amp; Tuile - Nantes (44)</text>
+</svg>
