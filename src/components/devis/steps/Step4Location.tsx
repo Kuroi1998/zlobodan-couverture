@@ -1,6 +1,6 @@
 import React from "react";
 import { MapPin, CheckCircle2 } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
 
 interface Step4Props {
   formData: FormDataState;

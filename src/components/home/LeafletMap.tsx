@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import { villesData } from "@/data/villesData";
+import { villesData } from "@/data/villes";
 import { escapeHtml } from "@/lib/security/encoding";
 
 /**

@@ -1,6 +1,6 @@
 import React from "react";
 import { Home, Droplets, Sparkles, ShieldAlert, Flame, Sun, HelpCircle, CheckCircle2 } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
 
 interface Step1Props {
   formData: FormDataState;

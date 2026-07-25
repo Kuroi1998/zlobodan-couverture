@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Phone, ShieldCheck, Menu, X, FileText, AlertTriangle, Clock, User } from "lucide-react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,7 +12,7 @@ export const Header: React.FC = () => {
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "click_phone_header", {
         event_category: "Conversion",
-        event_label: siteData.phoneFormatted,
+        event_label: siteConfig.phoneFormatted,
       });
     }
   };
@@ -20,20 +20,20 @@ export const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full bg-brand-slate text-white shadow-lg">
       {/* Top Banner - Emergency Alert */}
-      {siteData.isEmergencyBannerActive && (
+      {siteConfig.isEmergencyBannerActive && (
         <div className="bg-brand-terracotta px-4 py-2 text-xs md:text-sm font-semibold text-white transition-all">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
               <AlertTriangle className="h-4 w-4 shrink-0 animate-pulse text-yellow-300" />
-              <span>{siteData.emergencyBannerMessage}</span>
+              <span>{siteConfig.emergencyBannerMessage}</span>
             </div>
             <a
-              href={`tel:${siteData.emergencyPhone}`}
+              href={`tel:${siteConfig.emergencyPhone}`}
               onClick={handlePhoneClick}
               className="shrink-0 bg-white text-brand-terracotta hover:bg-slate-100 px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 shadow"
             >
               <Phone className="h-3 w-3" />
-              <span>{siteData.emergencyPhoneFormatted}</span>
+              <span>{siteConfig.emergencyPhoneFormatted}</span>
             </a>
           </div>
         </div>
@@ -45,15 +45,15 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
               <ShieldCheck className="h-4 w-4" />
-              Garantie Décennale Belge AXA n° {siteData.insuranceNumber}
+              Garantie Décennale Belge AXA n° {siteConfig.insuranceNumber}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
-              {siteData.openingHours.days} : {siteData.openingHours.hours}
+              {siteConfig.openingHours.days} : {siteConfig.openingHours.hours}
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-slate-400">N° BCE : {siteData.siret}</span>
+            <span className="text-slate-400">N° BCE : {siteConfig.siret}</span>
             <span>•</span>
             <span className="text-amber-400 font-semibold">★ 4.9/5 (124+ avis Google)</span>
             <span>•</span>
@@ -107,14 +107,14 @@ export const Header: React.FC = () => {
         {/* CTA Phone & Devis & Connexion */}
         <div className="hidden sm:flex items-center gap-3">
           <a
-            href={`tel:${siteData.phone}`}
+            href={`tel:${siteConfig.phone}`}
             onClick={handlePhoneClick}
             className="flex items-center gap-2 border border-slate-700 hover:border-slate-500 bg-slate-800/80 text-white px-3.5 py-2 rounded-lg text-sm font-semibold transition"
           >
             <Phone className="h-4 w-4 text-emerald-400 animate-pulse" />
             <div className="flex flex-col text-left leading-tight">
               <span className="text-[10px] text-slate-400 uppercase font-normal">Appel direct</span>
-              <span>{siteData.phoneFormatted}</span>
+              <span>{siteConfig.phoneFormatted}</span>
             </div>
           </a>
 
@@ -190,12 +190,12 @@ export const Header: React.FC = () => {
 
           <div className="pt-2 border-t border-slate-800 flex flex-col gap-3">
             <a
-              href={`tel:${siteData.phone}`}
+              href={`tel:${siteConfig.phone}`}
               onClick={handlePhoneClick}
               className="flex items-center justify-center gap-2 bg-slate-800 text-white py-3 rounded-lg font-bold"
             >
               <Phone className="h-5 w-5 text-emerald-400" />
-              Appeler : {siteData.phoneFormatted}
+              Appeler : {siteConfig.phoneFormatted}
             </a>
             <Link
               href="/devis"

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { handleQuoteDecision } from "@/lib/services/quoteDecisionService";
+import { handleQuoteDecision } from "@/lib/services/quote-decision-service";
 
 export const dynamic = "force-dynamic";
 

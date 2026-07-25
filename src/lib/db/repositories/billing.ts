@@ -3,7 +3,7 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema/users";
 import { invoices } from "@/db/schema/invoices";
 import { quoteLines, quoteRequests, quotes } from "@/db/schema/quotes";
-import type { PdfDocumentData } from "@/lib/services/pdfService";
+import type { PdfDocumentData } from "@/lib/services/pdf-service";
 
 /**
  * Accès aux documents commerciaux.

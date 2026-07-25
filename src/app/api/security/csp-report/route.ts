@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { recordSecurityEvent } from "@/lib/security/security-events";
 import { rateLimitIdentity } from "@/lib/security/request-context";
-import { consumeRateLimit } from "@/lib/security/rateLimiter";
+import { consumeRateLimit } from "@/lib/security/rate-limiter";
 
 /**
  * Collecteur de violations CSP.

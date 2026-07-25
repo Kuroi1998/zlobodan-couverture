@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
-import { detectMimeFromMagicBytes } from "./magicBytes";
+import { detectMimeFromMagicBytes } from "./magic-bytes";
 import { recordSecurityEvent } from "./security-events";
 
 /**

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateServerPdfHtml } from "@/lib/services/pdfService";
+import { generateServerPdfHtml } from "@/lib/services/pdf-service";
 import { findInvoiceForPdf } from "@/lib/db/repositories/billing";
 import { authorizeResource, denyJson, requireApiUser } from "@/lib/security/guards";
 import { parseUuidParam } from "@/lib/validations/identifiers";

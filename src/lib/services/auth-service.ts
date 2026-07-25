@@ -28,9 +28,9 @@ import {
   recordLoginFailure,
   THRESHOLDS,
 } from "@/lib/security/login-throttle";
-import { sendSecurityNotification } from "./notificationService";
-import { logAuditEvent } from "./auditService";
-import { AuthError } from "./authErrors";
+import { sendSecurityNotification } from "./notification-service";
+import { logAuditEvent } from "./audit-service";
+import { AuthError } from "./auth-errors";
 
 /** Durées de session différenciées : un accès privilégié vit moins longtemps. */
 const SESSION_MAX_AGE_SECONDS: Record<string, number> = {

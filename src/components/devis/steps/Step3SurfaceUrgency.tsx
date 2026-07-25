@@ -1,6 +1,6 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
 
 interface Step3Props {
   formData: FormDataState;

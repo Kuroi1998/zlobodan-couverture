@@ -15,6 +15,6 @@ The architecture is built on **Next.js 14 App Router** with **TypeScript** in st
 ## 2. Directory Responsibilities
 - `src/app/`: Next.js pages and API route handlers (`/mon-compte`, `/admin`, `/api/auth/*`, `/api/client/*`, `/api/pdf/*`).
 - `src/components/`: Modular UI components split into dedicated sub-directories.
-- `src/data/`: Static business and SEO data split per domain (`services/`, `villesData.ts`, `siteData.ts`).
+- `src/data/`: Static business and SEO data split per domain (`services/`, `villesData.ts`, `siteConfig.ts`).
 - `src/db/`: Drizzle ORM domain schemas (`schema/users.ts`, `quotes.ts`, `invoices.ts`, `audit.ts`...).
 - `src/lib/`: Core services (`authService.ts`, `pdfService.ts`, `auditService.ts`), OWASP security (`permissions.ts`, `rateLimiter.ts`, `uploadService.ts`, `magicBytes.ts`).

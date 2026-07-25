@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
-import { faqData, FAQItem } from "@/data/faqData";
+import { faqData, FAQItem } from "@/data/faq";
 
 interface FAQSectionProps {
   customItems?: Array<{ question: string; answer: string; category?: string }>;

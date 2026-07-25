@@ -1,4 +1,4 @@
-import { siteData } from "../data/siteData";
+import { siteConfig } from "../config/site";
 
 async function main() {
   console.log("🌱 Seeding Zlobodan DB demo dataset...");

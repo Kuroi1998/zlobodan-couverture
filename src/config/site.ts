@@ -44,7 +44,7 @@ export interface SiteConfig {
   coveredPostalCodes: string[];
 }
 
-export const siteData: SiteConfig = {
+export const siteConfig: SiteConfig = {
   name: "Zlobodan Couverture-Zinguerie SRL",
   shortName: "Zlobodan Couverture Belgique",
   tagline: "Couvreur-Zingueur agréé à Bruxelles, Brabant Wallon & Wallonie",

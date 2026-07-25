@@ -15,7 +15,7 @@ L'architecture repose sur **Next.js 14 App Router** avec **TypeScript** en mode 
 ## 2. Responsabilités des Dossiers
 - `src/app/` : Routes pages et handlers d'API (`/mon-compte`, `/admin`, `/api/auth/*`, `/api/client/*`, `/api/pdf/*`).
 - `src/components/` : Composants UI modulaires (découpage sous-composants par dossier).
-- `src/data/` : Données statiques et SEO séparées par domaine (`services/`, `villesData.ts`, `siteData.ts`).
+- `src/data/` : Données statiques et SEO séparées par domaine (`services/`, `villesData.ts`, `siteConfig.ts`).
 - `src/db/` : Schémas Drizzle ORM découpés par domaine (`schema/users.ts`, `quotes.ts`, `invoices.ts`, `audit.ts`...).
 - `src/lib/` : Services métier (`authService.ts`, `pdfService.ts`, `auditService.ts`), sécurité OWASP (`permissions.ts`, `rateLimiter.ts`, `uploadService.ts`, `magicBytes.ts`).
 

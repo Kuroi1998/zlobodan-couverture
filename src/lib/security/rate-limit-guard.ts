@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { consumeRateLimit, isDistributedRateLimitConfigured } from "./rateLimiter";
+import { consumeRateLimit, isDistributedRateLimitConfigured } from "./rate-limiter";
 import { rateLimitIdentity } from "./request-context";
 import { recordSecurityEvent } from "./security-events";
 

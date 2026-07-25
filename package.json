@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "leaflet": "1.9.4",
     "lucide-react": "^0.378.0",
@@ -29,7 +28,6 @@
     "react-dom": "^18.3.1",
     "sharp": "^0.35.3",
     "speakeasy": "^2.0.0",
-    "tailwind-merge": "^2.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

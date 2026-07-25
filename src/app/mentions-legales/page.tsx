@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const metadata = {
   title: "Mentions Légales | Zlobodan Couverture-Zinguerie",
@@ -21,23 +21,23 @@ export default function MentionsLegalesPage() {
           <section className="space-y-2">
             <h2 className="font-heading font-bold text-lg text-white">1. Éditeur du site</h2>
             <p>
-              Le présent site web est édité par la société <strong>{siteData.name}</strong>, Société par Actions Simplifiée (SAS) au capital de {siteData.capital}.
+              Le présent site web est édité par la société <strong>{siteConfig.name}</strong>, Société par Actions Simplifiée (SAS) au capital de {siteConfig.capital}.
             </p>
             <ul className="list-disc list-inside space-y-1 text-slate-400">
-              <li><strong>Siège social :</strong> {siteData.fullAddress}</li>
-              <li><strong>SIRET :</strong> {siteData.siret}</li>
-              <li><strong>RCS :</strong> {siteData.rcs}</li>
-              <li><strong>Numéro de TVA Intracommunautaire :</strong> {siteData.tvaIntra}</li>
+              <li><strong>Siège social :</strong> {siteConfig.fullAddress}</li>
+              <li><strong>SIRET :</strong> {siteConfig.siret}</li>
+              <li><strong>RCS :</strong> {siteConfig.rcs}</li>
+              <li><strong>Numéro de TVA Intracommunautaire :</strong> {siteConfig.tvaIntra}</li>
               <li><strong>Directeur de la publication :</strong> Direction Zlobodan Couverture</li>
-              <li><strong>Email :</strong> {siteData.email}</li>
-              <li><strong>Téléphone :</strong> {siteData.phoneFormatted}</li>
+              <li><strong>Email :</strong> {siteConfig.email}</li>
+              <li><strong>Téléphone :</strong> {siteConfig.phoneFormatted}</li>
             </ul>
           </section>
 
           <section className="space-y-2 pt-4 border-t border-slate-800">
             <h2 className="font-heading font-bold text-lg text-white">2. Assurance Responsabilité Civile Professionnelle &amp; Décennale</h2>
             <p>
-              La société {siteData.name} est couverte par un contrat d'assurance Responsabilité Civile Professionnelle et Garantie Décennale souscrit auprès de la compagnie <strong>{siteData.insuranceName}</strong> sous le numéro de police <strong>{siteData.insuranceNumber}</strong>, valable pour l'ensemble du territoire français.
+              La société {siteConfig.name} est couverte par un contrat d'assurance Responsabilité Civile Professionnelle et Garantie Décennale souscrit auprès de la compagnie <strong>{siteConfig.insuranceName}</strong> sous le numéro de police <strong>{siteConfig.insuranceNumber}</strong>, valable pour l'ensemble du territoire français.
             </p>
           </section>
 
@@ -51,7 +51,7 @@ export default function MentionsLegalesPage() {
           <section className="space-y-2 pt-4 border-t border-slate-800">
             <h2 className="font-heading font-bold text-lg text-white">4. Propriété intellectuelle</h2>
             <p>
-              L'ensemble des éléments composant ce site (textes, graphismes, logos, images, vidéos, animations, icônes) est la propriété exclusive de {siteData.name}. Toute reproduction, représentation, modification ou adaptation sans autorisation écrite préalable est strictement interdite.
+              L'ensemble des éléments composant ce site (textes, graphismes, logos, images, vidéos, animations, icônes) est la propriété exclusive de {siteConfig.name}. Toute reproduction, représentation, modification ou adaptation sans autorisation écrite préalable est strictement interdite.
             </p>
           </section>
 

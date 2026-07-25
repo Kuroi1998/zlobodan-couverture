@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { MapPin, Search, CheckCircle2, AlertCircle, Phone } from "lucide-react";
-import { siteData } from "@/data/siteData";
-import { villesData } from "@/data/villesData";
+import { siteConfig } from "@/config/site";
+import { villesData } from "@/data/villes";
 import { LeafletMap } from "@/components/home/LeafletMap";
 
 export const DynamicMapSection: React.FC = () => {
@@ -28,7 +28,7 @@ export const DynamicMapSection: React.FC = () => {
       return;
     }
 
-    if (siteData.coveredPostalCodes.includes(cleanCode)) {
+    if (siteConfig.coveredPostalCodes.includes(cleanCode)) {
       const foundCity = Object.values(villesData).find(
         (v) => v.postalCode === cleanCode
       )?.name || "Belgique";
@@ -59,10 +59,10 @@ export const DynamicMapSection: React.FC = () => {
             Proximité &amp; Réactivité Belgique
           </span>
           <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-white tracking-tight">
-            Zone d'intervention dans un rayon de {siteData.radiusKm} km (Bruxelles &amp; Wallonie)
+            Zone d'intervention dans un rayon de {siteConfig.radiusKm} km (Bruxelles &amp; Wallonie)
           </h2>
           <p className="text-base text-slate-400">
-            Basés à {siteData.address}, nous intervenons sous 1h à 2h pour les urgences fuite et sous 24h pour tous vos métrés et devis.
+            Basés à {siteConfig.address}, nous intervenons sous 1h à 2h pour les urgences fuite et sous 24h pour tous vos métrés et devis.
           </p>
         </div>
 

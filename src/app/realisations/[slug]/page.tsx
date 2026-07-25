@@ -2,8 +2,8 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { realisationsData, RealisationItem } from "@/data/realisationsData";
-import { siteData } from "@/data/siteData";
+import { realisationsData, RealisationItem } from "@/data/realisations";
+import { siteConfig } from "@/config/site";
 import { BeforeAfterSlider } from "@/components/realisations/BeforeAfterSlider";
 import { MapPin, Calendar, Clock, ShieldCheck, CheckCircle2, Star, FileText, Phone } from "lucide-react";
 
@@ -157,11 +157,11 @@ export default function RealisationDetailPage({ params }: { params: { slug: stri
                 </Link>
 
                 <a
-                  href={`tel:${siteData.phone}`}
+                  href={`tel:${siteConfig.phone}`}
                   className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 border border-slate-700"
                 >
                   <Phone className="h-4 w-4 text-emerald-400" />
-                  <span>Appeler le {siteData.phoneFormatted}</span>
+                  <span>Appeler le {siteConfig.phoneFormatted}</span>
                 </a>
               </div>
             </div>

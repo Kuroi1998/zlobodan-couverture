@@ -10,7 +10,7 @@ import { DynamicMapSection } from "@/components/home/DynamicMapSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
 import { Phone, ShieldCheck, ArrowRight } from "lucide-react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export default function HomePage() {
   return (
@@ -138,11 +138,11 @@ export default function HomePage() {
             </Link>
 
             <a
-              href={`tel:${siteData.phone}`}
+              href={`tel:${siteConfig.phone}`}
               className="w-full sm:w-auto bg-white hover:bg-slate-100 text-slate-950 font-extrabold px-8 py-4 rounded-xl text-base shadow-2xl transition hover:scale-105 flex items-center justify-center gap-2"
             >
               <Phone className="h-5 w-5 text-brand-terracotta" />
-              <span>Appeler le {siteData.phoneFormatted}</span>
+              <span>Appeler le {siteConfig.phoneFormatted}</span>
             </a>
           </div>
 

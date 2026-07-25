@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { CheckCircle2, Phone, Home, FileText, ArrowRight } from "lucide-react";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 
 export const metadata = {
   title: "Demande de Devis Enregistrée avec Succès",
@@ -54,11 +54,11 @@ export default function MerciDevisPage() {
             🚨 Une infiltration d'eau active au plafond ? N'attendez pas l'email.
           </span>
           <a
-            href={`tel:${siteData.emergencyPhone}`}
+            href={`tel:${siteConfig.emergencyPhone}`}
             className="shrink-0 bg-brand-terracotta hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5"
           >
             <Phone className="h-3.5 w-3.5" />
-            <span>Appel d'urgence : {siteData.emergencyPhoneFormatted}</span>
+            <span>Appel d'urgence : {siteConfig.emergencyPhoneFormatted}</span>
           </a>
         </div>
 

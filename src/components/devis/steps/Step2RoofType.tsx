@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
-import { FormDataState } from "./types";
+import { FormDataState } from "../quote-form.types";
 
 interface Step2Props {
   formData: FormDataState;

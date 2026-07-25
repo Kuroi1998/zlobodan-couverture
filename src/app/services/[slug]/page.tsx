@@ -2,9 +2,9 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { servicesData, ServiceItem } from "@/data/servicesData";
-import { realisationsData } from "@/data/realisationsData";
-import { siteData } from "@/data/siteData";
+import { servicesData, ServiceItem } from "@/data/services";
+import { realisationsData } from "@/data/realisations";
+import { siteConfig } from "@/config/site";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
 import {
@@ -99,11 +99,11 @@ export default function ServiceDetailPage({ params }: { params: { slug: string }
                   </Link>
 
                   <a
-                    href={`tel:${siteData.phone}`}
+                    href={`tel:${siteConfig.phone}`}
                     className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition text-center flex items-center justify-center gap-2 border border-slate-700"
                   >
                     <Phone className="h-4 w-4 text-emerald-400" />
-                    <span>{siteData.phoneFormatted}</span>
+                    <span>{siteConfig.phoneFormatted}</span>
                   </a>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 import { requirePageAuth } from "@/lib/security/guards";
 import {
   LayoutDashboard,

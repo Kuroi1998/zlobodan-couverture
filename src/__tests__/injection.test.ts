@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { escapeAttr, escapeHtml, escapeJsonForScript, escapeUrl } from "@/lib/security/encoding";
 import { containsUnsafeKeys } from "@/lib/security/body";
 import { parseUuidParam, PaginationSchema, SearchTermSchema } from "@/lib/validations/identifiers";
-import { QuoteRequestSchema } from "@/lib/validations/quoteSchemas";
+import { QuoteRequestSchema } from "@/lib/validations/quote-schemas";
 import { allowedSortColumns, resolveOrderBy } from "@/lib/db/sort";
 import { assertSafeOutboundUrl, isPrivateAddress } from "@/lib/security/ssrf";
 

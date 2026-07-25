@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Home, Droplets, Sparkles, ShieldAlert, Flame, Sun, ArrowRight, CheckCircle2 } from "lucide-react";
-import { servicesData, ServiceItem } from "@/data/servicesData";
+import { servicesData, ServiceItem } from "@/data/services";
 
 export const ServicesGrid: React.FC = () => {
   const getServiceIcon = (iconName: string) => {

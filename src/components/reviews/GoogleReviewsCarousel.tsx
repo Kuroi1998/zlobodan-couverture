@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Star, ChevronLeft, ChevronRight, CheckCircle, ExternalLink } from "lucide-react";
-import { reviewsData, ReviewItem } from "@/data/reviewsData";
+import { reviewsData, ReviewItem } from "@/data/reviews";
 
 export const GoogleReviewsCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);

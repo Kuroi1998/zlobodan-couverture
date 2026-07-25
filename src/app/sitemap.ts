@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
-import { servicesData } from "@/data/servicesData";
-import { realisationsData } from "@/data/realisationsData";
-import { villesData } from "@/data/villesData";
+import { servicesData } from "@/data/services";
+import { realisationsData } from "@/data/realisations";
+import { villesData } from "@/data/villes";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://zlobodan-couverture.fr";

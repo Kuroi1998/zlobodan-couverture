@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { siteData } from "@/data/siteData";
+import { siteConfig } from "@/config/site";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 
 export const metadata = {
@@ -43,7 +43,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white">Adresse du siège social :</p>
-                    <p className="text-xs text-slate-400">{siteData.fullAddress}</p>
+                    <p className="text-xs text-slate-400">{siteConfig.fullAddress}</p>
                   </div>
                 </div>
 
@@ -53,10 +53,10 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white">Téléphone Standard :</p>
-                    <a href={`tel:${siteData.phone}`} className="text-sm font-bold text-emerald-400 hover:underline">
-                      {siteData.phoneFormatted}
+                    <a href={`tel:${siteConfig.phone}`} className="text-sm font-bold text-emerald-400 hover:underline">
+                      {siteConfig.phoneFormatted}
                     </a>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Urgence 24/7 : {siteData.emergencyPhoneFormatted}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Urgence 24/7 : {siteConfig.emergencyPhoneFormatted}</p>
                   </div>
                 </div>
 
@@ -66,8 +66,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white">Adresse Email :</p>
-                    <a href={`mailto:${siteData.email}`} className="text-xs text-slate-300 hover:underline">
-                      {siteData.email}
+                    <a href={`mailto:${siteConfig.email}`} className="text-xs text-slate-300 hover:underline">
+                      {siteConfig.email}
                     </a>
                   </div>
                 </div>
@@ -78,8 +78,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white">Horaires d'ouverture :</p>
-                    <p className="text-xs text-slate-400">{siteData.openingHours.days} : {siteData.openingHours.hours}</p>
-                    <p className="text-xs text-brand-terracotta font-semibold mt-0.5">{siteData.openingHours.emergency}</p>
+                    <p className="text-xs text-slate-400">{siteConfig.openingHours.days} : {siteConfig.openingHours.hours}</p>
+                    <p className="text-xs text-brand-terracotta font-semibold mt-0.5">{siteConfig.openingHours.emergency}</p>
                   </div>
                 </div>
               </div>
@@ -87,8 +87,8 @@ export default function ContactPage() {
 
             {/* BCE Box */}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-xs text-slate-400 space-y-1">
-              <p><strong className="text-white">N° BCE / TVA :</strong> {siteData.siret}</p>
-              <p><strong className="text-white">Assurance Décennale :</strong> {siteData.insuranceName} (n° {siteData.insuranceNumber})</p>
+              <p><strong className="text-white">N° BCE / TVA :</strong> {siteConfig.siret}</p>
+              <p><strong className="text-white">Assurance Décennale :</strong> {siteConfig.insuranceName} (n° {siteConfig.insuranceNumber})</p>
             </div>
 
           </div>
