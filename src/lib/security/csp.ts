@@ -36,16 +36,16 @@ export function buildCspHeader(nonce: string, isProduction: boolean): string {
   const directives: string[] = [
     "default-src 'self'",
 
-    // 'strict-dynamic' fait autorité sur les navigateurs modernes : la liste
-    // blanche d'hôtes qui suit ne sert que de repli pour les moteurs anciens.
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${TURNSTILE}`,
+    // En développement et production, Next.js et Tailwind injectent des styles <style> dynamiques.
+    isProduction
+      ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${TURNSTILE}`
+      : `script-src 'self' 'unsafe-eval' 'unsafe-inline' ${TURNSTILE}`,
 
-    `style-src 'self' 'nonce-${nonce}'`,
-    // Voir l'en-tête de fichier : couvre les attributs `style` produits par React.
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     "style-src-attr 'unsafe-inline'",
 
     `img-src 'self' data: blob: ${MAP_TILES}`,
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src 'self' ${TURNSTILE} ${MAP_TILES}`,
     `frame-src ${TURNSTILE}`,
 
