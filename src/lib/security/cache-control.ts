@@ -22,6 +22,7 @@ const PRIVATE_PREFIXES = ["/mon-compte", "/admin", "/api"] as const;
  * « retour » après déconnexion sur un poste partagé.
  */
 const PRIVATE_CACHE_VALUE = "private, no-store, no-cache, must-revalidate, max-age=0";
+export const REQUEST_PATH_HEADER = "x-zb-request-path";
 
 export function isPrivatePath(pathname: string): boolean {
   return PRIVATE_PREFIXES.some(
@@ -51,6 +52,9 @@ export const UNSAFE_INBOUND_HEADERS = [
   "x-admin",
   "x-user-id",
   "x-role",
+  // Injecté exclusivement par notre middleware après purge de la valeur
+  // entrante. Il sert à conserver le chemin exact dans `next`.
+  REQUEST_PATH_HEADER,
 ] as const;
 
 export function stripUnsafeInboundHeaders(headers: Headers): string[] {

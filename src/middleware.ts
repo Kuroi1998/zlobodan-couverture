@@ -3,7 +3,11 @@ import { buildCspHeader, CSP_REPORT_PATH, generateNonce } from "@/lib/security/c
 import { checkCsrf } from "@/lib/security/csrf";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { isDecoyAdminPath } from "@/lib/security/decoys";
-import { applyCachePolicy, stripUnsafeInboundHeaders } from "@/lib/security/cache-control";
+import {
+  applyCachePolicy,
+  REQUEST_PATH_HEADER,
+  stripUnsafeInboundHeaders,
+} from "@/lib/security/cache-control";
 
 /**
  * Filtre de bordure.
@@ -27,7 +31,7 @@ export function middleware(request: NextRequest) {
   if (isDecoyAdminPath(pathname)) {
     const decoy = new NextResponse(null, { status: 404 });
     decoy.headers.set("x-zb-trap", "1");
-    applySecurityHeaders(decoy, csp);
+    applySecurityHeaders(decoy, csp, isProduction);
     return applyCachePolicy(request, decoy);
   }
 
@@ -43,7 +47,7 @@ export function middleware(request: NextRequest) {
         { status: 403 }
       );
       denied.headers.set("x-zb-csrf-reason", verdict.reason);
-      applySecurityHeaders(denied, csp);
+      applySecurityHeaders(denied, csp, isProduction);
       return applyCachePolicy(request, denied);
     }
   }
@@ -53,6 +57,10 @@ export function middleware(request: NextRequest) {
   //    futur, ne peut donc s'y fier par inadvertance.
   const requestHeaders = new Headers(request.headers);
   const stripped = stripUnsafeInboundHeaders(requestHeaders);
+  requestHeaders.set(
+    REQUEST_PATH_HEADER,
+    `${request.nextUrl.pathname}${request.nextUrl.search}`
+  );
 
   // 4. Propagation du nonce à l'application. Next.js lit l'en-tête de requête
   //    `Content-Security-Policy` pour appliquer le nonce à ses propres scripts.
@@ -64,7 +72,7 @@ export function middleware(request: NextRequest) {
     response.headers.set("x-zb-stripped", String(stripped.length));
   }
 
-  applySecurityHeaders(response, csp);
+  applySecurityHeaders(response, csp, isProduction);
   return applyCachePolicy(request, response);
 }
 

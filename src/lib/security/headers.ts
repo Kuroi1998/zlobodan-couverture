@@ -6,16 +6,24 @@ import { buildReportToHeader } from "./csp";
  * réponses d'erreur et de refus — une page 403 sans en-têtes reste une page
  * exploitable.
  */
-export function applySecurityHeaders(response: NextResponse, csp: string): NextResponse {
+export function applySecurityHeaders(
+  response: NextResponse,
+  csp: string,
+  isProduction: boolean
+): NextResponse {
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("Report-To", buildReportToHeader());
 
-  // Deux ans, sous-domaines inclus, éligible à la liste de préchargement.
-  // La soumission à hstspreload.org est une action manuelle : voir le runbook.
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload"
-  );
+  if (isProduction) {
+    // Deux ans, sous-domaines inclus, éligible à la liste de préchargement.
+    // La soumission à hstspreload.org est une action manuelle : voir le runbook.
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=63072000; includeSubDomains; preload"
+    );
+  } else {
+    response.headers.delete("Strict-Transport-Security");
+  }
 
   // `frame-ancestors 'none'` de la CSP fait autorité ; cet en-tête reste pour
   // les navigateurs qui ne l'implémentent pas.

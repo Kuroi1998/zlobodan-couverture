@@ -1,7 +1,7 @@
-import React from "react";
+import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Mentions Légales | Zlobodan Couverture-Zinguerie",
   description: "Mentions légales, éditeur du site, hébergement et données réglementaires de l'entreprise Zlobodan Couverture à Nantes.",
 };

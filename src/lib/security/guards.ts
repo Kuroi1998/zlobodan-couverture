@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   can,
@@ -10,6 +11,12 @@ import {
 } from "@/lib/auth/permissions";
 import { resolveSession } from "./session-guard";
 import { recordSecurityEvent } from "./security-events";
+import {
+  getDefaultDestination,
+  getLoginRedirectPath,
+} from "@/lib/auth/destinations";
+import { REQUEST_PATH_HEADER } from "./cache-control";
+import { safeReturnPath } from "./urls";
 
 /**
  * Gardes d'accès serveur.
@@ -20,13 +27,12 @@ import { recordSecurityEvent } from "./security-events";
  * filet secondaire, jamais la seule barrière.
  */
 
-const LOGIN_PATH = "/connexion";
-
 function loginRedirect(nextPath?: string): never {
-  const target = nextPath
-    ? `${LOGIN_PATH}?next=${encodeURIComponent(nextPath)}`
-    : LOGIN_PATH;
-  redirect(target);
+  const exactRequestPath = safeReturnPath(
+    headers().get(REQUEST_PATH_HEADER),
+    nextPath ?? ""
+  );
+  redirect(getLoginRedirectPath(exactRequestPath));
 }
 
 /** Réponse d'API volontairement uniforme : elle ne distingue pas « absent » de « interdit ». */
@@ -75,7 +81,7 @@ export async function requirePageRole(
     });
     // Élévation verticale refusée : on renvoie vers l'espace du rôle réel
     // plutôt que d'exposer l'existence de la zone demandée.
-    redirect("/mon-compte");
+    redirect(getDefaultDestination("client"));
   }
   return user;
 }

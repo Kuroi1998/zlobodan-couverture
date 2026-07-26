@@ -4,15 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { Phone, FileText } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { trackEvent } from "@/lib/analytics";
 
 export const MobileCallBar: React.FC = () => {
   const handleCall = () => {
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "click_phone_mobile_bar", {
-        event_category: "Conversion",
-        event_label: siteConfig.emergencyPhoneFormatted,
-      });
-    }
+    trackEvent("click_phone_mobile_bar", {
+      event_category: "Conversion",
+      event_label: siteConfig.emergencyPhoneFormatted,
+    });
   };
 
   return (

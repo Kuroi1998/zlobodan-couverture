@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LoginSchema } from "@/lib/validations/auth-schemas";
 import { loginUser } from "@/lib/services/auth-service";
-import { toPublicAuthError } from "@/lib/services/auth-errors";
+import {
+  GENERIC_CREDENTIALS,
+  toPublicAuthError,
+} from "@/lib/services/auth-errors";
 import { enforceRateLimit } from "@/lib/security/rate-limit-guard";
 import { getTrustedIp, getUserAgent } from "@/lib/security/request-context";
 import { readJsonBody } from "@/lib/security/body";
 import { recordSecurityEvent } from "@/lib/security/security-events";
+import { getPostLoginDestination } from "@/lib/auth/destinations";
+import {
+  getSessionCookieOptions,
+  SESSION_COOKIE_NAME,
+} from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +40,7 @@ export async function POST(req: NextRequest) {
     // Message générique : un détail de validation distinguerait « email
     // inexistant » de « email mal formé ».
     return NextResponse.json(
-      { success: false, error: "Identifiants incorrects, ou compte momentanément indisponible." },
+      { success: false, error: GENERIC_CREDENTIALS },
       { status: 401 }
     );
   }
@@ -43,7 +51,7 @@ export async function POST(req: NextRequest) {
   if (!accountLimit.allowed) return accountLimit.response;
 
   try {
-    const { user } = await loginUser({
+    const { user, session } = await loginUser({
       email: parsed.data.email,
       password: parsed.data.password,
       totpCode: parsed.data.totpCode,
@@ -52,12 +60,28 @@ export async function POST(req: NextRequest) {
       userAgent: getUserAgent(req),
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
+      destination: getPostLoginDestination(user.role, parsed.data.next),
       user: { id: user.id, email: user.email, role: user.role },
     });
+    response.cookies.set(
+      SESSION_COOKIE_NAME,
+      session.token,
+      getSessionCookieOptions(session.maxAgeSeconds)
+    );
+    return response;
   } catch (error) {
     const safe = toPublicAuthError(error);
+    if (safe.code === "unexpected") {
+      await recordSecurityEvent({
+        kind: "LOGIN_FAILED",
+        severity: "high",
+        route: ROUTE,
+        ipAddress: getTrustedIp(req),
+        detail: { reason: "unexpected-auth-error" },
+      });
+    }
     return NextResponse.json(
       { success: false, error: safe.message, code: safe.code },
       { status: safe.status }

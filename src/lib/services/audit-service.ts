@@ -7,7 +7,7 @@ export interface LogAuditEventParams {
   action: string;
   targetTable: string;
   targetId?: string | null;
-  diff?: Record<string, any> | null;
+  diff?: Record<string, unknown> | null;
   ipAddress?: string;
 }
 

@@ -60,6 +60,9 @@ export const LoginSchema = z.object({
   password: z.string().min(1, "Mot de passe requis.").max(PASSWORD_MAX_LENGTH),
   totpCode: z.string().max(10).optional(),
   captchaToken: z.string().max(2048).optional(),
+  // Chemin seulement : la validation de sécurité et de rôle est centralisée
+  // dans `lib/auth/destinations.ts` après l'authentification.
+  next: z.string().max(512).optional(),
 });
 
 export const PasswordResetRequestSchema = z.object({

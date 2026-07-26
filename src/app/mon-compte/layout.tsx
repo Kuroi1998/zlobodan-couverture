@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { requirePageAuth } from "@/lib/security/guards";
+import LogoutButton from "@/components/auth/LogoutButton";
 import {
   LayoutDashboard,
   FileText,
@@ -9,7 +10,6 @@ import {
   MessageSquare,
   FolderOpen,
   Settings,
-  LogOut,
   ShieldCheck,
 } from "lucide-react";
 
@@ -112,15 +112,11 @@ export default async function ClientPortalLayout({ children }: Readonly<{ childr
             <p className="truncate">{account.email}</p>
           </div>
 
-          <form action="/api/auth/logout" method="POST">
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-950 hover:text-red-300 text-slate-300 py-2.5 rounded-xl text-xs font-bold transition border border-slate-700"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Se Déconnecter</span>
-            </button>
-          </form>
+          <LogoutButton
+            label="Se Déconnecter"
+            iconClassName="h-4 w-4"
+            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-950 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-70 text-slate-300 py-2.5 rounded-xl text-xs font-bold transition border border-slate-700"
+          />
         </div>
 
       </aside>

@@ -5,6 +5,7 @@ import { sessions } from "@/db/schema/sessions";
 import { users } from "@/db/schema/users";
 import { getSessionTokenFromCookie, hashToken } from "@/lib/auth/session";
 import type { AuthUser, UserRole } from "@/lib/auth/permissions";
+import { isUserRole } from "@/lib/auth/destinations";
 import { recordSecurityEvent } from "./security-events";
 
 /**
@@ -51,10 +52,6 @@ const ABSOLUTE_TIMEOUT_MS: Record<UserRole, number> = {
 
 /** Écriture de `lastSeenAt` throttlée pour ne pas générer un UPDATE par requête. */
 const TOUCH_INTERVAL_MS = 60 * 1000;
-
-function isKnownRole(value: string): value is UserRole {
-  return value === "client" || value === "staff" || value === "admin";
-}
 
 /**
  * Un jeton révoqué qui se représente signifie qu'une copie du cookie circule.
@@ -130,7 +127,17 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
   const now = new Date();
   if (row.expiresAt.getTime() <= now.getTime()) return empty("expired");
 
-  const role: UserRole = isKnownRole(row.role) ? row.role : "client";
+  if (!isUserRole(row.role)) {
+    await recordSecurityEvent({
+      kind: "SESSION_RESOLUTION_FAILURE",
+      severity: "high",
+      userId: row.userId,
+      detail: { reason: "unknown-role" },
+    });
+    return empty("user-disabled");
+  }
+
+  const role: UserRole = row.role;
 
   if (now.getTime() - row.createdAt.getTime() > ABSOLUTE_TIMEOUT_MS[role]) {
     return empty("expired");

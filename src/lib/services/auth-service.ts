@@ -14,10 +14,10 @@ import { normalizeEmail } from "@/lib/validations/normalize";
 import {
   generateToken,
   hashToken,
-  setSessionCookie,
-  clearSessionCookie,
   hashIpAddress,
 } from "@/lib/auth/session";
+import { isUserRole } from "@/lib/auth/destinations";
+import type { UserRole } from "@/lib/auth/permissions";
 import { verifyTotpToken } from "@/lib/auth/totp";
 import { requireTurnstilePass } from "@/lib/auth/turnstile";
 import { recordSecurityEvent } from "@/lib/security/security-events";
@@ -33,7 +33,7 @@ import { logAuditEvent } from "./audit-service";
 import { AuthError } from "./auth-errors";
 
 /** Durées de session différenciées : un accès privilégié vit moins longtemps. */
-const SESSION_MAX_AGE_SECONDS: Record<string, number> = {
+const SESSION_MAX_AGE_SECONDS: Record<UserRole, number> = {
   admin: 8 * 60 * 60,
   staff: 8 * 60 * 60,
   client: 7 * 24 * 60 * 60,
@@ -178,7 +178,17 @@ async function failLogin(
   return new AuthError("invalid-credentials");
 }
 
-export async function loginUser(input: LoginInput): Promise<{ user: typeof users.$inferSelect }> {
+type DatabaseUser = typeof users.$inferSelect;
+type AuthenticatedDatabaseUser = Omit<DatabaseUser, "role"> & { role: UserRole };
+
+export interface CreatedSession {
+  token: string;
+  maxAgeSeconds: number;
+}
+
+export async function loginUser(
+  input: LoginInput
+): Promise<{ user: AuthenticatedDatabaseUser; session: CreatedSession }> {
   const normalizedEmail = normalizeEmail(input.email);
   const ip = input.ipAddress ?? null;
 
@@ -217,6 +227,17 @@ export async function loginUser(input: LoginInput): Promise<{ user: typeof users
 
   if (!(await verifyPassword(input.password, user.passwordHash))) {
     throw await failLogin(normalizedEmail, ip, user.id, "bad-password");
+  }
+
+  if (!isUserRole(user.role)) {
+    await recordSecurityEvent({
+      kind: "LOGIN_FAILED",
+      severity: "high",
+      userId: user.id,
+      ipAddress: ip,
+      detail: { reason: "unknown-role" },
+    });
+    throw new AuthError("invalid-credentials");
   }
 
   // --- Deuxième facteur -----------------------------------------------------
@@ -266,7 +287,7 @@ export async function loginUser(input: LoginInput): Promise<{ user: typeof users
     .set({ failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() })
     .where(eq(users.id, user.id));
 
-  const maxAgeSeconds = SESSION_MAX_AGE_SECONDS[user.role] ?? SESSION_MAX_AGE_SECONDS.client;
+  const maxAgeSeconds = SESSION_MAX_AGE_SECONDS[user.role];
   const rawSessionToken = generateToken();
   const now = new Date();
 
@@ -278,8 +299,6 @@ export async function loginUser(input: LoginInput): Promise<{ user: typeof users
     lastSeenAt: now,
     expiresAt: new Date(now.getTime() + maxAgeSeconds * 1000),
   });
-
-  setSessionCookie(rawSessionToken, maxAgeSeconds);
 
   await recordSecurityEvent({
     kind: knownDevice ? "LOGIN_SUCCESS" : "LOGIN_NEW_DEVICE",
@@ -297,7 +316,10 @@ export async function loginUser(input: LoginInput): Promise<{ user: typeof users
     });
   }
 
-  return { user };
+  return {
+    user: { ...user, role: user.role },
+    session: { token: rawSessionToken, maxAgeSeconds },
+  };
 }
 
 export async function logoutUser(sessionToken?: string): Promise<void> {
@@ -307,7 +329,6 @@ export async function logoutUser(sessionToken?: string): Promise<void> {
       .set({ revokedAt: new Date() })
       .where(eq(sessions.tokenHash, hashToken(sessionToken)));
   }
-  clearSessionCookie();
 }
 
 /** Révocation globale : changement de mot de passe, réponse à incident. */

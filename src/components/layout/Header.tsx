@@ -4,17 +4,16 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Phone, ShieldCheck, Menu, X, FileText, AlertTriangle, Clock, User } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { trackEvent } from "@/lib/analytics";
 
 export const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handlePhoneClick = () => {
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "click_phone_header", {
-        event_category: "Conversion",
-        event_label: siteConfig.phoneFormatted,
-      });
-    }
+    trackEvent("click_phone_header", {
+      event_category: "Conversion",
+      event_label: siteConfig.phoneFormatted,
+    });
   };
 
   return (

@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { requirePageRole } from "@/lib/security/guards";
+import LogoutButton from "@/components/auth/LogoutButton";
 import {
   LayoutDashboard,
   Inbox,
@@ -10,7 +11,6 @@ import {
   Users,
   ShieldCheck,
   History,
-  LogOut,
 } from "lucide-react";
 
 export const metadata = {
@@ -111,15 +111,11 @@ export default async function AdminLayout({
             Opérateur : <strong className="text-white">{operator.email}</strong>
           </p>
           <p className="text-slate-500 uppercase text-[10px]">Rôle : {operator.role}</p>
-          <form action="/api/auth/logout" method="POST">
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 text-slate-400 py-2 rounded border border-slate-800 text-[10px]"
-            >
-              <LogOut className="h-3 w-3" />
-              <span>Quitter le Back-Office</span>
-            </button>
-          </form>
+          <LogoutButton
+            label="Quitter le Back-Office"
+            iconClassName="h-3 w-3"
+            className="w-full flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70 text-slate-400 py-2 rounded border border-slate-800 text-[10px]"
+          />
         </div>
 
       </aside>

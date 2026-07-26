@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Upload, X, Send } from "lucide-react";
 import { FormDataState } from "../quote-form.types";
 
@@ -145,10 +146,14 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
           <div className="flex flex-wrap gap-3 pt-2">
             {photos.map((item, idx) => (
               <div key={item.preview} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                {/* next/image ne sait pas traiter une URL blob: locale, seule
-                    source disponible pour prévisualiser avant envoi. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.preview} alt={`Aperçu ${idx + 1}`} className="w-full h-full object-cover" />
+                <Image
+                  src={item.preview}
+                  alt={`Aperçu ${idx + 1}`}
+                  fill
+                  sizes="80px"
+                  unoptimized
+                  className="object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => removePhoto(idx)}

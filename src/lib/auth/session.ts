@@ -31,8 +31,8 @@ export function hashIpAddress(ip: string): string {
   return crypto.createHmac("sha256", salt).update(ip).digest("hex");
 }
 
-export function setSessionCookie(token: string, maxAgeSeconds?: number) {
-  cookies().set(SESSION_COOKIE_NAME, token, {
+export function getSessionCookieOptions(maxAgeSeconds?: number) {
+  return {
     httpOnly: true,
     secure: isProduction,
     // `strict` plutôt que `lax` : aucune navigation entrante d'un site tiers
@@ -41,17 +41,17 @@ export function setSessionCookie(token: string, maxAgeSeconds?: number) {
     sameSite: "strict",
     path: "/",
     maxAge: maxAgeSeconds ?? 7 * 24 * 60 * 60,
-  });
+  } as const;
 }
 
-export function clearSessionCookie() {
-  cookies().set(SESSION_COOKIE_NAME, "", {
+export function getClearedSessionCookieOptions() {
+  return {
     httpOnly: true,
     secure: isProduction,
     sameSite: "strict",
     path: "/",
     maxAge: 0,
-  });
+  } as const;
 }
 
 export function getSessionTokenFromCookie(): string | undefined {

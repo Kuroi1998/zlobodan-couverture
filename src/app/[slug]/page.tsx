@@ -34,7 +34,7 @@ export default function VillePage({ params }: { params: { slug: string } }) {
   return (
     <>
       <JsonLdSchema
-        type="RoofingContractor"
+        type="Breadcrumb"
         breadcrumbs={[
           { name: "Accueil", url: "/" },
           { name: `Couvreur ${ville.name}`, url: `/${ville.slug}` },

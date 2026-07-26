@@ -1,21 +1,31 @@
-import React from "react";
 import { escapeJsonForScript } from "@/lib/security/encoding";
 import { siteConfig } from "@/config/site";
 import { faqData } from "@/data/faq";
 
-interface JsonLdSchemaProps {
+const SITE_URL = "https://zlobodan-couverture.be";
+
+type BreadcrumbItem = Readonly<{
+  name: string;
+  url: `/${string}`;
+}>;
+
+type JsonLdSchemaProps = Readonly<{
   type?: "RoofingContractor" | "FAQPage" | "Service" | "Breadcrumb";
   serviceTitle?: string;
   serviceDescription?: string;
-  breadcrumbs?: Array<{ name: string; url: string }>;
+  breadcrumbs?: readonly BreadcrumbItem[];
+}>;
+
+function toAbsoluteUrl(url: `/${string}`): string {
+  return new URL(url, SITE_URL).toString();
 }
 
-export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
+export function JsonLdSchema({
   type = "RoofingContractor",
   serviceTitle,
   serviceDescription,
   breadcrumbs,
-}) => {
+}: JsonLdSchemaProps) {
   // 1. RoofingContractor / LocalBusiness Schema
   const roofingContractorSchema = {
     "@context": "https://schema.org",
@@ -23,9 +33,9 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
     "@id": "https://zlobodan-couverture.be/#organization",
     "name": siteConfig.name,
     "legalName": siteConfig.name,
-    "url": "https://zlobodan-couverture.be",
-    "logo": "https://zlobodan-couverture.be/images/logo.png",
-    "image": "https://zlobodan-couverture.be/images/hero-roof.webp",
+    "url": SITE_URL,
+    "logo": `${SITE_URL}/images/logo.png`,
+    "image": `${SITE_URL}/images/hero-roof.webp`,
     "telephone": siteConfig.phone,
     "email": siteConfig.email,
     "priceRange": "€€-€€€",
@@ -107,24 +117,26 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
           "@type": "ListItem",
           "position": idx + 1,
           "name": bc.name,
-          "item": `https://zlobodan-couverture.be${bc.url}`,
+          "item": toAbsoluteUrl(bc.url),
         })),
       }
     : null;
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: escapeJsonForScript(roofingContractorSchema) }} // nosemgrep
-      />
+      {type === "RoofingContractor" && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: escapeJsonForScript(roofingContractorSchema) }} // nosemgrep
+        />
+      )}
       {type === "FAQPage" && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: escapeJsonForScript(faqSchema) }} // nosemgrep
         />
       )}
-      {serviceSchema && (
+      {type === "Service" && serviceSchema && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: escapeJsonForScript(serviceSchema) }} // nosemgrep
@@ -138,4 +150,4 @@ export const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({
       )}
     </>
   );
-};
+}

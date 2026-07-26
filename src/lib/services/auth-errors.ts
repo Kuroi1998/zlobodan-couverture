@@ -22,7 +22,9 @@ export type AuthErrorCode =
   | "pwned-password";
 
 /** Message unique pour tout ce qui touche aux identifiants : aucune distinction observable. */
-const GENERIC_CREDENTIALS = "Identifiants incorrects, ou compte momentanément indisponible.";
+const GENERIC_CREDENTIALS = "Adresse e-mail ou mot de passe incorrect.";
+const TEMPORARY_AUTH_FAILURE =
+  "La connexion est temporairement indisponible. Veuillez réessayer.";
 
 const PUBLIC_MESSAGES: Record<AuthErrorCode, string> = {
   "invalid-credentials": GENERIC_CREDENTIALS,
@@ -60,7 +62,7 @@ export function toPublicAuthError(error: unknown): { message: string; status: nu
   if (error instanceof AuthError) {
     return { message: error.publicMessage, status: error.httpStatus, code: error.code };
   }
-  return { message: GENERIC_CREDENTIALS, status: 401, code: "unexpected" };
+  return { message: TEMPORARY_AUTH_FAILURE, status: 503, code: "unexpected" };
 }
 
-export { GENERIC_CREDENTIALS };
+export { GENERIC_CREDENTIALS, TEMPORARY_AUTH_FAILURE };
