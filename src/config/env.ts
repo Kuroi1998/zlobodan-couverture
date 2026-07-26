@@ -186,7 +186,9 @@ export function getTrustedProxyMode(): TrustedProxyMode {
  * comme réussie. En production, l'absence ou la clé de test arrête le démarrage.
  */
 export function getTurnstileSecret(): string | null {
-  const value = process.env.TURNSTILE_SECRET_KEY;
+  // Une chaîne vide vaut absence : sinon un `TURNSTILE_SECRET_KEY=` dans le
+  // `.env` serait pris pour une configuration valide.
+  const value = process.env.TURNSTILE_SECRET_KEY?.trim() || null;
 
   if (isRuntimeProduction()) {
     if (!value) fail("TURNSTILE_SECRET_KEY", "absente");
@@ -195,7 +197,7 @@ export function getTurnstileSecret(): string | null {
     }
     return value;
   }
-  return value ?? null;
+  return value;
 }
 
 export interface RedisConfig {
