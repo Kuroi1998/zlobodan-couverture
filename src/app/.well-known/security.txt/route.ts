@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
  * consomment, et par une partie des chercheurs.
  */
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 const CONTACT_EMAIL = "security@zlobodan-couverture.be";
 const CANONICAL = "https://zlobodan-couverture.be/.well-known/security.txt";
