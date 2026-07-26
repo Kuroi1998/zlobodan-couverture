@@ -86,7 +86,42 @@ function readSecret(name: string, devFallback: string): string {
 // Accesseurs — une seule implémentation par variable
 // ---------------------------------------------------------------------------
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "postgres", "db"]);
+
+/** Hôte de confiance pour une base de **test** : local ou service CI conteneurisé. */
+function isTestSafeHost(rawUrl: string): boolean {
+  try {
+    return LOOPBACK_HOSTS.has(new URL(rawUrl).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 export function requireDatabaseUrl(): string {
+  // Garde base-de-test : en mode test, on n'accepte qu'une base isolée. Une
+  // `TEST_DATABASE_URL` explicite prime ; à défaut, `DATABASE_URL` doit pointer
+  // vers un hôte local (ou le service CI). Cela empêche une suite de tests
+  // d'écrire par accident dans une base réelle — la détection repose sur l'hôte,
+  // pas sur la présence fragile du mot « production » dans l'URL.
+  if (nodeEnv() === "test") {
+    const testUrl = process.env.TEST_DATABASE_URL?.trim();
+    if (testUrl) {
+      if (!PostgresUrlSchema.safeParse(testUrl).success) {
+        fail("TEST_DATABASE_URL", "schéma de connexion PostgreSQL attendu");
+      }
+      if (!isTestSafeHost(testUrl)) fail("TEST_DATABASE_URL", "hôte non local interdit en test");
+      return testUrl;
+    }
+    const dbUrl = process.env.DATABASE_URL?.trim();
+    if (dbUrl && !isTestSafeHost(dbUrl)) {
+      fail(
+        "DATABASE_URL",
+        "hôte non local en mode test : fournir TEST_DATABASE_URL vers une base isolée"
+      );
+    }
+    return dbUrl || DEV_DATABASE_URL;
+  }
+
   const value = process.env.DATABASE_URL;
 
   if (!value || value.trim().length === 0) {

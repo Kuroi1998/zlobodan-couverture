@@ -11,6 +11,8 @@ on:
       - develop
 
 jobs:
+  # Validation sans base : types, lint, tests unitaires, build. La suite Vitest
+  # ne touche aucune base réelle (logique de décision uniquement).
   validate:
     name: Validation, Tests & Compilation Next.js
     runs-on: ubuntu-latest
@@ -42,3 +44,55 @@ jobs:
 
       - name: Compilation Next.js SSG
         run: npm run build
+
+  # Intégration base de données : Postgres éphémère, jamais la production.
+  database:
+    name: Diagnostic PostgreSQL (base isolée)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: zlobodan_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      # Base locale au runner : hôte loopback, accepté par la garde base-de-test.
+      # Pas de sslmode : le service local n'est pas chiffré, et l'on n'est pas
+      # en NODE_ENV=production, donc SSL n'est pas exigé.
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlobodan_test
+      # Secrets factices propres à la CI — jamais ceux de production.
+      SESSION_SECRET: ci-only-session-secret-32-characters-long
+      IP_HASH_SALT: ci-only-ip-hash-salt-32-characters-long-x
+      APP_ORIGIN: http://localhost:3000
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Configuration de Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Vérification de la configuration d'environnement
+        run: npm run env:check
+
+      - name: Application des migrations sur la base éphémère
+        run: npm run db:migrate
+
+      - name: Diagnostic de connexion PostgreSQL (SELECT 1 réel)
+        run: npm run db:check
