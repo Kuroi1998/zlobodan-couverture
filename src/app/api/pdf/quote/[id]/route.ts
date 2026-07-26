@@ -9,8 +9,9 @@ const ROUTE = "/api/pdf/quote/[id]";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const parsed = parseUuidParam(params.id);
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const parsed = parseUuidParam(id);
   if (!parsed.ok || !parsed.value) {
     await recordSecurityEvent({
       kind: "VALIDATION_REJECTED",

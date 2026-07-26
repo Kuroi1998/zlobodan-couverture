@@ -7,7 +7,7 @@ import {
 import { logoutUser } from "@/lib/services/auth-service";
 
 export async function POST(req: NextRequest) {
-  const sessionToken = getSessionTokenFromCookie();
+  const sessionToken = await getSessionTokenFromCookie();
   await logoutUser(sessionToken);
 
   const response = NextResponse.json({ success: true, message: "Déconnexion réussie." });

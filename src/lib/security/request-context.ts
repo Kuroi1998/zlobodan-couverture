@@ -40,7 +40,15 @@ export function getTrustedIp(req: NextRequest): string | null {
     const cf = sanitizeIp(req.headers.get("cf-connecting-ip"));
     if (cf) return cf;
   }
-  return sanitizeIp(req.ip ?? null);
+
+  // `NextRequest.ip` a été retiré en Next.js 16 : l'adresse dépend de
+  // l'hébergeur, le framework ne la devine plus. Aucun repli sur
+  // `x-forwarded-for`, qui est écrit par le client et donc falsifiable — c'est
+  // précisément ce que ce module refuse de faire.
+  //
+  // Sans `TRUSTED_PROXY=cloudflare`, l'IP est donc « inconnue », ce que
+  // l'appelant traite comme tel et jamais comme « autorisé ».
+  return null;
 }
 
 /**

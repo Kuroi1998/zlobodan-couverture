@@ -91,7 +91,7 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
     reason,
   });
 
-  const token = getSessionTokenFromCookie();
+  const token = await getSessionTokenFromCookie();
   if (!token) return empty("no-token");
 
   const tokenHash = hashToken(token);
