@@ -51,7 +51,8 @@ export async function compressImage(file: File, maxWidth = 1200, quality = 0.8):
 
     if (!blob) return file;
 
-    return new File([blob], file.name, {
+    const fileStem = file.name.replace(/\.[^.]+$/, "").trim() || "photo";
+    return new File([blob], `${fileStem}.jpg`, {
       type: "image/jpeg",
       lastModified: Date.now(),
     });

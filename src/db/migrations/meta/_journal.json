@@ -8,6 +8,20 @@
       "when": 1785013434963,
       "tag": "0000_tiny_the_spike",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785068422124,
+      "tag": "0001_gifted_landau",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785069852962,
+      "tag": "0002_fuzzy_mongoose",
+      "breakpoints": true
     }
   ]
 }

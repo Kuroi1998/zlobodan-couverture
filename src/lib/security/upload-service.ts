@@ -1,44 +1,49 @@
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
+import crypto from "node:crypto";
+import path from "node:path";
 import sharp from "sharp";
-import { detectMimeFromMagicBytes } from "./magic-bytes";
+import { detectMimeFromMagicBytes, type AllowedMimeType } from "./magic-bytes";
 import { recordSecurityEvent } from "./security-events";
 
-/**
- * Traitement sécurisé des fichiers déposés.
- *
- * Durcissements par rapport à la version précédente :
- *  - le répertoire n'est plus créé à l'import du module, ce qui s'exécutait
- *    pendant la compilation et échouait sur un système de fichiers en lecture
- *    seule (audit M2) ;
- *  - `sharp` est borné en nombre de pixels, sinon une image très compressée de
- *    quelques kilooctets peut se décompresser en plusieurs gigaoctets ;
- *  - les lots sont bornés en nombre et en poids cumulé.
- */
-
-const UPLOAD_DIR = path.join(process.cwd(), "storage", "uploads");
-
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const MAX_FILES_PER_BATCH = 8;
+const MAX_FILES_PER_BATCH = 5;
 const MAX_BATCH_BYTES = 30 * 1024 * 1024;
-
-/** ~25 mégapixels : au-delà, on est hors du cas d'usage « photo de chantier ». */
 const MAX_INPUT_PIXELS = 25_000_000;
-
-/** Une image ne dépasse pas cette dimension après ré-encodage. */
 const MAX_DIMENSION = 2500;
 
-export interface UploadResult {
-  fileId: string;
-  storagePath: string;
-  mimeType: string;
-  size: number;
+const MIME_EXTENSIONS: Record<AllowedMimeType, readonly string[]> = {
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "image/webp": [".webp"],
+  "application/pdf": [".pdf"],
+};
+
+const OUTPUT_EXTENSIONS: Record<AllowedMimeType, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "application/pdf": "pdf",
+};
+
+export interface SecureUploadInput {
+  buffer: Buffer;
+  originalName: string;
+}
+
+export interface PreparedUpload {
+  buffer: Buffer;
+  storageKey: string;
+  originalName: string;
+  storedName: string;
+  mimeType: AllowedMimeType;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
   checksum: string;
 }
 
 export class UploadRejected extends Error {
   readonly reason: string;
+
   constructor(reason: string, message: string) {
     super(message);
     this.name = "UploadRejected";
@@ -46,16 +51,6 @@ export class UploadRejected extends Error {
   }
 }
 
-/** Création paresseuse : au premier dépôt réel, jamais à l'import. */
-async function ensureUploadDir(): Promise<void> {
-  await fs.promises.mkdir(UPLOAD_DIR, { recursive: true });
-}
-
-/**
- * Journalise puis *retourne* l'erreur à lever, pour que les appelants écrivent
- * `throw await reject(...)`. TypeScript sait alors que le flot s'arrête là et
- * peut affiner les types sur les lignes suivantes.
- */
 async function reject(reason: string, message: string): Promise<UploadRejected> {
   await recordSecurityEvent({
     kind: "UPLOAD_REJECTED",
@@ -65,14 +60,25 @@ async function reject(reason: string, message: string): Promise<UploadRejected> 
   return new UploadRejected(reason, message);
 }
 
-export async function processSecureUpload(fileBuffer: Buffer): Promise<UploadResult> {
-  if (fileBuffer.length > MAX_FILE_SIZE_BYTES) {
+function safeOriginalName(value: string): string {
+  const base = path.basename(value).normalize("NFKC").replace(/[\u0000-\u001f\u007f]/g, "");
+  return base.trim().slice(0, 255) || "fichier";
+}
+
+function hasPlausiblePdfTerminator(buffer: Buffer): boolean {
+  const eof = buffer.lastIndexOf(Buffer.from("%%EOF"));
+  return eof >= 0 && buffer.length - (eof + 5) <= 1024;
+}
+
+export async function prepareSecureUpload(input: SecureUploadInput): Promise<PreparedUpload> {
+  if (input.buffer.length === 0) {
+    throw await reject("empty", "Le fichier est vide.");
+  }
+  if (input.buffer.length > MAX_FILE_SIZE_BYTES) {
     throw await reject("too-large", "Le fichier dépasse la taille maximale autorisée de 10 Mo.");
   }
 
-  // Type déterminé par les octets d'en-tête, jamais par l'extension ni par le
-  // `Content-Type` annoncé, tous deux fournis par le client.
-  const detectedMime = detectMimeFromMagicBytes(fileBuffer);
+  const detectedMime = detectMimeFromMagicBytes(input.buffer);
   if (!detectedMime) {
     throw await reject(
       "unsupported-type",
@@ -80,67 +86,78 @@ export async function processSecureUpload(fileBuffer: Buffer): Promise<UploadRes
     );
   }
 
-  const fileId = crypto.randomUUID();
-  const fileChecksum = crypto.createHash("sha256").update(fileBuffer).digest("hex");
+  const originalName = safeOriginalName(input.originalName);
+  const originalExtension = path.extname(originalName).toLowerCase();
+  if (!MIME_EXTENSIONS[detectedMime].includes(originalExtension)) {
+    throw await reject(
+      "extension-mismatch",
+      "L'extension du fichier ne correspond pas à son contenu."
+    );
+  }
 
-  let processedBuffer = fileBuffer;
-  let extension = "bin";
+  if (detectedMime === "application/pdf" && !hasPlausiblePdfTerminator(input.buffer)) {
+    throw await reject("invalid-pdf", "Le document PDF est incomplet ou invalide.");
+  }
+
+  let processedBuffer = input.buffer;
+  let width: number | null = null;
+  let height: number | null = null;
 
   if (detectedMime.startsWith("image/")) {
-    // Le ré-encodage purge les métadonnées EXIF, dont la géolocalisation du
-    // domicile du client, et neutralise une charge utile dissimulée dans un
-    // segment de commentaire.
-    const pipeline = sharp(fileBuffer, { limitInputPixels: MAX_INPUT_PIXELS })
+    const pipeline = sharp(input.buffer, { limitInputPixels: MAX_INPUT_PIXELS })
       .rotate()
-      .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true });
+      .resize({
+        width: MAX_DIMENSION,
+        height: MAX_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      });
 
     try {
       if (detectedMime === "image/jpeg") {
         processedBuffer = await pipeline.jpeg({ quality: 85 }).toBuffer();
-        extension = "jpg";
       } else if (detectedMime === "image/png") {
         processedBuffer = await pipeline.png({ compressionLevel: 8 }).toBuffer();
-        extension = "png";
       } else {
         processedBuffer = await pipeline.webp({ quality: 85 }).toBuffer();
-        extension = "webp";
       }
+      const metadata = await sharp(processedBuffer).metadata();
+      width = metadata.width ?? null;
+      height = metadata.height ?? null;
     } catch {
       throw await reject("image-processing-failed", "Cette image n'a pas pu être traitée.");
     }
-  } else {
-    extension = "pdf";
   }
 
-  await ensureUploadDir();
-
-  // Nom de fichier entièrement généré : ni l'extension ni le nom d'origine du
-  // client n'entrent dans le chemin, ce qui ferme la traversée de répertoire.
-  const targetPath = path.join(UPLOAD_DIR, `${fileId}.${extension}`);
-
-  // Ceinture et bretelles : on vérifie que le chemin résolu reste bien sous le
-  // répertoire de destination.
-  if (!path.resolve(targetPath).startsWith(path.resolve(UPLOAD_DIR) + path.sep)) {
-    throw await reject("path-escape", "Chemin de stockage invalide.");
-  }
-
-  await fs.promises.writeFile(targetPath, processedBuffer, { mode: 0o640 });
+  const fileId = crypto.randomUUID();
+  const extension = OUTPUT_EXTENSIONS[detectedMime];
+  const storedName = `${fileId}.${extension}`;
+  const now = new Date();
+  const storageKey = [
+    "quote-attachments",
+    String(now.getUTCFullYear()),
+    String(now.getUTCMonth() + 1).padStart(2, "0"),
+    storedName,
+  ].join("/");
 
   return {
-    fileId,
-    storagePath: targetPath,
+    buffer: processedBuffer,
+    storageKey,
+    originalName,
+    storedName,
     mimeType: detectedMime,
-    size: processedBuffer.length,
-    checksum: fileChecksum,
+    sizeBytes: processedBuffer.length,
+    width,
+    height,
+    checksum: crypto.createHash("sha256").update(processedBuffer).digest("hex"),
   };
 }
 
-/** Contrôle du lot avant tout traitement unitaire. */
 export async function assertBatchWithinLimits(files: { size: number }[]): Promise<void> {
   if (files.length > MAX_FILES_PER_BATCH) {
     throw await reject("too-many-files", `Maximum ${MAX_FILES_PER_BATCH} fichiers par envoi.`);
   }
-  const total = files.reduce((sum, f) => sum + f.size, 0);
+  const total = files.reduce((sum, file) => sum + file.size, 0);
   if (total > MAX_BATCH_BYTES) {
     throw await reject("batch-too-large", "Le poids total des fichiers est trop important.");
   }

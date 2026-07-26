@@ -29,18 +29,34 @@ export const QuoteWizard: React.FC = () => {
     photos,
     isCompressing,
     isSubmitting,
+    draftId,
+    draftReference,
     errorMsg,
     locationStatus,
     handlePhotoUpload,
     removePhoto,
     goToNextStep,
     goToPreviousStep,
+    deleteDraft,
     handleSubmit,
   } = useQuoteWizard();
 
   return (
     <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-10 max-w-4xl mx-auto space-y-8">
       <QuoteProgress currentStep={currentStep} totalSteps={totalSteps} />
+
+      {draftId && (
+        <div className="flex flex-col justify-between gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900 sm:flex-row sm:items-center">
+          <span>Brouillon serveur enregistré · {draftReference}</span>
+          <button
+            type="button"
+            onClick={() => void deleteDraft()}
+            className="font-bold text-red-700 hover:underline"
+          >
+            Supprimer le brouillon
+          </button>
+        </div>
+      )}
 
       {errorMsg && (
         <div

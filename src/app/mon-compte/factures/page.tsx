@@ -1,110 +1,84 @@
-import { Receipt, Download, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { desc, eq } from "drizzle-orm";
+import { Download, Receipt, ShieldCheck } from "lucide-react";
+import { db } from "@/db/client";
+import { invoices } from "@/db/schema/invoices";
+import { quotes } from "@/db/schema/quotes";
+import { requirePageAuth } from "@/lib/security/guards";
 
-export default function ClientInvoicesPage() {
-  const invoicesList = [
-    {
-      number: "FACT-2026-0004",
-      quoteNumber: "DEV-2026-0012",
-      issuedAt: "24/07/2026",
-      dueAt: "15/08/2026",
-      amountHt: 4575.47,
-      vatAmount: 274.53,
-      amountTtc: 4850.0,
-      status: "issued", // 'issued' | 'paid'
-      type: "Facture d'acompte (30%)",
-    },
-    {
-      number: "FACT-2026-0001",
-      quoteNumber: "DEV-2026-0002",
-      issuedAt: "10/05/2026",
-      dueAt: "25/05/2026",
-      amountHt: 330.19,
-      vatAmount: 19.81,
-      amountTtc: 350.0,
-      status: "paid",
-      paidAt: "14/05/2026",
-      type: "Facture solde dépannage fuite",
-    },
-  ];
+export default async function ClientInvoicesPage() {
+  const user = await requirePageAuth("/mon-compte/factures");
+  const rows = await db
+    .select({
+      id: invoices.id,
+      number: invoices.number,
+      quoteNumber: quotes.number,
+      issuedAt: invoices.issuedAt,
+      dueAt: invoices.dueAt,
+      amountTtc: invoices.amountTtc,
+      status: invoices.status,
+    })
+    .from(invoices)
+    .leftJoin(quotes, eq(invoices.quoteId, quotes.id))
+    .where(eq(invoices.userId, user.id))
+    .orderBy(desc(invoices.issuedAt))
+    .limit(100);
 
   return (
     <div className="space-y-8">
-      
-      {/* Header */}
       <div>
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white">
-          Mes Factures Immuables
-        </h1>
-        <p className="text-sm text-slate-400">
-          Toutes vos factures émises possèdent une numérotation séquentielle continue. Une facture émise ne peut être modifiée (loi comptable).
-        </p>
+        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Mes factures</h1>
+        <p className="text-sm text-slate-400">Registre comptable associé à votre compte.</p>
       </div>
-
-      {/* Immutability Notice Box */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-300 flex items-start gap-3">
-        <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <p className="font-bold text-white">Garantie d'Immuabilité Comptable &amp; Mentions Légales Belges</p>
-          <p className="text-slate-400">
-            Conformément aux exigences fiscales belges, toute correction sur une facture émise fait l'objet d'un avoir officiel (`credit_notes`).
-          </p>
-        </div>
+      <div className="flex items-start gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-4 text-xs text-slate-300">
+        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+        Une facture émise est corrigée par un avoir et n'est jamais réécrite.
       </div>
-
-      {/* Invoices Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] border-b border-slate-800">
-              <tr>
-                <th className="p-4">N° Facture</th>
-                <th className="p-4">Objet</th>
-                <th className="p-4">Date Émission</th>
-                <th className="p-4">Date Échéance</th>
-                <th className="p-4 text-right">Montant TTC</th>
-                <th className="p-4 text-center">Statut</th>
-                <th className="p-4 text-center">Action</th>
+      <div className="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-900">
+        <table className="w-full text-left text-xs text-slate-300">
+          <thead className="border-b border-slate-800 bg-slate-950 text-[10px] uppercase text-slate-400">
+            <tr>
+              <th className="p-4">Facture</th>
+              <th className="p-4">Devis</th>
+              <th className="p-4">Émission</th>
+              <th className="p-4">Échéance</th>
+              <th className="p-4 text-right">TTC</th>
+              <th className="p-4">Statut</th>
+              <th className="p-4">Document</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {rows.map((invoice) => (
+              <tr key={invoice.id}>
+                <td className="p-4 font-bold text-white">{invoice.number}</td>
+                <td className="p-4">{invoice.quoteNumber ?? "—"}</td>
+                <td className="p-4">{invoice.issuedAt.toLocaleDateString("fr-BE")}</td>
+                <td className="p-4">{invoice.dueAt.toLocaleDateString("fr-BE")}</td>
+                <td className="p-4 text-right font-bold text-white">
+                  {Number(invoice.amountTtc).toLocaleString("fr-BE")} €
+                </td>
+                <td className="p-4">{invoice.status}</td>
+                <td className="p-4">
+                  <Link
+                    href={`/api/pdf/invoice/${invoice.id}`}
+                    className="inline-flex items-center gap-1 text-brand-terracotta hover:underline"
+                  >
+                    <Download className="h-4 w-4" /> Ouvrir
+                  </Link>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {invoicesList.map((inv) => (
-                <tr key={inv.number} className="hover:bg-slate-800/40 transition">
-                  <td className="p-4 font-bold text-white">{inv.number}</td>
-                  <td className="p-4">{inv.type}</td>
-                  <td className="p-4">{inv.issuedAt}</td>
-                  <td className="p-4 text-slate-400">{inv.dueAt}</td>
-                  <td className="p-4 text-right font-heading font-extrabold text-sm text-white">
-                    {inv.amountTtc.toFixed(2)} €
-                  </td>
-                  <td className="p-4 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-[10px] font-bold ${
-                        inv.status === "paid"
-                          ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                          : "bg-amber-950 text-amber-300 border border-amber-800"
-                      }`}
-                    >
-                      {inv.status === "paid" ? "✓ Payée" : "• En attente de règlement"}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <a
-                      href={`/api/pdf/invoice/${inv.number}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition border border-slate-700"
-                    >
-                      <Download className="h-3.5 w-3.5 text-brand-terracotta" />
-                      <span>PDF</span>
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-slate-500">
+                  <Receipt className="mx-auto mb-3 h-7 w-7" />
+                  Aucune facture n'est rattachée à votre compte.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-
     </div>
   );
 }

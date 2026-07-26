@@ -7,3 +7,5 @@ export * from "./projects";
 export * from "./documents";
 export * from "./messages";
 export * from "./audit";
+export * from "./contacts";
+export * from "./notifications";

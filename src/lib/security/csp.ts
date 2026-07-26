@@ -79,19 +79,19 @@ function buildScriptSrc(options: BuildCspOptions): string {
   if (environment === "development") {
     // `'unsafe-eval'` est exigé par React Refresh et la carte de sources du
     // mode développement. Il n'est jamais émis en production.
-    return "script-src 'self' 'unsafe-eval' 'unsafe-inline'";
+    return `script-src 'self' 'unsafe-eval' 'unsafe-inline' ${TURNSTILE_WIDGET_ORIGIN}`;
   }
 
   if (strategy === "nonce" && nonce) {
     // `'strict-dynamic'` fait autorité sur les navigateurs modernes ; `'self'`
     // reste pour ceux qui l'ignorent.
-    return `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`;
+    return `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${TURNSTILE_WIDGET_ORIGIN}`;
   }
 
   // Page prérendue : aucun nonce ne peut être injecté dans le HTML.
   // Le nonce est délibérément ABSENT de la directive — s'il y figurait, les
   // navigateurs ignoreraient `'unsafe-inline'` et bloqueraient tout à nouveau.
-  return "script-src 'self' 'unsafe-inline'";
+  return `script-src 'self' 'unsafe-inline' ${TURNSTILE_WIDGET_ORIGIN}`;
 }
 
 function buildStyleSrc(options: BuildCspOptions): string {
@@ -126,13 +126,13 @@ export function buildContentSecurityPolicy(options: BuildCspOptions): string {
     // rendu — les seules feuilles chargées viennent de `/_next/static/css/`.
     "font-src 'self' data:",
 
-    "connect-src 'self'",
+    `connect-src 'self' ${TURNSTILE_WIDGET_ORIGIN}`,
     "media-src 'self'",
     "worker-src 'self'",
     "manifest-src 'self'",
 
     // Confinement : ces quatre directives ne dépendent d'aucune ressource.
-    "frame-src 'none'",
+    `frame-src ${TURNSTILE_WIDGET_ORIGIN}`,
     "frame-ancestors 'none'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -160,15 +160,4 @@ export function buildReportToHeader(): string {
   });
 }
 
-/**
- * Domaines à réintroduire le jour où le widget Turnstile sera réellement rendu.
- *
- * Il ne l'est pas aujourd'hui : `verifyTurnstile` effectue une vérification
- * **serveur à serveur**, qui n'est pas soumise à la CSP du navigateur. Rien ne
- * justifie donc d'autoriser `challenges.cloudflare.com` dans `script-src`,
- * `frame-src` ou `connect-src` — c'était une permission accordée à une
- * fonctionnalité absente.
- *
- * À l'ajout du widget : ajouter ce domaine à `script-src` et `frame-src`.
- */
 export const TURNSTILE_WIDGET_ORIGIN = "https://challenges.cloudflare.com";

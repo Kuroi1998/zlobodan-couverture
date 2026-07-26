@@ -7,7 +7,15 @@ export const metadata = {
   description: "Merci pour votre demande de devis. Notre équipe vous recontactera sous 48h.",
 };
 
-export default function MerciDevisPage() {
+export default async function MerciDevisPage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<{ reference?: string; duplicate?: string }>;
+}>) {
+  const query = await searchParams;
+  const reference = /^DEV-\d{4}-\d{6}$/.test(query.reference ?? "")
+    ? query.reference
+    : null;
   return (
     <div className="py-20 bg-slate-950 text-white min-h-[80vh] flex items-center justify-center">
       <div className="max-w-2xl mx-auto px-4 text-center space-y-8">
@@ -27,6 +35,12 @@ export default function MerciDevisPage() {
           <p className="text-base text-slate-300 max-w-lg mx-auto leading-relaxed">
             Votre dossier de demande de devis est transmis à notre métreur d'astreinte. Nous analysons vos éléments et vous recontactons sous <strong className="text-white">48 heures ouvrées</strong> pour convenir du diagnostic gratuit.
           </p>
+          {reference && (
+            <p className="text-sm text-emerald-300">
+              Référence de votre dossier : <strong>{reference}</strong>
+              {query.duplicate === "1" ? " (déjà enregistré)" : ""}
+            </p>
+          )}
         </div>
 
         {/* Recap Box */}

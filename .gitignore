@@ -7,6 +7,9 @@
 node_modules/
 vendor/
 .next/
+.next-e2e/
+.next-restart/
+.next-production-smoke/
 dist/
 build/
 coverage/
@@ -40,6 +43,7 @@ Thumbs.db
 # Sauvegardes de base de données & exports SQL avec données
 database/backups/
 *.sql
+!src/db/migrations/*.sql
 *.sqlite
 *.sqlite3
 
@@ -50,3 +54,5 @@ public/uploads/*
 
 # Couverture Vitest / Jest
 .vitest/
+test-results/
+playwright-report/

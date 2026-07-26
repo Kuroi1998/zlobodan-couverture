@@ -12,7 +12,9 @@ import {
   describeEnvironment,
   getAppOrigin,
   getMigrationDatabaseUrl,
+  getPrivateStorageConfig,
   getRedisConfig,
+  getSmtpConfig,
   getTurnstileSecret,
   maskDatabaseUrl,
   requireDatabaseUrl,
@@ -42,6 +44,14 @@ const checks: Check[] = [
   {
     name: "UPSTASH_REDIS",
     run: () => (getRedisConfig() ? "configuré" : "absent (limitation locale par instance)"),
+  },
+  {
+    name: "PRIVATE_STORAGE",
+    run: () => getPrivateStorageConfig().driver,
+  },
+  {
+    name: "SMTP",
+    run: () => (getSmtpConfig() ? "configuré" : "absent (notifications en attente)"),
   },
 ];
 

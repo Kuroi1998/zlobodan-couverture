@@ -1,5 +1,14 @@
 import "server-only";
 import { z } from "zod";
+import {
+  getPrivateStorageConfig,
+  getSmtpConfig,
+  type PrivateStorageConfig,
+  type SmtpConfig,
+} from "./service-env";
+
+export { getPrivateStorageConfig, getSmtpConfig } from "./service-env";
+export type { PrivateStorageConfig, SmtpConfig } from "./service-env";
 
 /**
  * Source de vérité unique des variables d'environnement **serveur**.
@@ -245,6 +254,8 @@ export interface ServerEnv {
   readonly sessionSecret: string;
   readonly turnstileSecret: string | null;
   readonly redis: RedisConfig | null;
+  readonly privateStorage: PrivateStorageConfig;
+  readonly smtp: SmtpConfig | null;
 }
 
 let cachedServerEnv: Readonly<ServerEnv> | null = null;
@@ -265,6 +276,8 @@ export function getServerEnv(): Readonly<ServerEnv> {
     sessionSecret: requireSessionSecret(),
     turnstileSecret: getTurnstileSecret(),
     redis: getRedisConfig(),
+    privateStorage: getPrivateStorageConfig(),
+    smtp: getSmtpConfig(),
   });
   return cachedServerEnv;
 }
@@ -277,6 +290,8 @@ const EnvReportSchema = z.object({
   hasAppOrigin: z.boolean(),
   hasTurnstile: z.boolean(),
   hasDistributedRateLimit: z.boolean(),
+  privateStorageDriver: z.enum(["local", "s3"]),
+  hasSmtp: z.boolean(),
   trustedProxy: z.string(),
 });
 
@@ -292,6 +307,8 @@ export function describeEnvironment(): EnvReport {
     hasAppOrigin: Boolean(process.env.APP_ORIGIN),
     hasTurnstile: Boolean(process.env.TURNSTILE_SECRET_KEY),
     hasDistributedRateLimit: getRedisConfig() !== null,
+    privateStorageDriver: getPrivateStorageConfig().driver,
+    hasSmtp: getSmtpConfig() !== null,
     trustedProxy: getTrustedProxyMode(),
   });
 }

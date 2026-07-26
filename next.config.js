@@ -17,6 +17,12 @@ const isStaticExport = process.env.STATIC_EXPORT === "true";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+  experimental: {
+    // Le proxy doit transmettre le multipart complet à la route, qui applique
+    // ensuite ses limites plus fines : 10 Mo/fichier, 30 Mo/lot, 32 Mo/requête.
+    proxyClientMaxBodySize: "33mb",
+  },
 
   // Activé uniquement sous le workflow vitrine ; jamais pour le build serveur.
   ...(isStaticExport
@@ -39,7 +45,7 @@ const nextConfig = {
   // besoin du nonce par requête. Ceux-ci sont statiques et s'appliquent aussi
   // aux ressources servies hors du périmètre du middleware.
   async headers() {
-    const rules = [
+    return [
       {
         source: "/:path*",
         headers: [
@@ -49,22 +55,6 @@ const nextConfig = {
       },
     ];
 
-    // En développement, les chunks App Router ont des noms stables
-    // (`app/connexion/page.js`). Les déclarer immuables pendant un an fait
-    // réutiliser au navigateur un ancien composant client face au nouveau HTML
-    // serveur : React remplace alors toute la page après une erreur
-    // d'hydratation. En production, les fichiers sont fingerprintés et peuvent
-    // donc être mis en cache sans risque.
-    if (process.env.NODE_ENV === "production") {
-      rules.push({
-        // Ressources immuables : mise en cache longue assumée, elles portent
-        // une empreinte dans leur nom.
-        source: "/_next/static/:path*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-      });
-    }
-
-    return rules;
   },
 };
 

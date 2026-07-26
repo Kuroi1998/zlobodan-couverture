@@ -1,84 +1,64 @@
-import React from "react";
-import { FolderOpen, Download, FileText, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { desc, eq } from "drizzle-orm";
+import { Download, FolderOpen } from "lucide-react";
+import { db } from "@/db/client";
+import { quoteAttachments, quoteRequests } from "@/db/schema/quotes";
+import { requirePageAuth } from "@/lib/security/guards";
 
-export default function ClientDocumentsPage() {
-  const documentsList = [
-    {
-      id: "doc-1",
-      name: "Attestation Garantie Décennale Belge AXA 2026",
-      type: "Garantie Décennale",
-      size: "1.4 Mo",
-      date: "20/07/2026",
-      format: "PDF",
-      icon: <ShieldCheck className="h-5 w-5 text-emerald-400" />,
-    },
-    {
-      id: "doc-2",
-      name: "Devis Officiel Signé #DEV-2026-0012",
-      type: "Devis",
-      size: "620 Ko",
-      date: "22/07/2026",
-      format: "PDF",
-      icon: <FileText className="h-5 w-5 text-brand-terracotta" />,
-    },
-    {
-      id: "doc-3",
-      name: "Facture d'acompte #FACT-2026-0004",
-      type: "Facture Immuable",
-      size: "450 Ko",
-      date: "24/07/2026",
-      format: "PDF",
-      icon: <FileText className="h-5 w-5 text-blue-400" />,
-    },
-    {
-      id: "doc-4",
-      name: "Dossier Technique Fiches Produits Cupa & Doerken",
-      type: "Fiche Technique",
-      size: "3.2 Mo",
-      date: "20/07/2026",
-      format: "PDF",
-      icon: <FolderOpen className="h-5 w-5 text-teal-400" />,
-    },
-  ];
+export default async function ClientDocumentsPage() {
+  const user = await requirePageAuth("/mon-compte/documents");
+  const attachments = await db
+    .select({
+      id: quoteAttachments.id,
+      originalName: quoteAttachments.originalName,
+      mimeType: quoteAttachments.mimeType,
+      sizeBytes: quoteAttachments.sizeBytes,
+      createdAt: quoteAttachments.createdAt,
+      requestReference: quoteRequests.reference,
+    })
+    .from(quoteAttachments)
+    .innerJoin(quoteRequests, eq(quoteAttachments.quoteRequestId, quoteRequests.id))
+    .where(eq(quoteRequests.userId, user.id))
+    .orderBy(desc(quoteAttachments.createdAt))
+    .limit(100);
 
   return (
     <div className="space-y-8">
-      
-      {/* Header */}
       <div>
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white">
-          Mes Documents &amp; Attestations
-        </h1>
+        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Mes documents</h1>
         <p className="text-sm text-slate-400">
-          Retrouvez tous les documents officiels rattachés à votre compte : devis signés, factures immuables, attestation de garantie décennale AXA et fiches techniques.
+          Pièces jointes privées associées à vos propres demandes.
         </p>
       </div>
-
-      {/* Documents List Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {documentsList.map((doc) => (
-          <div
-            key={doc.id}
-            className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between gap-4 hover:border-slate-700 transition"
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {attachments.map((attachment) => (
+          <article
+            key={attachment.id}
+            className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-5"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 shrink-0">
-                {doc.icon}
-              </div>
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">{doc.type}</span>
-                <h3 className="font-heading font-bold text-sm text-white line-clamp-1">{doc.name}</h3>
-                <p className="text-[11px] text-slate-500">{doc.date} • {doc.size}</p>
-              </div>
+            <div className="min-w-0">
+              <p className="truncate font-bold text-white">{attachment.originalName}</p>
+              <p className="text-xs text-slate-500">
+                {attachment.requestReference} · {Math.ceil(attachment.sizeBytes / 1024)} Ko ·{" "}
+                {attachment.createdAt.toLocaleDateString("fr-BE")}
+              </p>
             </div>
-
-            <button className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition shrink-0">
-              <Download className="h-4 w-4 text-brand-terracotta" />
-            </button>
-          </div>
+            <Link
+              href={`/api/files/quote-attachments/${attachment.id}`}
+              aria-label={`Télécharger ${attachment.originalName}`}
+              className="rounded-xl bg-slate-800 p-3 text-brand-terracotta"
+            >
+              <Download className="h-4 w-4" />
+            </Link>
+          </article>
         ))}
+        {attachments.length === 0 && (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400 sm:col-span-2">
+            <FolderOpen className="mx-auto mb-3 h-7 w-7" />
+            Aucun document n'est rattaché à votre compte.
+          </div>
+        )}
       </div>
-
     </div>
   );
 }

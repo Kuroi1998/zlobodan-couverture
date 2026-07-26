@@ -25,7 +25,7 @@ import {
  * (`lib/security/guards.ts`), où ils ne peuvent pas être court-circuités.
  */
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const nonce = generateNonce();
   const isProduction = process.env.NODE_ENV === "production";
   const pathname = request.nextUrl.pathname;

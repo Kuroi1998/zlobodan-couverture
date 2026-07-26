@@ -57,8 +57,8 @@ describe("En-têtes — politique de sécurité du contenu", () => {
       // `next/font` auto-héberge les polices au build.
       expect(csp).not.toContain("fonts.googleapis.com");
       expect(csp).not.toContain("fonts.gstatic.com");
-      // Le widget Turnstile n'est pas rendu : la vérification est serveur.
-      expect(csp).not.toContain("challenges.cloudflare.com");
+      // Le widget Turnstile est rendu sur les formulaires publics.
+      expect(csp).toContain("https://challenges.cloudflare.com");
       // Redondant avec le sous-domaine précis des tuiles.
       expect(csp).not.toContain("https://*.cartocdn.com");
     }
@@ -75,7 +75,7 @@ describe("En-têtes — politique de sécurité du contenu", () => {
   test("les directives de confinement sont présentes", () => {
     for (const directive of [
       "frame-ancestors 'none'",
-      "frame-src 'none'",
+      "frame-src https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

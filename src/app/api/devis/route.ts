@@ -1,40 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db/client";
-import { quoteRequests } from "@/db/schema/quotes";
 import { HONEYPOT_FIELD, QuoteRequestSchema } from "@/lib/validations/quote-schemas";
 import { enforceRateLimit } from "@/lib/security/rate-limit-guard";
 import { getTrustedIp } from "@/lib/security/request-context";
 import { recordSecurityEvent } from "@/lib/security/security-events";
+import { readIdempotencyHeader } from "@/lib/security/idempotency";
 import { verifyTurnstile } from "@/lib/auth/turnstile";
+import { getCurrentUser } from "@/lib/security/session-guard";
+import { submitQuoteRequest } from "@/lib/services/quote-request-service";
+import {
+  DuplicateSubmissionError,
+  InvalidQuoteDraftError,
+} from "@/lib/services/submission-errors";
+import { UploadRejected, UPLOAD_LIMITS } from "@/lib/security/upload-service";
+import { UuidSchema } from "@/lib/validations/identifiers";
+import {
+  FORM_STARTED_AT_FIELD,
+  hasPlausibleFormTiming,
+} from "@/lib/security/form-timing";
 
 export const dynamic = "force-dynamic";
 
 const ROUTE = "/api/devis";
-const MAX_FORM_BYTES = 32 * 1024;
+const MAX_FORM_BYTES = UPLOAD_LIMITS.MAX_BATCH_BYTES + 2 * 1024 * 1024;
 
-/**
- * Réponse unique, quelle que soit l'issue réelle.
- *
- * Elle ne dit ni si un piège a été déclenché, ni si le quota est atteint pour
- * cette adresse : un automate ne doit pas pouvoir déduire de la réponse quel
- * contrôle l'a arrêté.
- */
-const ACCEPTED = {
-  success: true,
-  message:
-    "Votre demande de devis a bien été enregistrée. Notre couvreur vous recontacte sous 48 h.",
-};
+function stringField(formData: FormData, name: string): string | undefined {
+  const value = formData.get(name);
+  return typeof value === "string" ? value : undefined;
+}
 
-export async function POST(req: NextRequest) {
-  const ip = getTrustedIp(req);
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  if (!req.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data")) {
+    return NextResponse.json(
+      { success: false, error: "Type de contenu non pris en charge." },
+      { status: 415 }
+    );
+  }
+
+  const submissionKey = readIdempotencyHeader(req.headers);
+  if (!submissionKey) {
+    return NextResponse.json(
+      { success: false, error: "Clé de soumission absente ou invalide." },
+      { status: 400 }
+    );
+  }
 
   const ipLimit = await enforceRateLimit(req, "quoteRequest");
   if (!ipLimit.allowed) return ipLimit.response;
 
-  const contentLength = Number(req.headers.get("content-length") ?? 0);
-  if (contentLength > MAX_FORM_BYTES) {
+  const declaredLength = Number(req.headers.get("content-length") ?? 0);
+  if (declaredLength > MAX_FORM_BYTES) {
     return NextResponse.json(
-      { success: false, message: "Demande trop volumineuse." },
+      { success: false, error: "Demande trop volumineuse." },
       { status: 413 }
     );
   }
@@ -43,104 +59,157 @@ export async function POST(req: NextRequest) {
   try {
     formData = await req.formData();
   } catch {
-    return NextResponse.json({ success: false, message: "Requête invalide." }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Requête invalide." }, { status: 400 });
   }
 
-  // 1. Piège à automates. Réponse de succès simulée.
-  if (formData.get(HONEYPOT_FIELD)) {
+  if (stringField(formData, HONEYPOT_FIELD)) {
     await recordSecurityEvent({
       kind: "HONEYPOT_TRIGGERED",
       severity: "medium",
       route: ROUTE,
-      ipAddress: ip,
+      ipAddress: getTrustedIp(req),
     });
-    return NextResponse.json(ACCEPTED, { status: 200 });
+    return NextResponse.json(
+      { success: false, error: "La soumission n'a pas pu être vérifiée." },
+      { status: 422 }
+    );
+  }
+  if (!hasPlausibleFormTiming(stringField(formData, FORM_STARTED_AT_FIELD))) {
+    await recordSecurityEvent({
+      kind: "FORM_TIMING_REJECTED",
+      severity: "low",
+      route: ROUTE,
+      ipAddress: getTrustedIp(req),
+    });
+    return NextResponse.json(
+      { success: false, error: "La soumission n'a pas pu être vérifiée." },
+      { status: 422 }
+    );
   }
 
-  // 2. Validation stricte avant tout accès base.
-  const parsed = QuoteRequestSchema.safeParse(Object.fromEntries(formData.entries()));
+  const parsed = QuoteRequestSchema.safeParse({
+    interventionType: stringField(formData, "interventionType"),
+    roofType: stringField(formData, "roofType"),
+    surface: stringField(formData, "surface"),
+    isUrgent: stringField(formData, "isUrgent"),
+    postalCode: stringField(formData, "postalCode"),
+    city: stringField(formData, "city"),
+    fullName: stringField(formData, "fullName"),
+    phone: stringField(formData, "phone"),
+    email: stringField(formData, "email"),
+    description: stringField(formData, "description"),
+    rgpdConsent: stringField(formData, "rgpdConsent"),
+    captchaToken: stringField(formData, "captchaToken"),
+  });
   if (!parsed.success) {
     await recordSecurityEvent({
       kind: "VALIDATION_REJECTED",
       severity: "low",
       route: ROUTE,
-      ipAddress: ip,
-      // Seuls les noms de champs sont journalisés, jamais les valeurs : elles
-      // contiennent nom, téléphone et email.
-      detail: { fields: parsed.error.issues.map((i) => i.path.join(".")) },
+      ipAddress: getTrustedIp(req),
+      detail: { fields: parsed.error.issues.map((issue) => issue.path.join(".")) },
     });
     return NextResponse.json(
-      { success: false, message: "Certains champs sont invalides.", fields: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      {
+        success: false,
+        error: "Veuillez vérifier les champs indiqués.",
+        fields: parsed.error.flatten().fieldErrors,
+      },
+      { status: 422 }
+    );
+  }
+  const rawDraftId = stringField(formData, "draftId");
+  const parsedDraftId = rawDraftId ? UuidSchema.safeParse(rawDraftId) : null;
+  if (parsedDraftId && !parsedDraftId.success) {
+    return NextResponse.json(
+      { success: false, error: "Brouillon invalide." },
+      { status: 422 }
     );
   }
 
-  // 3. Plafond par adresse email : empêche que le formulaire serve à inonder
-  //    un tiers de messages, indépendamment du nombre d'IP utilisées.
-  const emailLimit = await enforceRateLimit(req, "quoteRequestPerEmail", `email:${parsed.data.email}`);
-  if (!emailLimit.allowed) {
-    await recordSecurityEvent({
-      kind: "RATE_LIMIT_EXCEEDED",
-      severity: "medium",
-      route: ROUTE,
-      ipAddress: ip,
-      detail: { policy: "quoteRequestPerEmail" },
-    });
-    // Réponse d'acceptation : ne pas confirmer que cette adresse est ciblée.
-    return NextResponse.json(ACCEPTED, { status: 200 });
-  }
+  const emailLimit = await enforceRateLimit(
+    req,
+    "quoteRequestPerEmail",
+    `email:${parsed.data.email}`
+  );
+  if (!emailLimit.allowed) return emailLimit.response;
 
-  // 4. Anti-automate. `not-configured` n'est pas un succès : en développement
-  //    il laisse passer, en production `env.ts` a déjà bloqué le démarrage.
-  const turnstile = await verifyTurnstile(parsed.data.captchaToken, ip);
+  const turnstile = await verifyTurnstile(parsed.data.captchaToken, getTrustedIp(req));
   if (turnstile === "failed") {
-    await recordSecurityEvent({
-      kind: "VALIDATION_REJECTED",
-      severity: "medium",
-      route: ROUTE,
-      ipAddress: ip,
-      detail: { control: "turnstile" },
-    });
     return NextResponse.json(
-      { success: false, message: "Le contrôle anti-robot n'a pas abouti. Merci de réessayer." },
-      { status: 400 }
+      { success: false, error: "Le contrôle anti-robot n'a pas abouti. Merci de réessayer." },
+      { status: 422 }
     );
+  }
+
+  const files: { buffer: Buffer; originalName: string }[] = [];
+  for (const entry of formData.getAll("attachments")) {
+    if (!(entry instanceof File) || entry.size === 0) continue;
+    files.push({
+      buffer: Buffer.from(await entry.arrayBuffer()),
+      originalName: entry.name,
+    });
   }
 
   try {
-    const [created] = await db
-      .insert(quoteRequests)
-      .values({
-        fullName: parsed.data.fullName,
-        email: parsed.data.email,
-        phone: parsed.data.phone,
-        city: parsed.data.city,
-        postalCode: parsed.data.postalCode,
-        interventionType: parsed.data.interventionType,
-        roofType: parsed.data.roofType,
-        surface: parsed.data.surface,
-        isUrgent: parsed.data.isUrgent,
-        description: parsed.data.description || null,
-      })
-      .returning({ id: quoteRequests.id });
-
-    // Journal sans donnée personnelle : seul l'identifiant interne sort.
-    // La version précédente écrivait nom, email, téléphone et description en
-    // clair sur la sortie standard, donc dans les journaux d'hébergement.
+    const user = await getCurrentUser();
+    const created = await submitQuoteRequest({
+      input: parsed.data,
+      submissionKey,
+      userId: user?.id ?? null,
+      files,
+      draftId: parsedDraftId?.data,
+    });
     await recordSecurityEvent({
       kind: "QUOTE_REQUEST_CREATED",
       severity: "info",
       route: ROUTE,
+      userId: user?.id ?? null,
       targetTable: "quote_requests",
-      targetId: created?.id ?? null,
-      detail: { turnstile },
+      targetId: created.id,
+      detail: {
+        reference: created.reference,
+        attachments: created.attachmentCount,
+        turnstile,
+      },
     });
-
-    return NextResponse.json(ACCEPTED, { status: 200 });
-  } catch {
     return NextResponse.json(
-      { success: false, message: "Une erreur est survenue lors de l'enregistrement." },
-      { status: 500 }
+      { success: true, reference: created.reference },
+      { status: 201 }
+    );
+  } catch (error) {
+    if (error instanceof DuplicateSubmissionError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Cette demande a déjà été enregistrée.",
+          reference: error.reference,
+        },
+        { status: 409 }
+      );
+    }
+    if (error instanceof InvalidQuoteDraftError) {
+      return NextResponse.json(
+        { success: false, error: "Brouillon introuvable ou déjà soumis." },
+        { status: 404 }
+      );
+    }
+    if (error instanceof UploadRejected) {
+      const status = error.reason === "too-large" || error.reason === "batch-too-large" ? 413 : 422;
+      return NextResponse.json({ success: false, error: error.message }, { status });
+    }
+    await recordSecurityEvent({
+      kind: "AUDIT_WRITE_FAILURE",
+      severity: "high",
+      route: ROUTE,
+      detail: { reason: "quote-request-persistence-failed" },
+    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Votre demande n'a pas pu être enregistrée pour le moment. Veuillez réessayer.",
+      },
+      { status: 503 }
     );
   }
 }

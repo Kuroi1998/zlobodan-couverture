@@ -24,7 +24,9 @@ export const POLICIES = {
   login: { windowMs: 15 * MINUTE, maxRequests: 10 },
   register: { windowMs: HOUR, maxRequests: 5 },
   passwordReset: { windowMs: HOUR, maxRequests: 5 },
-  quoteRequest: { windowMs: HOUR, maxRequests: 3 },
+  contactMessage: { windowMs: HOUR, maxRequests: 5 },
+  contactMessagePerEmail: { windowMs: 24 * HOUR, maxRequests: 8 },
+  quoteRequest: { windowMs: HOUR, maxRequests: 5 },
   /** Amplification email : plafond par destinataire, pas seulement par IP. */
   quoteRequestPerEmail: { windowMs: 24 * HOUR, maxRequests: 5 },
   upload: { windowMs: HOUR, maxRequests: 20 },

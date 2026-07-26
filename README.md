@@ -1,137 +1,133 @@
 # Zlobodan Couverture
 
-Plateforme web professionnelle dédiée à la présentation des services de couverture, à la demande de devis et au suivi des clients et des chantiers.
+Application Next.js complète pour la vitrine, les demandes de contact et de
+devis, le portail client et le back-office de Zlobodan Couverture.
 
-Français | [English version](docs/en/README.md)
+## Fonctionnalités
 
-<!-- ![Bannière Zlobodan Couverture](docs/assets/github-banner.webp) -->
+- Formulaire de contact persistant avec référence `CNT-AAAA-NNNNNN`,
+  idempotence, consentement, historique et notifications asynchrones.
+- Assistant de devis en cinq étapes avec référence `DEV-AAAA-NNNNNN`,
+  brouillon serveur pour les comptes connectés, rattachement au compte et
+  pièces jointes privées.
+- Back-office protégé par rôle et TOTP : recherche, filtres, pagination,
+  consultation, notes et transitions de statut auditées.
+- Portail client alimenté exclusivement par PostgreSQL et limité au
+  propriétaire de chaque ressource.
+- Export JSON des données personnelles sans secrets, notes internes, IP ni
+  chemins de stockage.
+- Outbox SMTP durable avec reprise des traitements interrompus et cinq
+  tentatives à délai exponentiel.
 
-![Statut](https://img.shields.io/badge/statut-production_ready-green)
-![Accès](https://img.shields.io/badge/dépôt-privé-red)
-![Next.js](https://img.shields.io/badge/Next.js-14.2.35-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.4.5-blue)
+## Socle technique
 
----
-
-## 📖 Présentation du Projet
-Zlobodan Couverture est une application Next.js monolithique offrant à la fois une vitrine commerciale, un espace client sécurisé pour le suivi des chantiers et des devis, ainsi qu'un back-office complet pour l'administration de l'entreprise.
-
-## 🚀 Fonctionnalités
-- **Vitrine** : Présentation des services (réfection, démoussage, etc.) et réalisations.
-- **Génération de devis** : Assistant interactif (wizard) pour la demande de devis.
-- **Espace Client** : Acceptation/refus de devis, suivi des factures et progression de chantier.
-- **Back-Office** : Gestion des clients, génération de devis PDF, et journal d'audit de sécurité.
-
-## 📸 Captures d'écran récentes
-
-*(Le dossier `docs/screenshots/` est prêt à accueillir les captures optimisées au format WebP)*
-
-## 🛠 Technologies réellement utilisées
 | Domaine | Technologie |
-| :--- | :--- |
-| Framework | Next.js 14 (App Router), React 18 |
-| Langage | TypeScript (Strict Mode) |
-| Style | Tailwind CSS |
-| Base de données | PostgreSQL via Drizzle ORM |
-| Validation | Zod |
-| Authentification | Sessions persistantes, bcrypt, TOTP 2FA |
-| Anti-automate | Cloudflare Turnstile |
-| Rate Limiting | Upstash Redis |
+| --- | --- |
+| Application | Next.js 16 App Router, React 18, TypeScript strict |
+| Base | PostgreSQL 14+ et Drizzle ORM |
+| Validation | Zod côté navigateur et serveur, contraintes SQL |
+| Authentification | Sessions opaques, bcrypt, TOTP RFC 6238 |
+| Sécurité publique | CSRF, CSP, honeypot, débit IP/email, Turnstile optionnel |
+| Fichiers | Sharp, stockage local privé en développement, S3 privé en production |
+| Tests | Vitest, tests PostgreSQL et Playwright Chromium |
 
-## 🏗 Architecture actuelle
-Le dépôt suit une architecture modulaire :
-- `src/app/` : Routes App Router, layouts, et points d'API.
-- `src/components/` : Composants UI isolés par domaine métier.
-- `src/domain/` : Cœur de la logique métier (calculs, états).
-- `src/db/` : Schémas Drizzle et migrations.
-- `src/lib/` : Modules techniques (sécurité, authentification).
-- `docs/` : Documentation (architecture, audits, versions localisées).
+Les choix et flux sont détaillés dans
+[architecture](docs/architecture.md), [database](docs/database.md),
+[uploads](docs/uploads.md) et [security](docs/security.md).
 
-## 📋 Prérequis
-- Node.js 24
-- PostgreSQL 14+
-- npm 10+
+## Installation
 
-## ⚙️ Installation
+Prérequis : Node.js 24, npm 11 et PostgreSQL 14 ou supérieur.
+
 ```bash
-npm ci                  # installation reproductible depuis le lockfile
-cp .env.example .env    # puis renseigner les variables
-npm run db:generate     # génère les migrations
-npm run db:push         # synchronise la base
-npm run dev             # lance l'application sur localhost:3000
+npm ci
+cp .env.example .env.local
+npm run env:check
+npm run db:migrate
+npm run db:check
+npm run dev
 ```
 
-## 🔐 Variables d'environnement
-Source de vérité unique : [`src/config/env.ts`](src/config/env.ts), validée par Zod,
-gelée, marquée `server-only` (aucune fuite possible vers le navigateur). Aucun secret
-n'a de valeur de repli en production : son absence **interrompt le démarrage**.
+`db:migrate` est la commande normale. `db:push` reste un outil de
+développement et ne doit pas remplacer les migrations versionnées.
 
-Modèle complet et commenté dans [`.env.example`](.env.example). Variables serveur
-principales (jamais préfixées `NEXT_PUBLIC_`) :
-- `DATABASE_URL` — requise. `sslmode=require` exigé en production.
-- `MIGRATION_DATABASE_URL` — compte de migration (droits DDL distincts).
-- `TEST_DATABASE_URL` — base isolée pour les tests d'intégration (hôte local).
-- `SESSION_SECRET`, `IP_HASH_SALT` — 32 caractères minimum.
-- `APP_ORIGIN` — origine canonique des liens transactionnels.
-- `TURNSTILE_SECRET_KEY`, `UPSTASH_REDIS_REST_URL` / `_TOKEN` — anti-automate et débit.
+## Configuration
 
-`npm run env:check` valide présence et format **sans jamais afficher une valeur**.
+Le modèle complet est dans [`.env.example`](.env.example). Les valeurs
+essentielles sont :
 
-## 📜 Scripts disponibles
-- `npm run dev` / `build` / `start` : cycle de vie de l'application.
-- `npm run validate` : suite complète (typecheck, lint strict, taille, tests, build).
-- `npm run env:check` : diagnostic de configuration (aucun secret affiché).
-- `npm run db:check` : connexion PostgreSQL par un vrai `SELECT 1`, message normalisé.
-- `npm run db:generate` / `db:migrate` / `db:push` : migrations Drizzle.
-- `npm run db:seed` : jeu de démonstration (refusé en production).
+- `DATABASE_URL`, et idéalement `MIGRATION_DATABASE_URL` avec un compte DDL
+  distinct ;
+- `SESSION_SECRET`, `IP_HASH_SALT` et `APP_ORIGIN` ;
+- les deux clés Turnstile et les deux valeurs Upstash en environnement
+  multi-instance ;
+- les paramètres SMTP pour expédier l’outbox ;
+- `UPLOAD_STORAGE_DRIVER=s3` et les paramètres S3 en production.
 
-## 💾 Base de données
-**PostgreSQL** via **Drizzle ORM** (pilote `postgres.js`). Client canonique unique
-dans [`src/db/client.ts`](src/db/client.ts) : `server-only`, pool borné, singleton
-résistant au Hot Reload en développement, aucune connexion à l'import.
+Le démarrage de production refuse le stockage local. Les secrets ne sont ni
+affichés par `env:check`, ni exposés dans les variables `NEXT_PUBLIC_*`, à
+l’exception normale de la clé publique Turnstile.
 
-### Prérequis et mise en place locale
-- PostgreSQL 14 ou supérieur (image `postgres:16` en CI).
-- Créer une base locale, renseigner `DATABASE_URL` dans `.env`.
-- `npm run db:migrate` applique les migrations ; `npm run db:check` vérifie l'accès.
+## Commandes
 
-### SSL
-Piloté par `sslmode` dans l'URL, seule source de vérité. `sslmode=require` (ou
-`verify-full`) est **obligatoire en production** — la validation d'environnement
-refuse une URL de production sans lui. En local, SSL est optionnel.
-
-### Dépannage — codes d'erreur PostgreSQL
-| Code | Signification |
-| :--- | :--- |
-| `ECONNREFUSED` | PostgreSQL n'est pas lancé, ou le port est incorrect. |
-| `28P01` | Nom d'utilisateur ou mot de passe incorrect. |
-| `3D000` | La base configurée n'existe pas. |
-| `42P01` | Table absente : migrations non appliquées (`npm run db:migrate`). |
-| `ENOTFOUND` | Nom d'hôte incorrect ou non résolu. |
-| `ETIMEDOUT` | Serveur injoignable, ou un pare-feu bloque la connexion. |
-
-Ces codes sont normalisés en messages clairs par `db:check` et `/api/health`, sans
-jamais divulguer d'URL, d'hôte, d'utilisateur ni de trace.
-
-### Tests et production
-Les tests unitaires (Vitest) ne touchent **aucune** base réelle. En mode `test`, une
-`DATABASE_URL` non locale est refusée : fournir `TEST_DATABASE_URL` vers une base
-isolée. La CI lance un service `postgres:16` éphémère et exerce le `SELECT 1` réel.
-
-## 🧪 Tests
-La suite **Vitest** compte 152 tests couvrant la logique métier, la sécurité, et les contrôles d'accès.
 ```bash
-npm run test
+npm run typecheck             # TypeScript sans émission
+npm run lint:strict           # ESLint, zéro avertissement
+npm run check:size            # limite de 400 lignes par source
+npm run test                  # tests unitaires
+npm run test:integration      # base locale jetable *_test
+npm run test:e2e              # base E2E jetable + Chromium
+npm run test:restart          # relit les données E2E après un nouveau serveur
+npm run build                 # build serveur Next.js
+npm run validate              # statique + unitaires + build
+npm run validate:full         # validate + intégration + E2E
+npm run notifications:dispatch
+npm run uploads:cleanup       # simulation
+npm run uploads:cleanup -- --apply
+npm run drafts:cleanup        # simulation des brouillons de plus de 30 jours
+npm run drafts:cleanup -- --apply
 ```
 
-## 🛡 Sécurité
-Le projet implémente les recommandations OWASP Top 10 : protection CSRF, CSP stricte, mots de passe hashés avec bcrypt (coût 12), et journalisation d'audit inaltérable. Voir `SECURITY.md`.
+Les lanceurs d’intégration et E2E refusent les hôtes de base distants et les
+noms ne se terminant pas par `_test`. Ils recréent uniquement ces bases
+jetables.
 
-## 🚢 Déploiement
-L'application est conçue pour un déploiement Vercel ou conteneurisé. Un proxy de confiance Cloudflare est requis en amont.
+## Exploitation
 
-## 🤝 Contribution
-Veuillez vous référer au fichier `CONTRIBUTING.md` pour les normes de commit (Conventional Commits) et le flux de pull requests.
+Après chaque déploiement :
 
-## ⚖️ Confidentialité et Droits
-Dépôt **privé**. Code source et ressources propriété exclusive de Zlobodan Couverture. Toute diffusion non autorisée est strictement interdite.
+```bash
+npm ci
+npm run env:check
+npm run db:migrate
+npm run db:check
+npm run build
+npm run start
+```
+
+Planifier `notifications:dispatch` toutes les minutes et
+`uploads:cleanup -- --apply` quotidiennement. Planifier aussi
+`drafts:cleanup -- --apply` quotidiennement : il supprime les brouillons non
+soumis inactifs depuis plus de 30 jours. Les deux commandes sont en simulation
+sans `--apply`.
+
+Sauvegarder PostgreSQL et activer le versioning/lifecycle du bucket S3 avant
+la mise en production. Les migrations sont ascendantes ; une restauration de
+sauvegarde est la stratégie de retour arrière pour une migration destructive.
+
+## CI
+
+Le workflow GitHub Actions démarre PostgreSQL 18, applique les migrations,
+vérifie la connexion, exécute TypeScript, ESLint, les contrôles de taille, les
+tests unitaires et d’intégration, compile Next.js puis exécute les parcours
+Chromium sur une seconde base isolée. Un second processus serveur relit ensuite
+la même base sans reset pour prouver la persistance après redémarrage.
+
+## Confidentialité
+
+Les consentements enregistrent la date et la version de politique. Les
+fichiers ne sont jamais placés dans `public/`, les listes ne divulguent aucun
+chemin de stockage et les téléchargements repassent toujours par une garde
+serveur. La politique de rétention proposée est documentée dans
+[security](docs/security.md) et doit être validée par le responsable RGPD
+avant automatisation des suppressions.

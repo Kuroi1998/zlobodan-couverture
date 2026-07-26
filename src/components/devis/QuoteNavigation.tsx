@@ -5,7 +5,7 @@ interface QuoteNavigationProps {
   currentStep: number;
   totalSteps: number;
   onPrevious: () => void;
-  onNext: () => void;
+  onNext: () => void | Promise<void>;
 }
 
 /**

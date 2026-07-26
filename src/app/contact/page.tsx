@@ -1,7 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import ContactForm from "@/components/contact/ContactForm";
 
 export const metadata = {
   title: "Contact & Localisation | Couvreur Zlobodan Belgique",
@@ -104,36 +105,7 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <form action="/devis/merci" className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label htmlFor="contact-name" className="text-xs font-bold text-slate-300 uppercase">Nom complet *</label>
-                  <input id="contact-name" name="name" type="text" required placeholder="Ex: Jean Peeters" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="contact-phone" className="text-xs font-bold text-slate-300 uppercase">Téléphone *</label>
-                  <input id="contact-phone" name="phone" type="tel" required placeholder="Ex: 0470 12 34 56" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="contact-email" className="text-xs font-bold text-slate-300 uppercase">Email *</label>
-                <input id="contact-email" name="email" type="email" required placeholder="Ex: jean.peeters@email.be" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="contact-message" className="text-xs font-bold text-slate-300 uppercase">Votre Message *</label>
-                <textarea id="contact-message" name="message" rows={4} required placeholder="Décrivez votre besoin (fuite, devis, renseignement...)" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-terracotta" />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-brand-terracotta hover:bg-orange-600 text-white font-extrabold py-4 rounded-xl text-sm shadow-accent transition flex items-center justify-center gap-2"
-              >
-                <Send className="h-4 w-4" />
-                <span>Envoyer le Message</span>
-              </button>
-            </form>
+            <ContactForm />
           </div>
 
         </div>

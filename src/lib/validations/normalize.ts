@@ -67,6 +67,17 @@ export function normalizeText(raw: string): string {
 }
 
 /**
+ * Forme de stockage compacte d'un numéro : un éventuel `+` initial et les
+ * chiffres uniquement. Les séparateurs restent une préoccupation d'affichage.
+ */
+export function normalizePhone(raw: string): string {
+  const cleaned = normalizeText(raw);
+  const hasInternationalPrefix = cleaned.startsWith("+");
+  const digits = cleaned.replace(/\D/g, "");
+  return `${hasInternationalPrefix ? "+" : ""}${digits}`;
+}
+
+/**
  * Neutralisation des retours à la ligne dans une valeur journalisée.
  *
  * Sans elle, une valeur contenant `\n` permet de fabriquer de fausses lignes

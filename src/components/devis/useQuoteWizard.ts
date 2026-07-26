@@ -4,7 +4,10 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { compressImage } from "@/lib/media/image-compression";
 import { QUOTE_DEFAULTS } from "@/domain/quote-options";
+import { QuoteRequestSchema } from "@/lib/validations/quote-schemas";
+import { FORM_STARTED_AT_FIELD } from "@/lib/security/form-timing";
 import type { FormDataState } from "./quote-form.types";
+import { useServerQuoteDraft } from "./useServerQuoteDraft";
 
 /**
  * État et logique de l'assistant de devis.
@@ -21,7 +24,7 @@ const COMPRESSION_QUALITY = 0.8;
 
 export interface PhotoAttachment {
   file: File;
-  preview: string;
+  preview: string | null;
 }
 
 export interface LocationStatus {
@@ -46,12 +49,15 @@ function buildInitialFormData(preselectedService: string): FormDataState {
     description: "",
     rgpdConsent: false,
     honeypot: "",
+    captchaToken: "",
   };
 }
 
 export function useQuoteWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [submissionKey] = useState(() => crypto.randomUUID());
+  const [formStartedAt] = useState(() => Date.now());
 
   const [currentStep, setCurrentStep] = useState(1);
   const [photos, setPhotos] = useState<PhotoAttachment[]>([]);
@@ -67,6 +73,20 @@ export function useQuoteWizard() {
   const [formData, setFormData] = useState<FormDataState>(() =>
     buildInitialFormData(searchParams.get("service") ?? "")
   );
+
+  const resetDraftForm = useCallback(() => {
+    setFormData(buildInitialFormData(searchParams.get("service") ?? ""));
+    setCurrentStep(1);
+  }, [searchParams]);
+  const { draftId, draftReference, saveDraft, deleteDraft } =
+    useServerQuoteDraft({
+      formData,
+      submissionKey,
+      setFormData,
+      setCurrentStep,
+      setErrorMsg,
+      resetForm: resetDraftForm,
+    });
 
   const handlePhotoUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,8 +104,15 @@ export function useQuoteWizard() {
       try {
         const compressed: PhotoAttachment[] = [];
         for (const file of selectedFiles) {
+          if (file.size > 10 * 1024 * 1024) {
+            setErrorMsg(`Le fichier « ${file.name} » dépasse 10 Mo.`);
+            return;
+          }
           const result = await compressImage(file, COMPRESSION_MAX_WIDTH, COMPRESSION_QUALITY);
-          compressed.push({ file: result, preview: URL.createObjectURL(result) });
+          compressed.push({
+            file: result,
+            preview: result.type.startsWith("image/") ? URL.createObjectURL(result) : null,
+          });
         }
         setPhotos((prev) => [...prev, ...compressed]);
       } catch (err: unknown) {
@@ -103,12 +130,12 @@ export function useQuoteWizard() {
       // L'URL d'objet est révoquée : sans cela, chaque retrait laisse fuir la
       // mémoire du blob jusqu'au rechargement de la page.
       const target = prev[index];
-      if (target) URL.revokeObjectURL(target.preview);
+      if (target?.preview) URL.revokeObjectURL(target.preview);
       return prev.filter((_, i) => i !== index);
     });
   }, []);
 
-  const goToNextStep = useCallback(() => {
+  const goToNextStep = useCallback(async () => {
     setErrorMsg("");
 
     if (currentStep === 1 && !formData.interventionType) {
@@ -129,8 +156,9 @@ export function useQuoteWizard() {
       });
     }
 
+    if (!(await saveDraft(currentStep))) return;
     setCurrentStep((prev) => Math.min(TOTAL_STEPS, prev + 1));
-  }, [currentStep, formData.interventionType, formData.postalCode]);
+  }, [currentStep, formData.interventionType, formData.postalCode, saveDraft]);
 
   const goToPreviousStep = useCallback(() => {
     setErrorMsg("");
@@ -140,20 +168,30 @@ export function useQuoteWizard() {
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      if (isSubmitting) return;
       setErrorMsg("");
 
-      // Piège à automates : réponse de succès simulée, sans envoi.
       if (formData.honeypot) {
-        router.push("/devis/merci");
+        setErrorMsg("La soumission n'a pas pu être vérifiée.");
         return;
       }
 
-      if (!formData.fullName || !formData.phone || !formData.email) {
-        setErrorMsg("Veuillez remplir votre nom, téléphone et adresse email.");
-        return;
-      }
-      if (!formData.rgpdConsent) {
-        setErrorMsg("Veuillez accepter le consentement RGPD pour poursuivre.");
+      const parsed = QuoteRequestSchema.safeParse({
+        interventionType: formData.interventionType,
+        roofType: formData.roofType,
+        surface: formData.surface,
+        isUrgent: formData.isUrgent,
+        postalCode: formData.postalCode,
+        city: formData.city,
+        fullName: formData.fullName,
+        phone: formData.phone,
+        email: formData.email,
+        description: formData.description,
+        rgpdConsent: formData.rgpdConsent,
+        captchaToken: formData.captchaToken || undefined,
+      });
+      if (!parsed.success) {
+        setErrorMsg(parsed.error.issues[0]?.message ?? "Veuillez vérifier les champs indiqués.");
         return;
       }
 
@@ -174,21 +212,49 @@ export function useQuoteWizard() {
         // le serveur, *toute* demande était rejetée en 400.
         payload.append("description", formData.description);
         payload.append("rgpdConsent", formData.rgpdConsent ? "true" : "false");
+        payload.append("website_url", formData.honeypot);
+        payload.append(FORM_STARTED_AT_FIELD, String(formStartedAt));
+        if (draftId) payload.append("draftId", draftId);
+        if (formData.captchaToken) payload.append("captchaToken", formData.captchaToken);
+        for (const photo of photos) payload.append("attachments", photo.file, photo.file.name);
 
-        const response = await fetch("/api/devis", { method: "POST", body: payload });
+        const response = await fetch("/api/devis", {
+          method: "POST",
+          headers: { "Idempotency-Key": submissionKey },
+          body: payload,
+        });
+        const data: unknown = await response.json().catch(() => null);
+        const reference =
+          typeof data === "object" &&
+          data !== null &&
+          "reference" in data &&
+          typeof data.reference === "string"
+            ? data.reference
+            : "";
 
-        if (!response.ok) {
+        if (response.status === 409 && reference) {
+          router.push(`/devis/merci?reference=${encodeURIComponent(reference)}&duplicate=1`);
+          return;
+        }
+        if (!response.ok || !reference) {
           // Plus de redirection vers la page de remerciement en cas d'échec :
           // annoncer un succès qui n'a pas eu lieu prive le client de sa
           // demande sans qu'il le sache.
-          const data = await response.json().catch(() => null);
           setErrorMsg(
-            data?.message ?? "Votre demande n'a pas pu être envoyée. Merci de réessayer."
+            typeof data === "object" &&
+              data !== null &&
+              "error" in data &&
+              typeof data.error === "string"
+              ? data.error
+              : "Votre demande n'a pas pu être envoyée. Merci de réessayer."
           );
           return;
         }
 
-        router.push("/devis/merci");
+        for (const photo of photos) {
+          if (photo.preview) URL.revokeObjectURL(photo.preview);
+        }
+        router.push(`/devis/merci?reference=${encodeURIComponent(reference)}`);
       } catch (err: unknown) {
         console.error("Échec de l'envoi de la demande de devis :", err);
         setErrorMsg(
@@ -198,7 +264,7 @@ export function useQuoteWizard() {
         setIsSubmitting(false);
       }
     },
-    [formData, router]
+    [draftId, formData, formStartedAt, isSubmitting, photos, router, submissionKey]
   );
 
   return {
@@ -209,12 +275,15 @@ export function useQuoteWizard() {
     photos,
     isCompressing,
     isSubmitting,
+    draftId,
+    draftReference,
     errorMsg,
     locationStatus,
     handlePhotoUpload,
     removePhoto,
     goToNextStep,
     goToPreviousStep,
+    deleteDraft,
     handleSubmit,
   };
 }

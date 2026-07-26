@@ -1,12 +1,13 @@
 import React from "react";
 import Image from "next/image";
-import { Upload, X, Send } from "lucide-react";
+import { FileText, Upload, X, Send } from "lucide-react";
 import { FormDataState } from "../quote-form.types";
+import TurnstileWidget from "@/components/forms/TurnstileWidget";
 
 interface Step5Props {
   formData: FormDataState;
   setFormData: React.Dispatch<React.SetStateAction<FormDataState>>;
-  photos: { file: File; preview: string }[];
+  photos: { file: File; preview: string | null }[];
   handlePhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   removePhoto: (index: number) => void;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
@@ -114,7 +115,7 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
       {/* Photo Drag & Drop Upload */}
       <div className="space-y-3">
         <span className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-          <span>Ajouter des photos du chantier (5 max)</span>
+          <span>Ajouter des photos ou un PDF (5 max)</span>
           <span className="text-slate-400 font-normal">Compression auto client-side</span>
         </span>
 
@@ -122,7 +123,7 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
           <input
             type="file"
             multiple
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
             onChange={handlePhotoUpload}
             id="photo-upload-input"
             className="hidden"
@@ -136,7 +137,7 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
               Cliquez ou glissez vos photos ici
             </span>
             <span className="text-xs text-slate-500">
-              PNG, JPG, WebP jusqu'à 10 Mo par photo
+              PNG, JPG, WebP ou PDF jusqu'à 10 Mo par fichier
             </span>
           </label>
         </div>
@@ -145,15 +146,19 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
         {photos.length > 0 && (
           <div className="flex flex-wrap gap-3 pt-2">
             {photos.map((item, idx) => (
-              <div key={item.preview} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                <Image
-                  src={item.preview}
-                  alt={`Aperçu ${idx + 1}`}
-                  fill
-                  sizes="80px"
-                  unoptimized
-                  className="object-cover"
-                />
+              <div key={`${item.file.name}-${idx}`} className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                {item.preview ? (
+                  <Image
+                    src={item.preview}
+                    alt={`Aperçu ${idx + 1}`}
+                    fill
+                    sizes="80px"
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : (
+                  <FileText className="h-8 w-8 text-slate-500" aria-label={item.file.name} />
+                )}
                 <button
                   type="button"
                   onClick={() => removePhoto(idx)}
@@ -181,6 +186,10 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
           J'accepte que mes données soient conservées par Zlobodan Couverture SRL dans le cadre exclusif du chiffrage de ma demande de devis conformément au RGPD. *
         </label>
       </div>
+
+      <TurnstileWidget
+        onToken={(captchaToken) => setFormData((current) => ({ ...current, captchaToken }))}
+      />
 
       {/* Submit Button */}
       <button

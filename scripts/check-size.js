@@ -3,7 +3,19 @@ const path = require("node:path");
 
 const MAX_ALLOWED_LINES = 400;
 const WARNING_THRESHOLD = 300;
-const IGNORE_DIRS = new Set(["node_modules", ".next", ".git", "dist", "build"]);
+const IGNORE_DIRS = new Set([
+  "node_modules",
+  ".next",
+  ".next-e2e",
+  ".next-restart",
+  ".next-production-smoke",
+  ".git",
+  "dist",
+  "build",
+  "coverage",
+  "test-results",
+  "playwright-report",
+]);
 const TARGET_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".css"]);
 
 function countFileLines(filePath) {

@@ -1,133 +1,114 @@
-"use client";
+import Link from "next/link";
+import { and, count, eq, gt, isNull } from "drizzle-orm";
+import { Download, Lock, Settings, ShieldCheck, Smartphone } from "lucide-react";
+import { db } from "@/db/client";
+import { sessions } from "@/db/schema/sessions";
+import { users } from "@/db/schema/users";
+import { requirePageAuth } from "@/lib/security/guards";
+import { siteConfig } from "@/config/site";
 
-import React, { useState } from "react";
-import { Settings, ShieldCheck, Lock, Smartphone, Download, Trash2 } from "lucide-react";
-
-export default function ClientSettingsPage() {
-  const [feedback, setFeedback] = useState("");
-  const [totpEnabled, setTotpEnabled] = useState(false);
-
-  const handleExportRgpd = async () => {
-    setFeedback("✅ Votre dossier d'export d'archive RGPD (données personnelles au format JSON) a été généré.");
-  };
-
-  const handleDeleteAccount = async () => {
-    if (confirm("Êtes-vous sûr de vouloir demander la suppression de votre compte conformément au droit à l'oubli RGPD ?")) {
-      setFeedback("ℹ️ Demande de suppression transmise au DPO. Votre compte sera archivé anonymement sous 30 jours.");
-    }
-  };
+export default async function ClientSettingsPage() {
+  const user = await requirePageAuth("/mon-compte/parametres");
+  const [accounts, activeSessions] = await Promise.all([
+    db
+      .select({
+        email: users.email,
+        phone: users.phone,
+        emailVerifiedAt: users.emailVerifiedAt,
+        totpEnabled: users.totpEnabled,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1),
+    db
+      .select({ total: count() })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.userId, user.id),
+          isNull(sessions.revokedAt),
+          gt(sessions.expiresAt, new Date())
+        )
+      ),
+  ]);
+  const account = accounts[0];
 
   return (
-    <div className="space-y-8 max-w-4xl">
-      
-      {/* Header */}
+    <div className="max-w-4xl space-y-8">
       <div>
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white">
-          Paramètres du Compte &amp; Confidentialité RGPD
+        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
+          Paramètres et confidentialité
         </h1>
         <p className="text-sm text-slate-400">
-          Gérez votre profil, vos options de sécurité (2FA, sessions), vos préférences et vos droits RGPD (exportation &amp; suppression).
+          Informations réelles de votre compte et accès à vos droits RGPD.
         </p>
       </div>
 
-      {feedback && (
-        <div className="p-4 rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-200 text-sm animate-in fade-in">
-          {feedback}
-        </div>
-      )}
-
-      {/* 1. Coordonnées */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-        <h2 className="font-heading font-bold text-lg text-white flex items-center gap-2">
-          <Settings className="h-5 w-5 text-brand-terracotta" />
-          <span>Informations Personnelles</span>
+      <section className="space-y-4 rounded-3xl border border-slate-800 bg-slate-900 p-6">
+        <h2 className="flex items-center gap-2 font-bold text-white">
+          <Settings className="h-5 w-5 text-brand-terracotta" /> Compte
         </h2>
+        <dl className="grid gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-xs uppercase text-slate-500">Email</dt>
+            <dd className="text-white">{account?.email ?? user.email}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase text-slate-500">Téléphone</dt>
+            <dd className="text-white">{account?.phone ?? "Non renseigné"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase text-slate-500">Email vérifié</dt>
+            <dd className="text-white">{account?.emailVerifiedAt ? "Oui" : "Non"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase text-slate-500">Compte créé le</dt>
+            <dd className="text-white">{account?.createdAt.toLocaleDateString("fr-BE") ?? "—"}</dd>
+          </div>
+        </dl>
+      </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="space-y-1">
-            <label htmlFor="settings-name" className="text-slate-400 font-bold uppercase">Nom complet</label>
-            <input id="settings-name" name="fullName" type="text" defaultValue="Jean Peeters" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-terracotta" />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="settings-phone" className="text-slate-400 font-bold uppercase">Numéro de téléphone</label>
-            <input id="settings-phone" name="phone" type="tel" defaultValue="0470 12 34 56" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-terracotta" />
-          </div>
+      <section className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
+          <Smartphone className="mb-3 h-5 w-5 text-amber-400" />
+          <p className="font-bold text-white">Double facteur</p>
+          <p className="text-sm text-slate-400">
+            {account?.totpEnabled ? "Activé sur ce compte." : "Non activé sur ce compte."}
+          </p>
         </div>
-      </div>
+        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
+          <Lock className="mb-3 h-5 w-5 text-blue-400" />
+          <p className="font-bold text-white">Sessions actives</p>
+          <p className="text-sm text-slate-400">{activeSessions[0]?.total ?? 0} session(s).</p>
+        </div>
+      </section>
 
-      {/* 2. Authentification à Deux Facteurs (2FA) */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-        <h2 className="font-heading font-bold text-lg text-white flex items-center gap-2">
-          <Smartphone className="h-5 w-5 text-amber-400" />
-          <span>Double Facteur TOTP (2FA)</span>
+      <section className="space-y-4 rounded-3xl border border-slate-800 bg-slate-900 p-6">
+        <h2 className="flex items-center gap-2 font-bold text-white">
+          <ShieldCheck className="h-5 w-5 text-emerald-400" /> Droits RGPD
         </h2>
-
-        <div className="flex items-center justify-between p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs">
-          <div className="space-y-1">
-            <p className="font-bold text-white">Sécuriser votre compte avec Google Authenticator ou Authy</p>
-            <p className="text-slate-400">Exige un code temporaire à chaque connexion.</p>
-          </div>
-
-          <button
-            onClick={() => {
-              setTotpEnabled(!totpEnabled);
-              setFeedback(totpEnabled ? "ℹ️ 2FA désactivée." : "✅ 2FA TOTP activée avec succès.");
-            }}
-            className={`px-4 py-2 rounded-xl font-bold text-xs transition ${
-              totpEnabled ? "bg-red-950 text-red-300 border border-red-800" : "bg-brand-terracotta text-white"
-            }`}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/api/client/privacy/export"
+            className="rounded-2xl border border-slate-800 bg-slate-950 p-4 hover:bg-slate-800"
           >
-            {totpEnabled ? "Désactiver 2FA" : "Activer 2FA"}
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Sessions Actives avec Révocation à Distance */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-        <h2 className="font-heading font-bold text-lg text-white flex items-center gap-2">
-          <Lock className="h-5 w-5 text-blue-400" />
-          <span>Sessions Actives sur ce Compte</span>
-        </h2>
-
-        <div className="space-y-3 text-xs">
-          <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
-            <div>
-              <p className="font-bold text-white">Session Actuelle (Bruxelles, Belgique)</p>
-              <p className="text-slate-400">Chrome sur Windows • IP: 85.27.xx.xx</p>
-            </div>
-            <span className="text-emerald-400 font-bold">● En ligne</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Droits RGPD (Export & Suppression) */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-        <h2 className="font-heading font-bold text-lg text-white flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-emerald-400" />
-          <span>Droits RGPD &amp; Protection des Données</span>
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            onClick={handleExportRgpd}
-            className="p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl text-left space-y-1 transition"
+            <Download className="mb-2 h-5 w-5 text-brand-terracotta" />
+            <p className="text-xs font-bold text-white">Exporter mes données</p>
+            <p className="text-[11px] text-slate-400">Archive JSON générée côté serveur.</p>
+          </Link>
+          <a
+            href={`mailto:${siteConfig.email}?subject=Demande%20RGPD%20de%20suppression`}
+            className="rounded-2xl border border-slate-800 bg-slate-950 p-4 hover:bg-slate-800"
           >
-            <Download className="h-5 w-5 text-brand-terracotta" />
-            <p className="font-bold text-white text-xs">Exporter mes données (RGPD)</p>
-            <p className="text-[11px] text-slate-400">Télécharger l'archive complète au format JSON.</p>
-          </button>
-
-          <button
-            onClick={handleDeleteAccount}
-            className="p-4 bg-slate-950 hover:bg-red-950/40 border border-slate-800 hover:border-red-800 rounded-2xl text-left space-y-1 transition"
-          >
-            <Trash2 className="h-5 w-5 text-red-500" />
-            <p className="font-bold text-red-400 text-xs">Demander la suppression du compte</p>
-            <p className="text-[11px] text-slate-400">Droit à l'oubli et suppression sous 30 jours.</p>
-          </button>
+            <ShieldCheck className="mb-2 h-5 w-5 text-red-400" />
+            <p className="text-xs font-bold text-white">Demander une rectification ou suppression</p>
+            <p className="text-[11px] text-slate-400">
+              La demande est vérifiée avant toute action irréversible.
+            </p>
+          </a>
         </div>
-      </div>
-
+      </section>
     </div>
   );
 }

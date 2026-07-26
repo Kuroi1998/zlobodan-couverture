@@ -20,11 +20,16 @@ const config = [
   {
     ignores: [
       ".next/**",
+      ".next-e2e/**",
+      ".next-restart/**",
+      ".next-production-smoke/**",
       "node_modules/**",
       "coverage/**",
       "dist/**",
       "build/**",
       "src/db/migrations/**",
+      "test-results/**",
+      "playwright-report/**",
     ],
   },
 

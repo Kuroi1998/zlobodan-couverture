@@ -11,4 +11,5 @@ export interface FormDataState {
   description: string;
   rgpdConsent: boolean;
   honeypot: string;
+  captchaToken: string;
 }

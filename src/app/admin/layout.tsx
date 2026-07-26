@@ -60,7 +60,15 @@ export default async function AdminLayout({
               className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
             >
               <Inbox className="h-3.5 w-3.5 text-amber-400" />
-              <span>Demandes (3)</span>
+              <span>Demandes de devis</span>
+            </Link>
+
+            <Link
+              href="/admin/contacts"
+              className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
+            >
+              <Inbox className="h-3.5 w-3.5 text-purple-400" />
+              <span>Messages de contact</span>
             </Link>
 
             <Link
