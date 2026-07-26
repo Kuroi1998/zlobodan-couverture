@@ -1,5 +1,6 @@
 import { describe, expect, test, vi, afterEach } from "vitest";
-import { safeReturnPath, isAllowedCorsOrigin, buildAbsoluteUrl } from "@/lib/security/urls";
+import { safeReturnPath } from "@/lib/security/urls";
+import { isAllowedCorsOrigin, buildAbsoluteUrl } from "@/lib/security/server-urls";
 import { timingSafeEqualHex, timingSafeEqualString } from "@/lib/security/constant-time";
 import { isPrivatePath, stripUnsafeInboundHeaders } from "@/lib/security/cache-control";
 import { normalizeEmail, sanitizeForLog, stripInvisibleChars } from "@/lib/validations/normalize";

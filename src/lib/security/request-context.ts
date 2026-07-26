@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { getTrustedProxyMode } from "@/config/env";
 
 /**
  * Extraction d'une adresse IP *de confiance*.
@@ -15,11 +16,7 @@ import type { NextRequest } from "next/server";
  * section « Pare-feu de l'origine ».
  */
 
-export type TrustedProxyMode = "cloudflare" | "none";
-
-function proxyMode(): TrustedProxyMode {
-  return process.env.TRUSTED_PROXY === "cloudflare" ? "cloudflare" : "none";
-}
+// Le mode de proxy de confiance vient de la configuration centrale.
 
 /** IPv4/IPv6 sommaire : on rejette tout ce qui n'a pas la forme d'une adresse. */
 const IP_PATTERN = /^[0-9a-fA-F:.]{3,45}$/;
@@ -36,7 +33,7 @@ function sanitizeIp(value: string | null | undefined): string | null {
  * Un `null` doit être traité comme « inconnu », jamais comme « autorisé ».
  */
 export function getTrustedIp(req: NextRequest): string | null {
-  if (proxyMode() === "cloudflare") {
+  if (getTrustedProxyMode() === "cloudflare") {
     const cf = sanitizeIp(req.headers.get("cf-connecting-ip"));
     if (cf) return cf;
   }

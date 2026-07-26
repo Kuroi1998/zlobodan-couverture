@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { getAppOrigin } from "@/config/env";
 
 /**
  * Contrôle d'origine des requêtes mutantes.
@@ -25,13 +26,12 @@ function allowedHosts(request: NextRequest): Set<string> {
   if (host) hosts.add(host.toLowerCase());
 
   // Origine canonique explicite, utile derrière un proxy qui réécrit `Host`.
-  const configured = process.env.APP_ORIGIN;
-  if (configured) {
-    try {
-      hosts.add(new URL(configured).host.toLowerCase());
-    } catch {
-      // Variable mal formée : ignorée ici, signalée par la validation d'env.
-    }
+  // En cas d'échec (APP_ORIGIN absente en dev), seul l'en-tête `Host` sert de
+  // référence — dégradation sûre pour un contrôle same-origin.
+  try {
+    hosts.add(new URL(getAppOrigin()).host.toLowerCase());
+  } catch {
+    // Ignoré volontairement.
   }
   return hosts;
 }

@@ -33,6 +33,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // `server-only` lève par conception hors bundle serveur Next ; en Node de
+      // test, il faut le rendre inerte. Voir test/stubs/server-only.ts.
+      "server-only": path.resolve(__dirname, "./test/stubs/server-only.ts"),
     },
   },
 });
