@@ -48,7 +48,7 @@ Le dépôt suit une architecture modulaire :
 - `docs/` : Documentation (architecture, audits, versions localisées).
 
 ## 📋 Prérequis
-- Node.js 20+
+- Node.js 24
 - PostgreSQL 14+
 - npm 10+
 
@@ -62,25 +62,64 @@ npm run dev             # lance l'application sur localhost:3000
 ```
 
 ## 🔐 Variables d'environnement
-Un fichier `.env.example` est fourni à la racine. Aucun secret ne possède de valeur de repli dans le code.
-Principales variables :
-- `DATABASE_URL` (requise)
-- `SESSION_SECRET` (requise, 32+ caractères)
-- `TURNSTILE_SECRET_KEY` (requise)
-- `UPSTASH_REDIS_REST_URL` (requise)
+Source de vérité unique : [`src/config/env.ts`](src/config/env.ts), validée par Zod,
+gelée, marquée `server-only` (aucune fuite possible vers le navigateur). Aucun secret
+n'a de valeur de repli en production : son absence **interrompt le démarrage**.
+
+Modèle complet et commenté dans [`.env.example`](.env.example). Variables serveur
+principales (jamais préfixées `NEXT_PUBLIC_`) :
+- `DATABASE_URL` — requise. `sslmode=require` exigé en production.
+- `MIGRATION_DATABASE_URL` — compte de migration (droits DDL distincts).
+- `TEST_DATABASE_URL` — base isolée pour les tests d'intégration (hôte local).
+- `SESSION_SECRET`, `IP_HASH_SALT` — 32 caractères minimum.
+- `APP_ORIGIN` — origine canonique des liens transactionnels.
+- `TURNSTILE_SECRET_KEY`, `UPSTASH_REDIS_REST_URL` / `_TOKEN` — anti-automate et débit.
+
+`npm run env:check` valide présence et format **sans jamais afficher une valeur**.
 
 ## 📜 Scripts disponibles
-- `npm run dev` : Lancement en développement.
-- `npm run build` : Compilation Next.js.
-- `npm run validate` : Suite complète (Lint, Typecheck, Tests, Build).
-- `npm run check:size` : Validation < 400 lignes.
-- `npm run db:seed` : Remplissage avec jeu d'essai.
+- `npm run dev` / `build` / `start` : cycle de vie de l'application.
+- `npm run validate` : suite complète (typecheck, lint strict, taille, tests, build).
+- `npm run env:check` : diagnostic de configuration (aucun secret affiché).
+- `npm run db:check` : connexion PostgreSQL par un vrai `SELECT 1`, message normalisé.
+- `npm run db:generate` / `db:migrate` / `db:push` : migrations Drizzle.
+- `npm run db:seed` : jeu de démonstration (refusé en production).
 
 ## 💾 Base de données
-Utilisation de **PostgreSQL** gérée par **Drizzle ORM**. Le schéma est strictement typé. L'historique d'audit est en append-only pour des raisons de traçabilité.
+**PostgreSQL** via **Drizzle ORM** (pilote `postgres.js`). Client canonique unique
+dans [`src/db/client.ts`](src/db/client.ts) : `server-only`, pool borné, singleton
+résistant au Hot Reload en développement, aucune connexion à l'import.
+
+### Prérequis et mise en place locale
+- PostgreSQL 14 ou supérieur (image `postgres:16` en CI).
+- Créer une base locale, renseigner `DATABASE_URL` dans `.env`.
+- `npm run db:migrate` applique les migrations ; `npm run db:check` vérifie l'accès.
+
+### SSL
+Piloté par `sslmode` dans l'URL, seule source de vérité. `sslmode=require` (ou
+`verify-full`) est **obligatoire en production** — la validation d'environnement
+refuse une URL de production sans lui. En local, SSL est optionnel.
+
+### Dépannage — codes d'erreur PostgreSQL
+| Code | Signification |
+| :--- | :--- |
+| `ECONNREFUSED` | PostgreSQL n'est pas lancé, ou le port est incorrect. |
+| `28P01` | Nom d'utilisateur ou mot de passe incorrect. |
+| `3D000` | La base configurée n'existe pas. |
+| `42P01` | Table absente : migrations non appliquées (`npm run db:migrate`). |
+| `ENOTFOUND` | Nom d'hôte incorrect ou non résolu. |
+| `ETIMEDOUT` | Serveur injoignable, ou un pare-feu bloque la connexion. |
+
+Ces codes sont normalisés en messages clairs par `db:check` et `/api/health`, sans
+jamais divulguer d'URL, d'hôte, d'utilisateur ni de trace.
+
+### Tests et production
+Les tests unitaires (Vitest) ne touchent **aucune** base réelle. En mode `test`, une
+`DATABASE_URL` non locale est refusée : fournir `TEST_DATABASE_URL` vers une base
+isolée. La CI lance un service `postgres:16` éphémère et exerce le `SELECT 1` réel.
 
 ## 🧪 Tests
-La suite **Vitest** compte 105 tests fonctionnels couvrant la logique métier, la sécurité, et les contrôles d'accès.
+La suite **Vitest** compte 152 tests couvrant la logique métier, la sécurité, et les contrôles d'accès.
 ```bash
 npm run test
 ```
