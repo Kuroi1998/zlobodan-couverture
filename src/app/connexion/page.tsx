@@ -7,17 +7,18 @@ import { safeReturnPath } from "@/lib/security/urls";
 export const dynamic = "force-dynamic";
 
 interface ConnexionPageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     next?: string | string[];
-  };
+  }>;
 }
 
 export default async function ConnexionPage({
   searchParams,
 }: Readonly<ConnexionPageProps>) {
-  const rawNext = Array.isArray(searchParams?.next)
-    ? searchParams?.next[0]
-    : searchParams?.next;
+  const resolvedSearchParams = await searchParams;
+  const rawNext = Array.isArray(resolvedSearchParams?.next)
+    ? resolvedSearchParams?.next[0]
+    : resolvedSearchParams?.next;
   const requestedNextPath = safeReturnPath(rawNext, "") || null;
   const user = await getCurrentUser();
 

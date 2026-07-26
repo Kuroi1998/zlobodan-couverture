@@ -33,17 +33,25 @@ jobs:
       - name: Verification de la presence du lockfile
         run: test -f package-lock.json
 
-      # Bloquant sur critique. Les vulnérabilités hautes sur des frameworks
-      # majeurs (Next) nécessitant des breaking changes (v15/v16) sont surveillées
-      # mais ne bloquent pas la chaîne de CI pour préserver l'application.
+      # Bloquant sur critique.
+      #
+      # Les advisories hautes restantes portent toutes sur Next.js et sont
+      # corrigees en 16.2.11, que `.npmrc` bloque encore via `min-release-age=7`
+      # — une protection deliberee contre une version fraichement compromise.
+      # Sept des neuf sont de surcroit structurellement inatteignables ici
+      # (aucune Server Action, aucun rewrite, Image Optimization desactivee,
+      # ni i18n ni Turbopack). Detail dans docs/audits/.
       - name: Audit des dependances (bloquant en critical)
         run: npm audit --omit=dev --audit-level=critical
 
       - name: Verification des types
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
+      # `next lint` a ete supprime en Next.js 16 : ESLint s execute directement,
+      # via le script du projet pour que CI et poste local partagent la meme
+      # commande.
       - name: Analyse statique ESLint
-        run: npx next lint --max-warnings=0
+        run: npm run lint:strict
 
       - name: Build
         run: npm run build

@@ -14,8 +14,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const ville = Object.values(villesData).find((v) => v.slug === params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const ville = Object.values(villesData).find((v) => v.slug === slug);
   if (!ville) return {};
 
   return {
@@ -27,8 +28,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function VillePage({ params }: { params: { slug: string } }) {
-  const ville = Object.values(villesData).find((v) => v.slug === params.slug);
+export default async function VillePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const ville = Object.values(villesData).find((v) => v.slug === slug);
   if (!ville) notFound();
 
   return (

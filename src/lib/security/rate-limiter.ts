@@ -15,6 +15,8 @@
  * facturer à la requête près.
  */
 
+import { getRedisConfig } from "@/config/env";
+
 export interface RateLimitOptions {
   key: string;
   windowMs: number;
@@ -39,11 +41,9 @@ const memoryStore = new Map<string, MemoryRecord>();
 /** Garde-fou mémoire : empêche le repli local de devenir une fuite. */
 const MEMORY_STORE_MAX_KEYS = 10_000;
 
+/** La configuration Upstash vient de la source de vérité centrale. */
 function upstashConfig(): { url: string; token: string } | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
-  return { url: url.replace(/\/+$/, ""), token };
+  return getRedisConfig();
 }
 
 export function isDistributedRateLimitConfigured(): boolean {

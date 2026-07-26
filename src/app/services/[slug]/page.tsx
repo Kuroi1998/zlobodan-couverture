@@ -21,8 +21,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: Readonly<{ params: { slug: string } }>) {
-  const service = servicesData.find((s) => s.slug === params.slug);
+export async function generateMetadata({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
+  const { slug } = await params;
+  const service = servicesData.find((s) => s.slug === slug);
   if (!service) return {};
 
   return {
@@ -34,8 +35,9 @@ export async function generateMetadata({ params }: Readonly<{ params: { slug: st
   };
 }
 
-export default function ServiceDetailPage({ params }: Readonly<{ params: { slug: string } }>) {
-  const service = servicesData.find((s) => s.slug === params.slug);
+export default async function ServiceDetailPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
+  const { slug } = await params;
+  const service = servicesData.find((s) => s.slug === slug);
   if (!service) notFound();
 
   return (

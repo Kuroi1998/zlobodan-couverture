@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { buildCspHeader, generateNonce } from "@/lib/security/csp";
+import { buildContentSecurityPolicy, generateNonce } from "@/lib/security/csp";
 import { isDecoyAdminPath } from "@/lib/security/decoys";
 import { detectMimeFromMagicBytes } from "@/lib/security/magic-bytes";
 import { redact } from "@/lib/security/security-events";
@@ -8,38 +8,134 @@ import { THRESHOLDS } from "@/lib/security/login-throttle";
 import { consumeRateLimit, resetMemoryRateLimits } from "@/lib/security/rate-limiter";
 
 describe("En-têtes — politique de sécurité du contenu", () => {
-  test("aucune directive permissive ne subsiste sur les scripts", () => {
-    const csp = buildCspHeader("test-nonce", true);
-    expect(csp).not.toContain("unsafe-eval");
-    expect(csp).not.toContain("unpkg.com");
-    // `unsafe-inline` reste toléré sur les attributs de style uniquement.
-    expect(csp).toContain("style-src-attr 'unsafe-inline'");
-    expect(csp).not.toContain("script-src 'self' 'unsafe-inline'");
+  const prodNonce = () =>
+    buildContentSecurityPolicy({
+      nonce: "test-nonce",
+      environment: "production",
+      strategy: "nonce",
+    });
+  const prodStatic = () =>
+    buildContentSecurityPolicy({ environment: "production", strategy: "static" });
+  const devNonce = () =>
+    buildContentSecurityPolicy({
+      nonce: "test-nonce",
+      environment: "development",
+      strategy: "nonce",
+    });
+
+  test("`unsafe-eval` est absent de toute politique de production", () => {
+    expect(prodNonce()).not.toContain("unsafe-eval");
+    expect(prodStatic()).not.toContain("unsafe-eval");
+    // Il n'est toléré qu'en développement, où React Refresh l'exige.
+    expect(devNonce()).toContain("unsafe-eval");
   });
 
-  test("les directives de confinement sont présentes", () => {
-    const csp = buildCspHeader("n", true);
-    for (const directive of [
-      "frame-ancestors 'none'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "report-uri /api/security/csp-report",
-      "upgrade-insecure-requests",
-    ]) {
-      expect(csp).toContain(directive);
+  test("les zones privées utilisent le nonce et interdisent l'inline", () => {
+    const csp = prodNonce();
+    expect(csp).toContain("script-src 'self' 'nonce-test-nonce' 'strict-dynamic'");
+    expect(csp).not.toContain("script-src 'self' 'unsafe-inline'");
+    expect(csp).toContain("style-src 'self' 'nonce-test-nonce'");
+  });
+
+  /**
+   * Non-régression sur le défaut qui cassait le site : une page prérendue ne
+   * peut pas recevoir de nonce. Si la politique statique en contenait un, les
+   * navigateurs ignoreraient `'unsafe-inline'` et bloqueraient tout le
+   * JavaScript des pages publiques.
+   */
+  test("la politique des pages prérendues ne contient jamais de nonce", () => {
+    const csp = prodStatic();
+    expect(csp).not.toContain("nonce-");
+    expect(csp).not.toContain("strict-dynamic");
+    expect(csp).toContain("script-src 'self' 'unsafe-inline'");
+  });
+
+  test("aucun domaine tiers superflu n'est autorisé", () => {
+    for (const csp of [prodNonce(), prodStatic(), devNonce()]) {
+      // Leaflet est auto-hébergé.
+      expect(csp).not.toContain("unpkg.com");
+      // `next/font` auto-héberge les polices au build.
+      expect(csp).not.toContain("fonts.googleapis.com");
+      expect(csp).not.toContain("fonts.gstatic.com");
+      // Le widget Turnstile n'est pas rendu : la vérification est serveur.
+      expect(csp).not.toContain("challenges.cloudflare.com");
+      // Redondant avec le sous-domaine précis des tuiles.
+      expect(csp).not.toContain("https://*.cartocdn.com");
     }
   });
 
-  test("le nonce est unique à chaque requête", () => {
+  test("le seul domaine tiers autorisé est celui des tuiles, en images", () => {
+    const csp = prodStatic();
+    expect(csp).toContain("img-src 'self' data: blob: https://*.basemaps.cartocdn.com");
+    // Les tuiles sont chargées en <img>, jamais en fetch.
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).not.toMatch(/connect-src[^;]*cartocdn/);
+  });
+
+  test("les directives de confinement sont présentes", () => {
+    for (const directive of [
+      "frame-ancestors 'none'",
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "manifest-src 'self'",
+      "worker-src 'self'",
+      "media-src 'self'",
+      "report-uri /api/security/csp-report",
+      "upgrade-insecure-requests",
+    ]) {
+      expect(prodNonce(), directive).toContain(directive);
+    }
+  });
+
+  test("`upgrade-insecure-requests` est absent en développement (serveur HTTP)", () => {
+    expect(devNonce()).not.toContain("upgrade-insecure-requests");
+  });
+
+  test("aucune directive n'est dupliquée ni vide", () => {
+    // Directives dont la grammaire CSP n'accepte aucune valeur.
+    const VALUELESS = new Set(["upgrade-insecure-requests", "block-all-mixed-content"]);
+
+    for (const csp of [prodNonce(), prodStatic(), devNonce()]) {
+      const parts = csp.split(";").map((p) => p.trim()).filter(Boolean);
+      const names = parts.map((p) => p.split(/\s+/)[0]);
+      expect(new Set(names).size, `doublon dans : ${csp}`).toBe(names.length);
+
+      for (const part of parts) {
+        const [name, ...values] = part.split(/\s+/);
+        if (VALUELESS.has(name)) {
+          expect(values.length, `${name} ne prend pas de valeur`).toBe(0);
+        } else {
+          expect(values.length, `directive vide : ${part}`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  test("aucune source générique n'est autorisée", () => {
+    for (const csp of [prodNonce(), prodStatic()]) {
+      // On raisonne sur les *jetons* de source, pas sur des sous-chaînes :
+      // `https://*.basemaps.cartocdn.com` contient « https: » sans être pour
+      // autant la source générique `https:`.
+      const tokens = csp
+        .split(";")
+        .flatMap((part) => part.trim().split(/\s+/).slice(1));
+
+      for (const generic of ["*", "https:", "http:", "ws:", "wss:", "data:*"]) {
+        expect(tokens, `source générique autorisée : ${generic}`).not.toContain(generic);
+      }
+      // Un caractère joker ne doit jamais couvrir un domaine entier.
+      expect(tokens.filter((t) => t === "*" || t.startsWith("*."))).toEqual([]);
+    }
+  });
+
+  test("le nonce est unique, aléatoire et bien formé", () => {
     const nonces = new Set(Array.from({ length: 200 }, () => generateNonce()));
     expect(nonces.size).toBe(200);
     // 16 octets encodés en base64.
     expect(generateNonce()).toHaveLength(24);
-  });
-
-  test("le nonce est effectivement injecté dans la politique", () => {
-    expect(buildCspHeader("abc123", true)).toContain("'nonce-abc123'");
+    expect(generateNonce()).toMatch(/^[A-Za-z0-9+/]{22}==$/);
   });
 });
 

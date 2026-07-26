@@ -54,6 +54,11 @@ export function getClearedSessionCookieOptions() {
   } as const;
 }
 
-export function getSessionTokenFromCookie(): string | undefined {
-  return cookies().get(SESSION_COOKIE_NAME)?.value;
+/**
+ * Depuis Next.js 15, `cookies()` retourne une promesse : l'API de requête est
+ * devenue asynchrone pour permettre le rendu en flux. La fonction suit donc.
+ */
+export async function getSessionTokenFromCookie(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get(SESSION_COOKIE_NAME)?.value;
 }

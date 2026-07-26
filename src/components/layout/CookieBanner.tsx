@@ -1,30 +1,68 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Cookie, Check, X } from "lucide-react";
 
-export const CookieBanner: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
+const CONSENT_KEY = "zlobodan_cookie_consent";
 
-  useEffect(() => {
-    const consent = localStorage.getItem("zlobodan_cookie_consent");
-    if (!consent) {
-      setIsVisible(true);
-    }
+/**
+ * Le consentement vit dans `localStorage`, c'est-à-dire dans un système
+ * extérieur à React. `useSyncExternalStore` est l'outil prévu pour cela : il
+ * lit la valeur au bon moment du rendu et gère proprement le décalage entre
+ * serveur et client.
+ *
+ * La version précédente lisait `localStorage` dans un `useEffect` puis
+ * appelait `setState` — ce qui déclenche un second rendu en cascade juste
+ * après le premier, et que React déconseille explicitement.
+ */
+const consentListeners = new Set<() => void>();
+
+function subscribeToConsent(onChange: () => void): () => void {
+  consentListeners.add(onChange);
+  // Un autre onglet peut accepter ou refuser : on se tient au courant.
+  window.addEventListener("storage", onChange);
+  return () => {
+    consentListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function notifyConsentChanged(): void {
+  consentListeners.forEach((listener) => listener());
+}
+
+function readConsent(): string | null {
+  return localStorage.getItem(CONSENT_KEY);
+}
+
+/**
+ * Valeur utilisée pendant le rendu serveur.
+ *
+ * On simule un consentement déjà donné : la bannière reste donc absente du
+ * HTML initial, ce qui évite un affichage fugace chez les visiteurs ayant déjà
+ * répondu, et écarte toute divergence d'hydratation.
+ */
+function readConsentOnServer(): string {
+  return "server";
+}
+
+export const CookieBanner: React.FC = () => {
+  const consent = useSyncExternalStore(
+    subscribeToConsent,
+    readConsent,
+    readConsentOnServer
+  );
+
+  const record = useCallback((value: "accepted" | "refused") => {
+    localStorage.setItem(CONSENT_KEY, value);
+    notifyConsentChanged();
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem("zlobodan_cookie_consent", "accepted");
-    setIsVisible(false);
-  };
+  const handleAccept = () => record("accepted");
+  const handleRefuse = () => record("refused");
 
-  const handleRefuse = () => {
-    localStorage.setItem("zlobodan_cookie_consent", "refused");
-    setIsVisible(false);
-  };
-
-  if (!isVisible) return null;
+  if (consent) return null;
 
   return (
     <div className="fixed bottom-20 lg:bottom-6 left-4 right-4 md:left-6 md:right-auto md:max-w-md z-50 bg-slate-900 text-white p-5 rounded-xl border border-slate-700 shadow-2xl space-y-3 animate-in fade-in slide-in-from-bottom duration-300">

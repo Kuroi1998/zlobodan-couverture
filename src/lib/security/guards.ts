@@ -27,12 +27,21 @@ import { safeReturnPath } from "./urls";
  * filet secondaire, jamais la seule barrière.
  */
 
-function loginRedirect(nextPath?: string): never {
+/**
+ * Calcule la destination de connexion, sans déclencher la redirection.
+ *
+ * `headers()` est asynchrone depuis Next.js 15. Le `redirect()` reste au point
+ * d'appel : c'est lui qui a le type de retour `never`, ce qui permet à
+ * TypeScript d'affiner correctement les lignes suivantes. Une fonction
+ * `async` renvoyant `Promise<never>` ne procure pas cet affinage.
+ */
+async function resolveLoginRedirect(nextPath?: string): Promise<string> {
+  const headerStore = await headers();
   const exactRequestPath = safeReturnPath(
-    headers().get(REQUEST_PATH_HEADER),
+    headerStore.get(REQUEST_PATH_HEADER),
     nextPath ?? ""
   );
-  redirect(getLoginRedirectPath(exactRequestPath));
+  return getLoginRedirectPath(exactRequestPath);
 }
 
 /** Réponse d'API volontairement uniforme : elle ne distingue pas « absent » de « interdit ». */
@@ -61,7 +70,7 @@ export async function requirePageAuth(currentPath?: string): Promise<AuthUser> {
         detail: { reason },
       });
     }
-    loginRedirect(currentPath);
+    redirect(await resolveLoginRedirect(currentPath));
   }
   return user;
 }
