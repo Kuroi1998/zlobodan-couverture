@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildCspHeader, CSP_REPORT_PATH, generateNonce } from "@/lib/security/csp";
+import {
+  buildContentSecurityPolicy,
+  CSP_REPORT_PATH,
+  generateNonce,
+  type CspRenderStrategy,
+} from "@/lib/security/csp";
 import { checkCsrf } from "@/lib/security/csrf";
 import { applySecurityHeaders } from "@/lib/security/headers";
 import { isDecoyAdminPath } from "@/lib/security/decoys";
 import {
   applyCachePolicy,
+  isPrivatePath,
   REQUEST_PATH_HEADER,
   stripUnsafeInboundHeaders,
 } from "@/lib/security/cache-control";
@@ -22,8 +28,20 @@ import {
 export function middleware(request: NextRequest) {
   const nonce = generateNonce();
   const isProduction = process.env.NODE_ENV === "production";
-  const csp = buildCspHeader(nonce, isProduction);
   const pathname = request.nextUrl.pathname;
+
+  // Le nonce n'a de sens que si Next peut l'injecter dans le HTML, ce qui
+  // suppose un rendu à la requête. Les zones privées sont `force-dynamic` ;
+  // les pages publiques sont prérendues au build et ne recevront jamais de
+  // nonce. Émettre la politique à nonce sur ces dernières bloquait la totalité
+  // de leur JavaScript — voir l'en-tête de `lib/security/csp.ts`.
+  const strategy: CspRenderStrategy = isPrivatePath(pathname) ? "nonce" : "static";
+
+  const csp = buildContentSecurityPolicy({
+    nonce,
+    environment: isProduction ? "production" : "development",
+    strategy,
+  });
 
   // 1. Routes leurres d'administration : aucune raison légitime de les
   //    atteindre. On répond comme pour une page absente afin de ne pas
