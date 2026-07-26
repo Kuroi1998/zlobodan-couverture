@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts",
+    "db:seed": "tsx --tsconfig tsconfig.scripts.json src/db/seed.ts",
     "check:size": "node scripts/check-size.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -22,7 +22,9 @@
     "db:migrate": "drizzle-kit migrate",
     "typecheck": "tsc --noEmit",
     "lint:strict": "eslint . --max-warnings 0",
-    "validate": "npm run typecheck && npm run lint:strict && npm run check:size && npm run test && npm run build"
+    "validate": "npm run typecheck && npm run lint:strict && npm run check:size && npm run test && npm run build",
+    "env:check": "tsx --tsconfig tsconfig.scripts.json scripts/check-environment.ts",
+    "db:check": "tsx --tsconfig tsconfig.scripts.json scripts/check-database.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
