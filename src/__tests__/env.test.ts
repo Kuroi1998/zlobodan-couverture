@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   getAppOrigin,
   getRedisConfig,
@@ -17,6 +17,10 @@ import { getDatabaseErrorMessage } from "@/db/diagnostics";
  * réinitialisent l'instantané mémoïsé. La production est simulée sans phase de
  * build (`NEXT_PHASE` absent), donc la garde stricte s'applique.
  */
+beforeEach(() => {
+  vi.stubEnv("TEST_DATABASE_URL", "");
+});
+
 afterEach(() => {
   vi.unstubAllEnvs();
   resetServerEnvCache();
