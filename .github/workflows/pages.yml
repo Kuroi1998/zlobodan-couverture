@@ -44,6 +44,9 @@ jobs:
       - name: Build with Next.js
         run: npx next build
         env:
+          # Active l'export statique dans next.config.js. Sans ce drapeau, le
+          # build est un build serveur complet (voir next.config.js).
+          STATIC_EXPORT: "true"
           NEXT_PUBLIC_BASE_PATH: /zlobodan-couverture
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
