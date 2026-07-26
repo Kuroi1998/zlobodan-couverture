@@ -3,6 +3,8 @@ import { servicesData } from "@/data/services";
 import { realisationsData } from "@/data/realisations";
 import { villesData } from "@/data/villes";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://zlobodan-couverture.fr";
 
