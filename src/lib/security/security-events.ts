@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
 import { auditLog } from "@/db/schema/audit";
+import { securityEvents } from "@/db/schema/security-events";
 import { hashIpAddress } from "@/lib/auth/session";
 
 /**
@@ -27,10 +28,28 @@ export type SecurityEventKind =
   | "LOGIN_FAILED"
   | "LOGIN_SUCCESS"
   | "LOGIN_NEW_DEVICE"
+  | "LOGOUT"
+  | "SESSION_CREATED"
+  | "SESSION_REVOKED"
   | "ACCOUNT_THROTTLED"
   | "ACCOUNT_LOCKED"
+  | "ACCOUNT_CREATED"
+  | "ACCOUNT_DISABLED"
+  | "ACCOUNT_ENABLED"
+  | "EMAIL_VERIFICATION_REQUESTED"
+  | "EMAIL_VERIFIED"
+  | "EMAIL_CHANGE_REQUESTED"
+  | "EMAIL_CHANGED"
+  | "PASSWORD_RESET_REQUESTED"
+  | "PASSWORD_RESET_COMPLETED"
+  | "PASSWORD_CHANGED"
   | "TOTP_REQUIRED_NOT_ENROLLED"
   | "TOTP_FAILED"
+  | "TWO_FACTOR_ENABLED"
+  | "TWO_FACTOR_DISABLED"
+  | "TWO_FACTOR_RECOVERY_CODE_USED"
+  | "TWO_FACTOR_RECOVERY_CODES_REGENERATED"
+  | "ROLE_CHANGED"
   | "RATE_LIMIT_EXCEEDED"
   | "CSRF_REJECTED"
   | "CSP_VIOLATION"
@@ -50,6 +69,8 @@ export interface SecurityEventInput {
   kind: SecurityEventKind;
   severity: SecuritySeverity;
   userId?: string | null;
+  sessionId?: string | null;
+  userAgent?: string | null;
   /** IP brute : hachée avant toute sortie, jamais journalisée en clair. */
   ipAddress?: string | null;
   route?: string | null;
@@ -145,17 +166,28 @@ export async function recordSecurityEvent(input: SecurityEventInput): Promise<vo
 
   emitStructuredLine(line);
 
-  if (!PERSISTED_SEVERITIES.has(input.severity)) return;
-
   try {
-    await db.insert(auditLog).values({
+    await db.insert(securityEvents).values({
       userId: input.userId ?? null,
-      action: input.kind,
-      targetTable: input.targetTable ?? "security",
-      targetId: input.targetId ?? null,
-      diff: truncateJson(detail),
+      sessionId: input.sessionId ?? null,
+      eventType: input.kind,
+      severity: input.severity,
+      route: input.route ?? null,
       ipHash,
+      userAgent: input.userAgent ?? null,
+      metadata: detail ?? {},
     });
+
+    if (PERSISTED_SEVERITIES.has(input.severity)) {
+      await db.insert(auditLog).values({
+        userId: input.userId ?? null,
+        action: input.kind,
+        targetTable: input.targetTable ?? "security",
+        targetId: input.targetId ?? null,
+        diff: truncateJson(detail),
+        ipHash,
+      });
+    }
   } catch (error) {
     // Une trace d'audit qui ne s'écrit pas est elle-même un incident : on la
     // signale bruyamment au lieu de l'avaler.

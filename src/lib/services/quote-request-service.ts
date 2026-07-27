@@ -1,6 +1,7 @@
 import "server-only";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db/client";
+import { getNotificationRecipient } from "@/config/env";
 import {
   quoteAttachments,
   quoteRequests,
@@ -11,7 +12,6 @@ import { users } from "@/db/schema/users";
 import type { QuoteRequestStatus } from "@/domain/request-workflow";
 import { canTransitionQuoteRequest } from "@/domain/request-workflow";
 import { PRIVACY_POLICY_VERSION } from "@/domain/privacy";
-import { siteConfig } from "@/config/site";
 import type { QuoteRequestInput } from "@/lib/validations/quote-schemas";
 import { reservePublicReference } from "@/lib/db/public-references";
 import {
@@ -30,6 +30,23 @@ import {
   InvalidQuoteDraftError,
   isPostgresUniqueViolation,
 } from "./submission-errors";
+
+/**
+ * Statuts dont le passage justifie un courriel au client.
+ *
+ * Les états intermédiaires du bureau — `under_review`,
+ * `estimate_in_preparation`, `archived` — en sont absents : ils décrivent
+ * l'organisation interne, pas une nouvelle pour le demandeur. Prévenir à
+ * chaque mouvement apprendrait vite au client à ignorer ces messages.
+ */
+const CLIENT_VISIBLE_STATUS_CHANGES: ReadonlySet<QuoteRequestStatus> = new Set<QuoteRequestStatus>([
+  "contacted",
+  "visit_scheduled",
+  "estimate_sent",
+  "accepted",
+  "rejected",
+  "cancelled",
+]);
 
 export interface SubmitQuoteRequestParams {
   input: QuoteRequestInput;
@@ -226,14 +243,24 @@ export async function submitQuoteRequest(
         createdAt: now,
       });
 
+      // Accusé de réception au demandeur : toujours émis. Notification
+      // interne : seulement si une boîte d'exploitation est configurée. En
+      // développement, son absence ne doit pas faire échouer une soumission ;
+      // en production, `getNotificationRecipient` interrompt le démarrage.
+      const notificationRecipient = getNotificationRecipient();
+
       await transaction.insert(notificationOutbox).values([
-        {
-          eventType: "quote_request.created.admin",
-          entityType: "quote_request",
-          entityId: request.id,
-          recipient: siteConfig.email,
-          payload: { reference: request.reference },
-        },
+        ...(notificationRecipient
+          ? [
+              {
+                eventType: "quote_request.created.admin",
+                entityType: "quote_request",
+                entityId: request.id,
+                recipient: notificationRecipient,
+                payload: { reference: request.reference },
+              },
+            ]
+          : []),
         {
           eventType: "quote_request.created.receipt",
           entityType: "quote_request",
@@ -262,7 +289,6 @@ export interface ChangeQuoteRequestStatusParams {
   newStatus: QuoteRequestStatus;
   changedByUserId: string;
   reason?: string;
-  internalNotes?: string;
   assignedToUserId?: string | null;
 }
 
@@ -297,12 +323,17 @@ export async function changeQuoteRequestStatus(
       if (!assignee[0]) throw new Error("QUOTE_ASSIGNEE_INVALID");
     }
     const rows = await transaction
-      .select({ status: quoteRequests.status })
+      .select({
+        status: quoteRequests.status,
+        reference: quoteRequests.reference,
+        email: quoteRequests.email,
+      })
       .from(quoteRequests)
       .where(eq(quoteRequests.id, params.quoteRequestId))
       .limit(1);
-    const current = rows[0]?.status;
-    if (!current) throw new Error("QUOTE_REQUEST_NOT_FOUND");
+    const existing = rows[0];
+    const current = existing?.status;
+    if (!existing || !current) throw new Error("QUOTE_REQUEST_NOT_FOUND");
     if (current !== params.newStatus && !canTransitionQuoteRequest(current, params.newStatus)) {
       throw new Error("QUOTE_REQUEST_TRANSITION_FORBIDDEN");
     }
@@ -311,7 +342,6 @@ export async function changeQuoteRequestStatus(
       .update(quoteRequests)
       .set({
         status: params.newStatus,
-        internalNotes: params.internalNotes,
         assignedToUserId: params.assignedToUserId,
         updatedAt: new Date(),
       })
@@ -327,6 +357,23 @@ export async function changeQuoteRequestStatus(
         changedByUserId: params.changedByUserId,
         reason: params.reason,
       });
+
+      // Notification dans la même transaction que la transition : si le
+      // changement de statut est annulé, l'e-mail annonçant ce changement
+      // disparaît avec lui. C'est tout l'intérêt d'une table d'outbox plutôt
+      // que d'un envoi direct après le `commit`.
+      //
+      // Les états purement internes ne déclenchent rien : le client n'a pas à
+      // recevoir un courriel parce qu'un dossier passe « à étudier ».
+      if (CLIENT_VISIBLE_STATUS_CHANGES.has(params.newStatus)) {
+        await transaction.insert(notificationOutbox).values({
+          eventType: "quote_request.status_changed",
+          entityType: "quote_request",
+          entityId: params.quoteRequestId,
+          recipient: existing.email,
+          payload: { reference: existing.reference, status: params.newStatus },
+        });
+      }
     }
   });
 }

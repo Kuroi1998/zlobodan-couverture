@@ -21,7 +21,8 @@ export default function ServicesPage() {
             Nos Services de Couverture à Bruxelles &amp; Wallonie
           </h1>
           <p className="text-base text-slate-400">
-            De la réfection globale de toitures en ardoises et tuiles jusqu'au dépannage fuite d'urgence 24/7.
+            De la réfection complète de toitures en ardoises et tuiles à la
+            recherche et la réparation de fuites.
           </p>
         </div>
 

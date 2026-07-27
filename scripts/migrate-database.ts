@@ -13,6 +13,84 @@ interface Journal {
   entries: Array<{ tag: string; when: number }>;
 }
 
+function encryptLegacyTotpSecret(
+  plaintext: string,
+  userId: string,
+  keyMaterial: string
+): string {
+  const key = crypto.createHash("sha256").update(keyMaterial, "utf8").digest();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  cipher.setAAD(Buffer.from(`two-factor:${userId}`, "utf8"));
+  const ciphertext = Buffer.concat([
+    cipher.update(plaintext, "utf8"),
+    cipher.final(),
+  ]);
+  return [
+    "v1",
+    iv.toString("base64url"),
+    cipher.getAuthTag().toString("base64url"),
+    ciphertext.toString("base64url"),
+  ].join(".");
+}
+
+async function prepareLegacyTotpMigration(sql: postgres.Sql): Promise<void> {
+  const [state] = await sql<{ hasUsers: boolean; hasSecret: boolean }[]>`
+    select
+      to_regclass('public.users') is not null as "hasUsers",
+      exists (
+        select 1
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name = 'users'
+          and column_name = 'totp_secret'
+      ) as "hasSecret"
+  `;
+  if (state?.hasUsers && !state.hasSecret) return;
+  await sql`
+    create table if not exists auth_totp_migration_buffer (
+      user_id uuid primary key,
+      encrypted_secret text not null,
+      enabled boolean not null
+    )
+  `;
+  if (!state?.hasUsers) return;
+
+  const legacy = await sql<
+    { id: string; secret: string; enabled: number }[]
+  >`
+    select id, totp_secret as secret, totp_enabled as enabled
+    from users
+    where totp_secret is not null
+  `;
+  if (legacy.length === 0) return;
+
+  const keyMaterial =
+    process.env.TWO_FACTOR_ENCRYPTION_KEY ??
+    (process.env.NODE_ENV === "production"
+      ? ""
+      : "dev-only-two-factor-encryption-key-not-for-production");
+  if (keyMaterial.length < 32) {
+    throw new Error(
+      "TWO_FACTOR_ENCRYPTION_KEY est requise pour chiffrer les secrets TOTP existants."
+    );
+  }
+  for (const account of legacy) {
+    const encrypted = encryptLegacyTotpSecret(
+      account.secret,
+      account.id,
+      keyMaterial
+    );
+    await sql`
+      insert into auth_totp_migration_buffer (user_id, encrypted_secret, enabled)
+      values (${account.id}, ${encrypted}, ${account.enabled === 1})
+      on conflict (user_id) do update
+      set encrypted_secret = excluded.encrypted_secret,
+          enabled = excluded.enabled
+    `;
+  }
+}
+
 const requiredBaselineTables = [
   "users",
   "sessions",
@@ -75,6 +153,7 @@ async function main(): Promise<void> {
 
   const client = postgres(url, { max: 1 });
   try {
+    await prepareLegacyTotpMigration(client);
     await baselineExistingDatabase(client);
     await migrate(drizzle(client), { migrationsFolder });
     process.stdout.write("✓ Migrations PostgreSQL appliquées.\n");

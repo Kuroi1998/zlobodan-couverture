@@ -53,8 +53,10 @@ export const ServicesGrid: React.FC = () => {
                   <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-orange-50 transition-colors">
                     {getServiceIcon(svc.icon)}
                   </div>
-                  <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md">
-                    {svc.priceIndicative.range}
+                  {/* La pastille affichait une fourchette au m² héritée du
+                      modèle français, sans mention de TVA ni de contenu. */}
+                  <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-400">
+                    Sur devis
                   </span>
                 </div>
 

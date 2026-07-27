@@ -1,6 +1,7 @@
 import "server-only";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db/client";
+import { getNotificationRecipient } from "@/config/env";
 import { contactMessages, contactStatusHistory } from "@/db/schema/contacts";
 import { notificationOutbox } from "@/db/schema/notifications";
 import { users } from "@/db/schema/users";
@@ -11,7 +12,6 @@ import {
   canTransitionContactMessage,
 } from "@/domain/request-workflow";
 import { PRIVACY_POLICY_VERSION } from "@/domain/privacy";
-import { siteConfig } from "@/config/site";
 import type { ContactMessageInput } from "@/lib/validations/contact-schemas";
 import { reservePublicReference } from "@/lib/db/public-references";
 import {
@@ -78,14 +78,24 @@ export async function createContactMessage(
         createdAt: now,
       });
 
+      // Accusé de réception au demandeur : toujours émis. Notification
+      // interne : seulement si une boîte d'exploitation est configurée. En
+      // développement, son absence ne doit pas faire échouer une soumission ;
+      // en production, `getNotificationRecipient` interrompt le démarrage.
+      const notificationRecipient = getNotificationRecipient();
+
       await transaction.insert(notificationOutbox).values([
-        {
-          eventType: "contact.created.admin",
-          entityType: "contact_message",
-          entityId: created.id,
-          recipient: siteConfig.email,
-          payload: { reference },
-        },
+        ...(notificationRecipient
+          ? [
+              {
+                eventType: "contact.created.admin",
+                entityType: "contact_message",
+                entityId: created.id,
+                recipient: notificationRecipient,
+                payload: { reference },
+              },
+            ]
+          : []),
         {
           eventType: "contact.created.receipt",
           entityType: "contact_message",
@@ -111,7 +121,6 @@ export interface ChangeContactStatusParams {
   newStatus: ContactMessageStatus;
   changedByUserId: string;
   reason?: string;
-  internalNotes?: string;
   assignedToUserId?: string | null;
 }
 
@@ -159,7 +168,6 @@ export async function changeContactStatus(params: ChangeContactStatusParams): Pr
       .update(contactMessages)
       .set({
         status: params.newStatus,
-        internalNotes: params.internalNotes,
         assignedToUserId: params.assignedToUserId,
         updatedAt: now,
         ...(current === "new" && params.newStatus !== "new" ? { readAt: now } : {}),

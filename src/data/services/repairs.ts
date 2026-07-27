@@ -4,10 +4,9 @@ export const repairsService: ServiceItem = {
   id: "reparation-fuite",
   slug: "recherche-reparation-fuite",
   title: "Recherche & Réparation de Fuite d'Urgence",
-  shortDescription: "Intervention rapide sous 2h à 24h à Bruxelles & Wallonie pour recherche de fuite, bâchage de protection et réparation pérenne de toiture.",
-  heroSubtitle: "Une fuite d'eau détériore rapidement votre charpente et vos plafonds. Nos couvreurs interviennent 24/7 pour stopper l'infiltration et sécuriser votre maison.",
+  shortDescription: "Recherche de fuite, bâchage de protection et réparation de toiture. Les demandes urgentes sont traitées en priorité, selon nos disponibilités.",
+  heroSubtitle: "Une fuite d'eau détériore rapidement votre charpente et vos plafonds. Signalez-la nous : les urgences sont traitées en priorité, selon nos disponibilités.",
   icon: "Droplets",
-  heroImage: "/images/chantiers/chantier-02.webp",
   alertSymptoms: [
     "Taches jaunâtres ou moisissures apparaissant sur vos plafonds.",
     "Goutte-à-goutte audible lors de fortes pluies ou tempêtes.",
@@ -39,7 +38,7 @@ export const repairsService: ServiceItem = {
     {
       number: 5,
       title: "Dossier pour votre Assurance Habitation",
-      description: "Remise d'un rapport avec photos certifié pour la prise en charge par votre compagnie d'assurance belge."
+      description: "Remise d'un rapport photographique que vous pouvez transmettre à votre compagnie d'assurance."
     }
   ],
   materialsAndBrands: [
@@ -48,21 +47,16 @@ export const repairsService: ServiceItem = {
       items: ["Mastic Sikaflex Belux", "Bâches armées renforcées 250g/m²", "Bandes d'étanchéité plomb/aluminium auto-adhésives"]
     }
   ],
-  priceIndicative: {
-    range: "150 € à 450 €",
-    unit: "selon l'étendue de l'intervention d'urgence",
-    factors: [
+  priceFactors: [
       "L'urgence de l'intervention (heures ouvrables vs week-end / nuit)",
       "La nécessité ou non d'un bâchage de grande surface",
       "La quantité d'ardoises/tuiles et éléments de zinguerie à remplacer"
-    ]
-  },
+    ],
   guarantees: [
-    "Intervention sous 2h sur Bruxelles et 24h sur Brabant Wallon / Wallonie",
+    "Demandes urgentes traitées en priorité, selon nos disponibilités",
     "Rapport photos conforme aux exigences des assurances belges",
     "Étanchéité garantie après intervention"
   ],
-  realisationIds: ["chantier-fuite-vertou"],
   faq: [
     {
       question: "Mon assurance habitation belge prend-elle en charge la réparation de fuite ?",
@@ -70,7 +64,7 @@ export const repairsService: ServiceItem = {
     },
     {
       question: "Intervenez-vous le dimanche ou les jours fériés ?",
-      answer: "Oui, nous disposons d'une équipe d'astreinte fuite joignable 24h/24 et 7j/7 au 0470 12 34 56 lors des coups de vent ou averses intenses."
+      answer: "Signalez-nous la situation par le formulaire de demande : les urgences de type infiltration ou dégât de tempête sont traitées en priorité. Nous vous indiquons rapidement si nous pouvons intervenir et sous quel délai, en fonction de nos disponibilités et des conditions météorologiques."
     }
   ],
   devisPreselectId: "fuite"

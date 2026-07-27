@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site";
 import { ShieldCheck, Clock, Award, Phone } from "lucide-react";
 
 export const metadata = {
-  title: "Demande de Devis Gratuit Toiture Belgique sous 48h",
+  title: "Demande de devis toiture | Zlobodan Couverture-Zinguerie",
   description: "Calculez et demandez votre devis de réfection de toiture, recherche de fuite ou démoussage en 5 étapes simples à Bruxelles et Wallonie.",
 };
 
@@ -23,7 +23,8 @@ export default function DevisPage() {
             Demandez votre devis de toiture
           </h1>
           <p className="text-base text-slate-400">
-            Remplissez notre wizard en 5 étapes. Un artisan couvreur agréé étudie votre projet et vous délivre un devis détaillé sous 48h.
+            Décrivez votre projet en cinq étapes. Nous l'étudions et revenons
+            vers vous avec un chiffrage détaillé.
           </p>
         </div>
 
@@ -37,7 +38,7 @@ export default function DevisPage() {
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
             <ShieldCheck className="h-5 w-5 text-emerald-400 mx-auto" />
             <p className="font-bold text-white">Garantie Décennale Belge 10 Ans</p>
-            <p>Conforme Loi du 31 mai 2017 AXA Belgium.</p>
+            <p>Responsabilité décennale conforme au droit belge.</p>
           </div>
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
             <Award className="h-5 w-5 text-amber-400 mx-auto" />
@@ -46,8 +47,11 @@ export default function DevisPage() {
           </div>
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
             <Phone className="h-5 w-5 text-brand-terracotta mx-auto" />
-            <p className="font-bold text-white">Besoin d'aide immédiate ?</p>
-            <p>Appelez-nous au {siteConfig.phoneFormatted}</p>
+            <p className="font-bold text-white">Besoin d&apos;aide ?</p>
+            <p>
+              Décrivez votre situation dans le formulaire : les demandes
+              urgentes sont traitées en priorité.
+            </p>
           </div>
         </div>
 

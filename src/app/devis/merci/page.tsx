@@ -5,7 +5,8 @@ import { ReferenceDisplay } from "@/components/devis/ReferenceDisplay";
 
 export const metadata = {
   title: "Demande de Devis Enregistrée avec Succès",
-  description: "Merci pour votre demande de devis. Notre équipe vous recontactera sous 48h.",
+  description:
+    "Votre demande de devis a bien été enregistrée. Nous revenons vers vous après analyse.",
 };
 
 export default function MerciDevisPage() {
@@ -51,16 +52,17 @@ export default function MerciDevisPage() {
 
         {/* Urgent Call Option */}
         <div className="bg-brand-terracotta/10 border border-brand-terracotta/30 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <span className="text-slate-300 font-medium">
-            🚨 Une infiltration d'eau active au plafond ? N'attendez pas l'email.
+          <span className="font-medium text-slate-300">
+            Une infiltration d&apos;eau active ? Signalez-le nous : les urgences
+            sont traitées en priorité.
           </span>
-          <a
-            href={`tel:${siteConfig.emergencyPhone}`}
-            className="shrink-0 bg-brand-terracotta hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5"
+          <Link
+            href="/contact"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-terracotta px-4 py-2 font-bold text-white transition hover:bg-orange-600"
           >
             <Phone className="h-3.5 w-3.5" />
-            <span>Appel d'urgence : {siteConfig.emergencyPhoneFormatted}</span>
-          </a>
+            <span>Nous signaler l&apos;urgence</span>
+          </Link>
         </div>
 
         {/* Back Home CTA */}

@@ -76,6 +76,20 @@ function runPlaywright(env) {
   }
 }
 
+function restoreFileWithRetry(filePath, contents) {
+  let lastError;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      fs.writeFileSync(filePath, contents, "utf8");
+      return;
+    } catch (error) {
+      lastError = error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+    }
+  }
+  throw lastError;
+}
+
 async function main() {
   loadLocalEnvironment();
   const testUrl = deriveE2eUrl();
@@ -98,7 +112,7 @@ async function main() {
   try {
     runPlaywright(env);
   } finally {
-    fs.writeFileSync(nextEnvPath, originalNextEnv, "utf8");
+    restoreFileWithRetry(nextEnvPath, originalNextEnv);
   }
 }
 

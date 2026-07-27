@@ -7,7 +7,11 @@ import {
   type SmtpConfig,
 } from "./service-env";
 
-export { getPrivateStorageConfig, getSmtpConfig } from "./service-env";
+export {
+  getNotificationRecipient,
+  getPrivateStorageConfig,
+  getSmtpConfig,
+} from "./service-env";
 export type { PrivateStorageConfig, SmtpConfig } from "./service-env";
 
 /**
@@ -170,6 +174,13 @@ export function requireSessionSecret(): string {
   return readSecret("SESSION_SECRET", "dev-only-session-secret-not-for-production");
 }
 
+export function requireTwoFactorEncryptionKey(): string {
+  return readSecret(
+    "TWO_FACTOR_ENCRYPTION_KEY",
+    "dev-only-two-factor-encryption-key-not-for-production"
+  );
+}
+
 export function getAppOrigin(): string {
   const value = process.env.APP_ORIGIN?.trim();
   if (value) {
@@ -252,6 +263,7 @@ export interface ServerEnv {
   readonly trustedProxy: TrustedProxyMode;
   readonly ipHashSalt: string;
   readonly sessionSecret: string;
+  readonly twoFactorEncryptionKey: string;
   readonly turnstileSecret: string | null;
   readonly redis: RedisConfig | null;
   readonly privateStorage: PrivateStorageConfig;
@@ -274,6 +286,7 @@ export function getServerEnv(): Readonly<ServerEnv> {
     trustedProxy: getTrustedProxyMode(),
     ipHashSalt: requireIpHashSalt(),
     sessionSecret: requireSessionSecret(),
+    twoFactorEncryptionKey: requireTwoFactorEncryptionKey(),
     turnstileSecret: getTurnstileSecret(),
     redis: getRedisConfig(),
     privateStorage: getPrivateStorageConfig(),
@@ -287,6 +300,7 @@ const EnvReportSchema = z.object({
   hasDatabaseUrl: z.boolean(),
   hasIpHashSalt: z.boolean(),
   hasSessionSecret: z.boolean(),
+  hasTwoFactorEncryptionKey: z.boolean(),
   hasAppOrigin: z.boolean(),
   hasTurnstile: z.boolean(),
   hasDistributedRateLimit: z.boolean(),
@@ -304,6 +318,7 @@ export function describeEnvironment(): EnvReport {
     hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
     hasIpHashSalt: Boolean(process.env.IP_HASH_SALT),
     hasSessionSecret: Boolean(process.env.SESSION_SECRET),
+    hasTwoFactorEncryptionKey: Boolean(process.env.TWO_FACTOR_ENCRYPTION_KEY),
     hasAppOrigin: Boolean(process.env.APP_ORIGIN),
     hasTurnstile: Boolean(process.env.TURNSTILE_SECRET_KEY),
     hasDistributedRateLimit: getRedisConfig() !== null,

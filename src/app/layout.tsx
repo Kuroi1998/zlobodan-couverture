@@ -7,6 +7,7 @@ import { MobileCallBar } from "@/components/layout/MobileCallBar";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
 import { siteConfig } from "@/config/site";
+import { companyIdentity } from "@/config/company";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,7 +24,10 @@ const barlow = Barlow({
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.shortName} | Couvreur-Zinguerie Bruxelles & Wallonie - Devis Gratuit 48h`,
+    // Le titre par défaut promettait un « Devis Gratuit 48h » : une métadonnée
+    // est indexée puis affichée dans les résultats, elle ne doit pas porter un
+    // engagement que les pages elles-mêmes n'énoncent plus.
+    default: `${siteConfig.shortName} | Couvreur-zingueur à Bruxelles et en Brabant wallon`,
     template: `%s | ${siteConfig.shortName}`,
   },
   description: siteConfig.description,
@@ -41,25 +45,20 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
-  metadataBase: new URL("https://zlobodan-couverture.be"),
+  metadataBase: new URL(companyIdentity.websiteUrl),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: siteConfig.name,
     description: siteConfig.description,
-    url: "https://zlobodan-couverture.be",
+    url: companyIdentity.websiteUrl,
     siteName: siteConfig.name,
     locale: "fr_BE",
     type: "website",
-    images: [
-      {
-        url: "/images/hero-roof.webp",
-        width: 1200,
-        height: 630,
-        alt: `${siteConfig.name} Couvreur en Belgique`,
-      },
-    ],
+    // Aucune image Open Graph : le visuel référencé était un fichier de
+    // substitution, supprimé faute d'origine documentée. Une carte de partage
+    // sans image vaut mieux qu'un lien vers une ressource absente.
   },
   robots: {
     index: true,

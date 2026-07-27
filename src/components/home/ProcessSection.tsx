@@ -13,13 +13,13 @@ export const ProcessSection: React.FC = () => {
       number: "02",
       icon: <SearchCheck className="h-6 w-6 text-amber-500" />,
       title: "Visite & Diagnostic Gratuit",
-      description: "Déplacement à votre domicile sous 24/48h. Inspection complète de la toiture, du faitage, des voliges et des gouttières."
+      description: "Déplacement sur place pour inspecter la toiture, le faîtage, les voliges et les gouttières. Le rendez-vous est convenu avec vous."
     },
     {
       number: "03",
       icon: <FileCheck2 className="h-6 w-6 text-blue-500" />,
       title: "Devis Clair & Sans Surprise",
-      description: "Remise d'un devis méticuleux sous 48h incluant le détail des fournitures, le calendrier prévisionnel et l'attestation Décennale."
+      description: "Remise d'un devis détaillé : fournitures, main-d'œuvre et calendrier prévisionnel, poste par poste."
     },
     {
       number: "04",

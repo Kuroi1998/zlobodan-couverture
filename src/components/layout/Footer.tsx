@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { ShieldCheck, MapPin, Phone, Mail, Clock, ExternalLink, Award, FileCheck } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { publishableContactPoints } from "@/config/company";
 import { servicesData } from "@/data/services";
 import { villesData } from "@/data/villes";
 
@@ -22,13 +23,10 @@ export const Footer: React.FC = () => {
               </span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Entreprise agréée en Belgique spécialisée dans la couverture, zinguerie, démoussage et isolation de toiture. Intervention sous 24/48h avec Garantie Décennale Belge.
+              Entreprise de couverture, zinguerie, démoussage et isolation de
+              toiture, active à Bruxelles et en Brabant wallon.
             </p>
             <div className="pt-2 space-y-2 text-xs text-slate-400">
-              <p className="flex items-center gap-2">
-                <FileCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>N° BCE / TVA : {siteConfig.siret}</span>
-              </p>
               <p className="flex items-center gap-2">
                 <Award className="h-4 w-4 text-amber-400 shrink-0" />
                 <span>Assurance Décennale Belge (Loi du 31 mai 2017)</span>
@@ -63,7 +61,7 @@ export const Footer: React.FC = () => {
           {/* Col 3: Zone d'Intervention SEO (Dynamic Belgian Cities) */}
           <div className="space-y-4">
             <h3 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
-              Zone d'Intervention ({siteConfig.radiusKm}km)
+              Zone d'intervention
             </h3>
             <ul className="grid grid-cols-2 gap-2 text-sm">
               {Object.values(villesData).slice(0, 6).map((v) => (
@@ -93,21 +91,26 @@ export const Footer: React.FC = () => {
               Contact &amp; Dépannage Belgique
             </h3>
             <div className="space-y-3 text-sm">
+              {/* Adresse, téléphone et courriel ne s'affichent que s'ils sont
+                  déclarés vérifiés dans `config/company.ts`. Le pied de page
+                  reproduisait des coordonnées héritées d'un modèle. */}
+              {publishableContactPoints().map((point) => (
+                <p key={point.label} className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-brand-terracotta" />
+                  {point.href ? (
+                    <a href={point.href} className="font-bold text-white hover:underline">
+                      {point.value}
+                    </a>
+                  ) : (
+                    <span>{point.value}</span>
+                  )}
+                </p>
+              ))}
               <p className="flex items-start gap-2.5">
-                <MapPin className="h-5 w-5 text-brand-terracotta shrink-0 mt-0.5" />
-                <span>{siteConfig.fullAddress}</span>
-              </p>
-              <p className="flex items-center gap-2.5">
-                <Phone className="h-5 w-5 text-emerald-400 shrink-0" />
-                <a href={`tel:${siteConfig.phone}`} className="hover:underline font-bold text-white">
-                  {siteConfig.phoneFormatted}
-                </a>
-              </p>
-              <p className="flex items-center gap-2.5">
-                <Mail className="h-5 w-5 text-amber-400 shrink-0" />
-                <a href={`mailto:${siteConfig.email}`} className="hover:underline text-slate-300 text-xs">
-                  {siteConfig.email}
-                </a>
+                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+                <Link href="/contact" className="text-slate-300 hover:underline">
+                  Nous écrire via le formulaire
+                </Link>
               </p>
               <div className="pt-2 border-t border-slate-900 text-xs space-y-1">
                 <p className="flex items-center gap-1.5 text-slate-400">
@@ -126,7 +129,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Legal & Copyright */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} {siteConfig.name}. Tous droits réservés. SRL au capital de {siteConfig.capital}.</p>
+          <p>© {new Date().getFullYear()} {siteConfig.name}. Tous droits réservés.</p>
           <div className="flex flex-wrap items-center gap-4">
             <Link href="/mentions-legales" className="hover:text-slate-300 transition-colors">
               Mentions Légales

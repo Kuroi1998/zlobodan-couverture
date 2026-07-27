@@ -29,6 +29,7 @@ export type SessionRejectionReason =
 export interface SessionResolution {
   user: AuthUser | null;
   sessionId: string | null;
+  lastVerifiedAt: Date | null;
   reason: SessionRejectionReason | null;
 }
 
@@ -54,24 +55,18 @@ const ABSOLUTE_TIMEOUT_MS: Record<UserRole, number> = {
 const TOUCH_INTERVAL_MS = 60 * 1000;
 
 /**
- * Un jeton révoqué qui se représente signifie qu'une copie du cookie circule.
- * On ne se contente pas de refuser la requête : on coupe toutes les sessions
- * du compte, puisqu'on ne sait pas laquelle est celle du légitime.
+ * Un jeton révoqué qui se représente est refusé et audité. Les autres sessions
+ * restent valides : les révoquer permettrait au détenteur d'un ancien cookie
+ * de déconnecter indéfiniment l'utilisateur légitime.
  */
 async function handleRevokedTokenReuse(userId: string, sessionId: string): Promise<void> {
-  const now = new Date();
-  await db
-    .update(sessions)
-    .set({ revokedAt: now })
-    .where(eq(sessions.userId, userId));
-
   await recordSecurityEvent({
     kind: "SESSION_TOKEN_REUSE",
     severity: "critical",
     userId,
     detail: {
       replayedSessionId: sessionId,
-      action: "all_sessions_revoked",
+      action: "rejected_without_revoking_other_sessions",
     },
   });
 }
@@ -88,6 +83,7 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
   const empty = (reason: SessionRejectionReason): SessionResolution => ({
     user: null,
     sessionId: null,
+    lastVerifiedAt: null,
     reason,
   });
 
@@ -103,10 +99,13 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
       expiresAt: sessions.expiresAt,
       createdAt: sessions.createdAt,
       lastSeenAt: sessions.lastSeenAt,
+      lastVerifiedAt: sessions.lastVerifiedAt,
       userId: users.id,
       email: users.email,
       role: users.role,
       emailVerifiedAt: users.emailVerifiedAt,
+      status: users.status,
+      disabledAt: users.disabledAt,
       deletedAt: users.deletedAt,
     })
     .from(sessions)
@@ -122,7 +121,14 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
     return empty("revoked-token-reuse");
   }
 
-  if (row.deletedAt) return empty("user-disabled");
+  if (
+    row.deletedAt ||
+    row.disabledAt ||
+    row.status !== "active" ||
+    !row.emailVerifiedAt
+  ) {
+    return empty("user-disabled");
+  }
 
   const now = new Date();
   if (row.expiresAt.getTime() <= now.getTime()) return empty("expired");
@@ -158,6 +164,7 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
       emailVerifiedAt: row.emailVerifiedAt,
     },
     sessionId: row.sessionId,
+    lastVerifiedAt: row.lastVerifiedAt,
     reason: null,
   };
 }
@@ -176,7 +183,12 @@ export const resolveSession = cache(async (): Promise<SessionResolution> => {
       severity: "high",
       detail: { message: error instanceof Error ? error.message : "unknown" },
     }).catch(() => undefined);
-    return { user: null, sessionId: null, reason: "unknown-token" };
+    return {
+      user: null,
+      sessionId: null,
+      lastVerifiedAt: null,
+      reason: "unknown-token",
+    };
   }
 });
 

@@ -7,7 +7,6 @@ export const cleaningService: ServiceItem = {
   shortDescription: "Nettoyage basse pression de toiture, élimination des lichens/mousses et application d'un traitement hydrofuge rénovateur incolore ou coloré.",
   heroSubtitle: "Protégez vos tuiles et ardoises du gel et du climat humide belge. Un traitement hydrofuge prolonge la durée de vie de votre toit de plus de 15 ans.",
   icon: "Sparkles",
-  heroImage: "/images/chantiers/chantier-03.webp",
   alertSymptoms: [
     "Présence importante de mousses vertes, lichens et algues sur le toit.",
     "Gouttières régulièrement obstruées par les amas végétaux.",
@@ -42,21 +41,16 @@ export const cleaningService: ServiceItem = {
       items: ["Fongicides & Algicides biodégradables sans chlore", "Hydrofuge perlant Technichem / Dalep", "Hydrofuge rénovateur teinté pour tuiles et ardoises"]
     }
   ],
-  priceIndicative: {
-    range: "15 € à 35 €",
-    unit: "par m² (nettoyage + anti-mousse + hydrofuge)",
-    factors: [
+  priceFactors: [
       "Le degré d'encrassement et la hauteur de la toiture",
       "Le type de traitement (anti-mousse simple vs hydrofuge complet)",
       "La surface totale à traiter"
-    ]
-  },
+    ],
   guarantees: [
     "Effet perlant garanti 10 ans",
     "Produits respectueux des zingueries et des végétaux",
     "Résistance au gel garantie"
   ],
-  realisationIds: ["chantier-demoussage-rez"],
   faq: [
     {
       question: "Pourquoi éviter le karcher haute pression sur les tuiles en Belgique ?",

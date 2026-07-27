@@ -1,8 +1,9 @@
 import { escapeJsonForScript } from "@/lib/security/encoding";
 import { siteConfig } from "@/config/site";
+import { companyIdentity } from "@/config/company";
 import { faqData } from "@/data/faq";
 
-const SITE_URL = "https://zlobodan-couverture.be";
+const SITE_URL = companyIdentity.websiteUrl;
 
 type BreadcrumbItem = Readonly<{
   name: string;
@@ -27,52 +28,64 @@ export function JsonLdSchema({
   breadcrumbs,
 }: JsonLdSchemaProps) {
   // 1. RoofingContractor / LocalBusiness Schema
+  /**
+   * Données structurées de l'entreprise.
+   *
+   * Un balisage schema.org est lu par les moteurs et affiché tel quel dans les
+   * résultats : y placer une donnée fausse la diffuse bien au-delà du site.
+   *
+   * Ont été retirés lors de l'audit du 2026-07-27 :
+   *
+   *  - `aggregateRating` (4,9 sur 124 avis) — aucun profil d'avis n'existe.
+   *    Un balisage d'avis inventé contrevient de surcroît aux règles des
+   *    moteurs et expose à une sanction de référencement ;
+   *  - `logo`, qui pointait vers `/images/logo.png`, fichier absent du dépôt ;
+   *  - `image`, qui désignait un visuel de substitution supprimé ;
+   *  - `vatID` et `iso6523Code`, alimentés par un numéro d'entreprise non
+   *    vérifié ;
+   *  - `priceRange`, qui annonçait une fourchette sans base ;
+   *  - `geo`, dont les coordonnées désignaient le centre de Bruxelles et non
+   *    un établissement connu.
+   *
+   * Les champs restants ne sont émis que lorsque la donnée correspondante est
+   * réellement disponible : le balisage doit refléter le contenu visible.
+   */
+  const address = companyIdentity.registeredAddress;
+
   const roofingContractorSchema = {
     "@context": "https://schema.org",
     "@type": ["RoofingContractor", "LocalBusiness"],
-    "@id": "https://zlobodan-couverture.be/#organization",
-    "name": siteConfig.name,
-    "legalName": siteConfig.name,
+    "@id": `${SITE_URL}/#organization`,
+    "name": companyIdentity.tradeName,
+    ...(companyIdentity.legalName ? { legalName: companyIdentity.legalName } : {}),
     "url": SITE_URL,
-    "logo": `${SITE_URL}/images/logo.png`,
-    "image": `${SITE_URL}/images/hero-roof.webp`,
-    "telephone": siteConfig.phone,
-    "email": siteConfig.email,
-    "priceRange": "€€-€€€",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": siteConfig.address,
-      "addressLocality": siteConfig.city,
-      "postalCode": siteConfig.postalCode,
-      "addressCountry": "BE",
-      "addressRegion": siteConfig.region,
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 50.8503,
-      "longitude": 4.3517,
-    },
+    "description": siteConfig.description,
+    ...(companyIdentity.publicPhone ? { telephone: companyIdentity.publicPhone } : {}),
+    ...(companyIdentity.publicEmail ? { email: companyIdentity.publicEmail } : {}),
+    ...(address
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: address.street,
+            addressLocality: address.locality,
+            postalCode: address.postalCode,
+            addressCountry: "BE",
+          },
+        }
+      : {}),
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "opens": "07:30",
-        "closes": "19:00",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "08:00",
+        "closes": "17:00",
       },
     ],
     "areaServed": siteConfig.coveredPostalCodes.map((cp) => ({
-      "@type": "AdministrativeArea",
-      "name": `Code postal ${cp} Belgique`,
+      "@type": "PostalCodeSpecification",
+      "postalCode": cp,
+      "addressCountry": "BE",
     })),
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "124",
-      "bestRating": "5",
-      "worstRating": "1",
-    },
-    "vatID": siteConfig.tvaIntra,
-    "iso6523Code": siteConfig.siret,
   };
 
   // 2. FAQPage Schema
@@ -98,12 +111,16 @@ export function JsonLdSchema({
         "description": serviceDescription || serviceTitle,
         "provider": {
           "@type": "RoofingContractor",
-          "name": siteConfig.name,
-          "telephone": siteConfig.phone,
+          "name": companyIdentity.tradeName,
+          ...(companyIdentity.publicPhone
+            ? { telephone: companyIdentity.publicPhone }
+            : {}),
         },
+        // La zone déclarée était « Belgique » entière, alors que le site
+        // annonce Bruxelles et le Brabant wallon.
         "areaServed": {
-          "@type": "Country",
-          "name": "Belgique",
+          "@type": "AdministrativeArea",
+          "name": siteConfig.region,
         },
       }
     : null;

@@ -66,12 +66,46 @@ export interface SmtpConfig {
   from: string;
 }
 
+/**
+ * Adresse interne recevant les notifications de nouvelle demande.
+ *
+ * Elle provenait auparavant de `siteConfig.email`, c'est-à-dire de l'adresse
+ * de contact **publique** du site. Les deux usages n'ont pourtant rien à voir :
+ * l'une s'affiche aux visiteurs et relève de l'éditorial, l'autre est une boîte
+ * d'exploitation qui doit exister pour que les demandes soient traitées.
+ *
+ * Les confondre a eu une conséquence concrète : le retrait de l'adresse
+ * publique non vérifiée aurait privé l'entreprise de ses notifications.
+ *
+ * En développement, l'absence de la variable est tolérée et signalée ; en
+ * production, elle interrompt le démarrage, car une demande de devis qui
+ * n'alerte personne est une demande perdue.
+ */
+export function getNotificationRecipient(): string | null {
+  const recipient = process.env.NOTIFICATION_ADMIN_EMAIL?.trim();
+  if (!recipient) {
+    if (isRuntimeProduction()) {
+      fail(
+        "NOTIFICATION_ADMIN_EMAIL",
+        "adresse de notification interne requise pour recevoir les demandes"
+      );
+    }
+    return null;
+  }
+  return recipient;
+}
+
 export function getSmtpConfig(): SmtpConfig | null {
   const host = process.env.SMTP_HOST?.trim();
   const user = process.env.SMTP_USER?.trim();
   const password = process.env.SMTP_PASS?.trim();
   const from = process.env.EMAIL_FROM?.trim();
-  if (!host || !user || !password || !from) return null;
+  if (!host || !user || !password || !from) {
+    if (isRuntimeProduction()) {
+      fail("SMTP", "configuration incomplète (HOST, USER, PASS et EMAIL_FROM requis)");
+    }
+    return null;
+  }
 
   const port = Number(process.env.SMTP_PORT ?? 587);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {

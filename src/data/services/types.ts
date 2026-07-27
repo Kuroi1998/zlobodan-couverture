@@ -16,20 +16,23 @@ export interface ServiceItem {
   shortDescription: string;
   heroSubtitle: string;
   icon: string;
-  heroImage: string;
   alertSymptoms: string[];
   methodologySteps: ServiceStep[];
   materialsAndBrands: {
     category: string;
     items: string[];
   }[];
-  priceIndicative: {
-    range: string;
-    unit: string;
-    factors: string[];
-  };
+  /**
+   * Facteurs faisant varier le prix.
+   *
+   * Les fourchettes chiffrées (« 90 € à 185 € par m² ») ont été retirées lors
+   * de l'audit du 2026-07-27 : héritées d'un modèle français, elles ne
+   * correspondaient à aucun barème vérifié de l'entreprise et s'affichaient
+   * sans mention de TVA, de contenu ni de validité. Les facteurs, eux,
+   * informent réellement le visiteur sans rien promettre.
+   */
+  priceFactors: string[];
   guarantees: string[];
-  realisationIds: string[];
   faq: ServiceFAQ[];
   devisPreselectId: string;
 }

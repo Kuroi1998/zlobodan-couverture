@@ -23,7 +23,7 @@ export const DynamicMapSection: React.FC = () => {
       setVerificationResult({
         tested: true,
         inZone: false,
-        message: "Veuillez saisir un code postal belge valide (ex: 1000, 1410, 1180, 1300, 5000...).",
+        message: "Veuillez saisir un code postal belge à quatre chiffres (ex : 1000, 1180, 1410).",
       });
       return;
     }
@@ -37,14 +37,17 @@ export const DynamicMapSection: React.FC = () => {
         tested: true,
         inZone: true,
         cityName: foundCity,
-        message: `✅ Parfait ! La commune (${cleanCode} ${foundCity}) est couverte par nos équipes. Intervention rapide sous 24h & Devis gratuit.`,
+        message: `La commune ${cleanCode} ${foundCity} fait partie de notre zone d'intervention.`,
       });
     } else {
+      // La branche « hors zone » renvoyait `inZone: true` avec un message
+      // affirmant l'appartenance à une « zone étendue » : le vérificateur
+      // répondait donc oui à tout code postal belge, ce qui le rendait
+      // trompeur. Il dit désormais ce qu'il constate.
       setVerificationResult({
         tested: true,
-        inZone: true,
-        cityName: "Belgique",
-        message: `✅ Le secteur ${cleanCode} fait partie de notre zone d'intervention étendue à Bruxelles, Brabant Wallon et Wallonie. Contactez-nous pour réserver votre métré.`,
+        inZone: false,
+        message: `Le code postal ${cleanCode} se situe hors de notre zone habituelle. Envoyez-nous votre demande : nous vous dirons si nous pouvons intervenir.`,
       });
     }
   };
@@ -56,13 +59,18 @@ export const DynamicMapSection: React.FC = () => {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <span className="inline-block bg-slate-800 text-amber-400 text-xs font-extrabold uppercase tracking-widest px-3.5 py-1 rounded-full border border-slate-700">
-            Proximité &amp; Réactivité Belgique
+            Zone d&apos;intervention
           </span>
           <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-white tracking-tight">
-            Zone d'intervention dans un rayon de {siteConfig.radiusKm} km (Bruxelles &amp; Wallonie)
+            Notre zone d&apos;intervention
           </h2>
           <p className="text-base text-slate-400">
-            Basés à {siteConfig.address}, nous intervenons sous 1h à 2h pour les urgences fuite et sous 24h pour tous vos métrés et devis.
+            {/* L'ancien texte annonçait une adresse non vérifiée et des délais
+                d'intervention — « sous 1h à 2h », « sous 24h » — qu'aucune
+                organisation connue ne soutenait. */}
+            Nous intervenons à {siteConfig.region}. Indiquez-nous votre commune
+            dans votre demande : nous vous confirmons si le chantier entre dans
+            notre zone.
           </p>
         </div>
 
@@ -100,7 +108,11 @@ export const DynamicMapSection: React.FC = () => {
                   : "bg-amber-950/60 border-amber-800 text-amber-200"
               }`}
             >
-              <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+              {verificationResult.inZone ? (
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+              ) : (
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+              )}
               <div className="space-y-1">
                 <p className="font-medium">{verificationResult.message}</p>
               </div>
@@ -118,7 +130,7 @@ export const DynamicMapSection: React.FC = () => {
                 <MapPin className="h-4 w-4 text-brand-terracotta" />
                 Carte interactive OpenStreetMap Belgique
               </span>
-              <span className="text-amber-400 font-semibold">Cercle d'intervention 40 km</span>
+              <span className="font-semibold text-slate-400">Communes desservies</span>
             </div>
             <LeafletMap />
           </div>
@@ -129,7 +141,7 @@ export const DynamicMapSection: React.FC = () => {
               Communes desservies en Belgique
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Accès direct aux pages d'intervention de nos équipes belges agréées :
+              Accès direct aux pages d&apos;intervention :
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
@@ -143,15 +155,14 @@ export const DynamicMapSection: React.FC = () => {
                     <span>{v.name}</span>
                     <span className="text-[10px] text-slate-500 font-normal">{v.postalCode}</span>
                   </p>
-                  <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                    {v.distanceFromBase}
-                  </p>
                 </Link>
               ))}
             </div>
 
-            <div className="pt-2 text-xs text-slate-400 italic">
-              Également disponibles sur : Woluwe, Etterbeek, Braine-l'Alleud, Nivelles, Lasne, Ottignies, Mons...
+            <div className="pt-2 text-xs italic text-slate-400">
+              Nous intervenons également sur les communes voisines de Bruxelles
+              et du Brabant wallon. Mons ne figure plus dans cette liste : la
+              ville se situe hors de la zone annoncée.
             </div>
           </div>
 

@@ -1,14 +1,29 @@
 import { sql } from "drizzle-orm";
 import type { db } from "@/db/client";
 
-export type PublicReferenceKind = "contact" | "quote_request";
+export type PublicReferenceKind = "contact" | "quote_request" | "document";
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const PREFIXES: Record<PublicReferenceKind, string> = {
   contact: "CNT",
   quote_request: "DEV",
+  // Récapitulatif : le document porte sa propre référence, distincte de celle
+  // de la demande dont il est issu. Une demande peut donner lieu à plusieurs
+  // documents, et confondre les deux rendrait l'un des deux ambigu.
+  document: "REC",
 };
+
+function sequenceQuery(kind: PublicReferenceKind) {
+  switch (kind) {
+    case "contact":
+      return sql<{ value: string }>`select nextval('seq_contact_reference')::text as value`;
+    case "quote_request":
+      return sql<{ value: string }>`select nextval('seq_quote_request_reference')::text as value`;
+    case "document":
+      return sql<{ value: string }>`select nextval('seq_document_reference')::text as value`;
+  }
+}
 
 export function formatPublicReference(
   kind: PublicReferenceKind,
@@ -29,11 +44,14 @@ export async function reservePublicReference(
   kind: PublicReferenceKind,
   now = new Date()
 ): Promise<string> {
-  const query =
-    kind === "contact"
-      ? sql<{ value: string }>`select nextval('seq_contact_reference')::text as value`
-      : sql<{ value: string }>`select nextval('seq_quote_request_reference')::text as value`;
-  const rows = await transaction.execute(query);
+  // Aiguillage exhaustif plutôt qu'un ternaire : avec deux valeurs, « tout ce
+  // qui n'est pas un contact » désignait la demande de devis. L'ajout d'un
+  // troisième type aurait silencieusement puisé dans la mauvaise séquence, et
+  // deux documents distincts auraient porté le même numéro.
+  //
+  // Les noms de séquence restent des littéraux constants : jamais interpolés,
+  // jamais reçus de l'extérieur.
+  const rows = await transaction.execute(sequenceQuery(kind));
   const sequence = Number(rows[0]?.value);
   return formatPublicReference(kind, now.getUTCFullYear(), sequence);
 }

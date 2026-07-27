@@ -7,7 +7,6 @@ export const veluxService: ServiceItem = {
   shortDescription: "Installation et remplacement de fenêtres de toit Velux Belux, volets roulants solaires et raccords d'étanchéité haute qualité.",
   heroSubtitle: "Apportez une lumière naturelle abondante et une aération idéale dans vos combles avec l'assurance d'un raccordement d'étanchéité parfait sous les pluies belges.",
   icon: "Sun",
-  heroImage: "/images/chantiers/chantier-03.webp",
   alertSymptoms: [
     "Ancien Velux fuyant, buée entre vitrages ou joints détériorés.",
     "Combles assombris nécessitant un apport de lumière.",
@@ -42,21 +41,16 @@ export const veluxService: ServiceItem = {
       items: ["Velux Tout Confort & Confort (Double/Triple vitrage)", "Volets roulants solaires Velux SSL & Stores DKL", "Raccords d'étanchéité EDW (tuile) / EDL (ardoise)"]
     }
   ],
-  priceIndicative: {
-    range: "650 € à 1 450 €",
-    unit: "par fenêtre posée (fourniture + raccord + pose)",
-    factors: [
+  priceFactors: [
       "La dimension du Velux (ex: UK04 134x98 cm vs CK02 55x78 cm)",
       "La finition choisie (EverFinish PVC blanc vs Bois vernis)",
       "L'ajout d'un volet roulant solaire autonome"
-    ]
-  },
+    ],
   guarantees: [
     "Garantie 10 ans fabricant Velux Belux et étanchéité",
     "Garantie 5 ans sur les moteurs et volets solaires",
-    "Pose certifiée installateur spécialisé"
+    "Pose réalisée par nos équipes"
   ],
-  realisationIds: ["chantier-velux-nantes"],
   faq: [
     {
       question: "Les volets solaires Velux fonctionnent-ils bien en Belgique ?",

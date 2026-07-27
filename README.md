@@ -11,13 +11,31 @@ devis, le portail client et le back-office de Zlobodan Couverture.
   brouillon serveur pour les comptes connectés, rattachement au compte et
   pièces jointes privées.
 - Back-office protégé par rôle et TOTP : recherche, filtres, pagination,
-  consultation, notes et transitions de statut auditées.
+  transitions de statut auditées, affectation, et notes internes historisées
+  avec leur auteur.
+- Comptes complets : inscription et vérification d’adresse, récupération et
+  changement de mot de passe, changement d’adresse confirmé, sessions et
+  appareils révocables, TOTP et codes de récupération à usage unique.
+- Administration des comptes : statut, sessions, événements de sécurité et
+  déclenchement du flux normal de réinitialisation, sans accès aux secrets.
 - Portail client alimenté exclusivement par PostgreSQL et limité au
-  propriétaire de chaque ressource.
+  propriétaire de chaque ressource : suivi des demandes, détail par référence,
+  annulation contrôlée par la machine à états, modification du profil,
+  fermeture des autres sessions.
 - Export JSON des données personnelles sans secrets, notes internes, IP ni
   chemins de stockage.
 - Outbox SMTP durable avec reprise des traitements interrompus et cinq
-  tentatives à délai exponentiel.
+  tentatives à délai exponentiel, y compris à chaque changement de statut
+  visible du client.
+
+### Ce que la V1 ne contient pas
+
+Devis commerciaux chiffrés, factures et chantiers ont un schéma en base mais
+**aucun chemin de création** : ils sont reportés, pas annulés. Les écrans qui
+les afficheraient ne sont pas présentés comme disponibles, et aucun indicateur
+ne les compte. Le périmètre officiel est dans
+[functional-scope.md](docs/functional-scope.md) ; la feuille de route dans
+[delivery-roadmap.md](docs/delivery-roadmap.md).
 
 ## Socle technique
 
@@ -32,8 +50,15 @@ devis, le portail client et le back-office de Zlobodan Couverture.
 | Tests | Vitest, tests PostgreSQL et Playwright Chromium |
 
 Les choix et flux sont détaillés dans
-[architecture](docs/architecture.md), [database](docs/database.md),
-[uploads](docs/uploads.md) et [security](docs/security.md).
+[authentication](docs/authentication.md), [accounts](docs/accounts.md),
+[sessions](docs/sessions.md),
+[two-factor-authentication](docs/two-factor-authentication.md),
+[email-delivery](docs/email-delivery.md), [architecture](docs/architecture.md),
+[database](docs/database.md), [api](docs/api.md), [testing](docs/testing.md),
+[uploads](docs/uploads.md), [documents](docs/documents.md),
+[content-guidelines](docs/content-guidelines.md),
+[content-verification-register](docs/content-verification-register.md) et
+[security](docs/security.md).
 
 ## Installation
 
@@ -58,7 +83,8 @@ essentielles sont :
 
 - `DATABASE_URL`, et idéalement `MIGRATION_DATABASE_URL` avec un compte DDL
   distinct ;
-- `SESSION_SECRET`, `IP_HASH_SALT` et `APP_ORIGIN` ;
+- `SESSION_SECRET`, `IP_HASH_SALT`, `TWO_FACTOR_ENCRYPTION_KEY`,
+  `SESSION_COOKIE_NAME` et `APP_ORIGIN` ;
 - les deux clés Turnstile et les deux valeurs Upstash en environnement
   multi-instance ;
 - les paramètres SMTP pour expédier l’outbox ;
@@ -82,6 +108,8 @@ npm run build                 # build serveur Next.js
 npm run validate              # statique + unitaires + build
 npm run validate:full         # validate + intégration + E2E
 npm run notifications:dispatch
+npm run auth:rotate-encryption-key       # simulation
+npm run auth:rotate-encryption-key -- --apply
 npm run uploads:cleanup       # simulation
 npm run uploads:cleanup -- --apply
 npm run drafts:cleanup        # simulation des brouillons de plus de 30 jours

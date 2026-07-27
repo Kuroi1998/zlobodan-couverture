@@ -22,7 +22,7 @@ export const faqData: FAQItem[] = [
   },
   {
     question: "Comment fonctionne la prise en charge par l'assurance incendie lors d'une fuite ou d'une tempête ?",
-    answer: "En cas de sinistre (tuiles envolées par tempête, infiltration), nous intervenons en urgence 24/7 pour le bâchage et la mise en sécurité. Nous vous fournissons immédiatement un rapport photographique et un devis certifié destinés à votre compagnie d'assurance belge.",
+    answer: "En cas de sinistre (tuiles envolées par tempête, infiltration), signalez-nous la situation : les urgences sont traitées en priorité, selon nos disponibilités. Nous établissons un rapport photographique et un devis que vous pouvez transmettre à votre compagnie d'assurance.",
     category: "assurance"
   },
   {

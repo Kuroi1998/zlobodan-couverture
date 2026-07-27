@@ -44,6 +44,20 @@ function runNode(args, env) {
   }
 }
 
+function restoreFileWithRetry(filePath, contents) {
+  let lastError;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      fs.writeFileSync(filePath, contents, "utf8");
+      return;
+    } catch (error) {
+      lastError = error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+    }
+  }
+  throw lastError;
+}
+
 async function resetDatabase(testUrl) {
   const databaseName = testUrl.pathname.replace(/^\//, "");
   const adminUrl = new URL(testUrl);
@@ -85,6 +99,7 @@ async function main() {
     LOCAL_UPLOAD_DIRECTORY: uploadDirectory,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: "",
     TURNSTILE_SECRET_KEY: "",
+    TRUSTED_PROXY: "cloudflare",
   };
   runNode(
     [
@@ -107,9 +122,12 @@ async function main() {
   const nextEnvPath = path.resolve(process.cwd(), "next-env.d.ts");
   const originalNextEnv = fs.readFileSync(nextEnvPath, "utf8");
   try {
-    runNode(["node_modules/playwright/cli.js", "test"], env);
+    runNode(
+      ["node_modules/playwright/cli.js", "test", ...process.argv.slice(2)],
+      env
+    );
   } finally {
-    fs.writeFileSync(nextEnvPath, originalNextEnv, "utf8");
+    restoreFileWithRetry(nextEnvPath, originalNextEnv);
   }
 }
 

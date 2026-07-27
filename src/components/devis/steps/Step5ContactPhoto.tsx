@@ -32,7 +32,8 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
           5. Vos Coordonnées &amp; Photos du chantier
         </h2>
         <p className="text-sm text-slate-600">
-          Dernière étape ! Votre devis vous sera adressé sous 48h maximum.
+          Dernière étape. Nous analysons votre demande et revenons vers vous
+          avec un chiffrage détaillé.
         </p>
       </div>
 
@@ -75,7 +76,7 @@ export const Step5ContactPhoto: React.FC<Step5Props> = ({
             required
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="Ex: 0470 12 34 56"
+            placeholder="Ex : 04XX XX XX XX"
             className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-brand-terracotta"
           />
         </div>

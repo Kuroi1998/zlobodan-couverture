@@ -1,19 +1,21 @@
 import { MetadataRoute } from "next";
 import { servicesData } from "@/data/services";
-import { realisationsData } from "@/data/realisations";
 import { villesData } from "@/data/villes";
+import { companyIdentity } from "@/config/company";
 
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://zlobodan-couverture.fr";
+  // Le domaine était déclaré en `.fr` ici et en `.be` dans les données
+  // structurées : deux origines canoniques contradictoires pour un même site.
+  // Il vient désormais de la configuration d'entreprise, source unique.
+  const baseUrl = companyIdentity.websiteUrl;
 
   const staticPages = [
     "",
     "/devis",
     "/devis/merci",
     "/services",
-    "/realisations",
     "/a-propos",
     "/contact",
     "/mentions-legales",
@@ -32,13 +34,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  const realisationPages = realisationsData.map((r) => ({
-    url: `${baseUrl}/realisations/${r.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
-
   const cityPages = Object.values(villesData).map((v) => ({
     url: `${baseUrl}/${v.slug}`,
     lastModified: new Date(),
@@ -46,5 +41,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  return [...staticPages, ...servicePages, ...realisationPages, ...cityPages];
+  return [...staticPages, ...servicePages, ...cityPages];
 }

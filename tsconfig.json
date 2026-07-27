@@ -40,6 +40,9 @@
     ".next-restart/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next-e2e",
+    ".next-restart",
+    ".next-production-smoke"
   ]
 }

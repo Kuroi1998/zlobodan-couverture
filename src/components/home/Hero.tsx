@@ -2,24 +2,20 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Phone, FileText, ShieldCheck, Star, MapPin, Clock, CheckCircle2 } from "lucide-react";
+import { FileText, ShieldCheck, MapPin, Clock, CheckCircle2 } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import ContactActionButton from "@/components/ui/ContactActionButton";
 
 export const Hero: React.FC = () => {
   return (
     <section className="relative bg-slate-950 text-white overflow-hidden pt-8 pb-16 md:py-24">
-      {/* Background Image with Dark Overlay Gradient */}
-      <div className="absolute inset-0 z-0 opacity-30">
-        <Image
-          src="/images/hero-roof.webp"
-          alt="Couvreur-Zingueur pose ardoise Bruxelles"
-          fill
-          priority
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60" />
-      </div>
+      {/*
+        Fond dégradé plutôt qu'une photographie : le fichier utilisé
+        (`hero-roof.webp`, 1,8 Ko) était un substitut sans origine documentée.
+        Un aplat maîtrisé vaut mieux qu'une image dont on ne peut pas justifier
+        les droits.
+      */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -27,18 +23,16 @@ export const Hero: React.FC = () => {
           {/* Left Column: Heading & CTAs */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Top Google & Certification Pill */}
-            <div className="inline-flex flex-wrap items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md">
-              <span className="flex items-center text-amber-400 font-bold gap-1">
-                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                <span>4.9 / 5</span>
-              </span>
-              <span className="text-slate-400">•</span>
-              <span className="text-slate-300">124+ avis clients vérifiés Google</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+            {/*
+              La pastille affichait « 4.9 / 5 », « 124+ avis clients vérifiés
+              Google » et « Artisan Certifié ». Aucune de ces trois mentions
+              n'était adossée à une source : ni profil Google, ni certification.
+              Elle annonce désormais la zone d'intervention, qui est vérifiable.
+            */}
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-slate-700/80 bg-slate-900/90 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md">
+              <span className="flex items-center gap-1 font-semibold text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Artisan Certifié
+                {siteConfig.region}
               </span>
             </div>
 
@@ -49,7 +43,9 @@ export const Hero: React.FC = () => {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
-              Réfection complète de toiture, recherche de fuite d'urgence 24/7, démoussage hydrofuge &amp; pose de Velux dans un rayon de <strong className="text-white font-semibold">{siteConfig.radiusKm} km</strong>.
+              Réfection de toiture, recherche et réparation de fuites, démoussage,
+              pose de fenêtres de toit et travaux de zinguerie à{" "}
+              <strong className="font-semibold text-white">{siteConfig.region}</strong>.
             </p>
 
             {/* Key USPs / Badges list */}
@@ -58,25 +54,27 @@ export const Hero: React.FC = () => {
                 <div className="bg-emerald-500/20 text-emerald-400 p-1 rounded">
                   <ShieldCheck className="h-4 w-4" />
                 </div>
-                <span>Garantie Décennale SMA BTP (10 ans)</span>
+                {/* « SMA BTP » est un assureur français : trace du modèle d'origine. */}
+                <span>Responsabilité décennale (droit belge)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="bg-amber-500/20 text-amber-400 p-1 rounded">
                   <Clock className="h-4 w-4" />
                 </div>
-                <span>{siteConfig.responseDelay}</span>
+                <span>Devis détaillé après analyse</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="bg-brand-terracotta/20 text-brand-terracotta p-1 rounded">
                   <MapPin className="h-4 w-4" />
                 </div>
-                <span>Intervention sous 2h sur fuite active</span>
+                <span>Urgences traitées en priorité</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="bg-blue-500/20 text-blue-400 p-1 rounded">
                   <CheckCircle2 className="h-4 w-4" />
                 </div>
-                <span>Entreprise RGE Qualibat</span>
+                {/* RGE et Qualibat sont des dispositifs français, sans équivalent ici. */}
+                <span>Accompagnement aux primes régionales</span>
               </div>
             </div>
 
@@ -90,13 +88,10 @@ export const Hero: React.FC = () => {
                 <span>Obtenir mon Devis Gratuit en 2 min</span>
               </Link>
 
-              <a
-                href={`tel:${siteConfig.emergencyPhone}`}
-                className="flex items-center justify-center gap-2.5 bg-slate-800/90 border border-slate-700 hover:border-slate-500 text-white px-6 py-4 rounded-xl text-base font-semibold transition-all hover:bg-slate-800 text-center"
-              >
-                <Phone className="h-5 w-5 text-emerald-400 animate-pulse" />
-                <span>Urgence 24/7 : {siteConfig.emergencyPhoneFormatted}</span>
-              </a>
+              <ContactActionButton
+                className="flex items-center justify-center gap-2.5 rounded-xl border border-slate-700 bg-slate-800/90 px-6 py-4 text-center text-base font-semibold text-white transition-all hover:border-slate-500 hover:bg-slate-800"
+                fallbackLabel="Nous écrire"
+              />
             </div>
 
           </div>
@@ -108,7 +103,9 @@ export const Hero: React.FC = () => {
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                   <h2 className="font-heading font-bold text-lg text-white">Besoin d'un couvreur rapide ?</h2>
-                  <p className="text-xs text-slate-400">Diagnostic toiture gratuit à domicile</p>
+                  <p className="text-xs text-slate-400">
+                    Décrivez votre situation, nous l&apos;analysons
+                  </p>
                 </div>
                 <span className="bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-500/20">
                   En ligne
@@ -131,12 +128,17 @@ export const Hero: React.FC = () => {
                   <button
                     onClick={() => {
                       const val = (document.getElementById("hero-cp-input") as HTMLInputElement)?.value.trim();
+                      // La branche intermédiaire répondait « fait partie de
+                      // notre zone » à *n'importe quel* code à quatre chiffres,
+                      // y compris hors zone : le vérificateur disait toujours
+                      // oui, ce qui le rendait au mieux inutile, au pire
+                      // trompeur.
                       if (siteConfig.coveredPostalCodes.includes(val)) {
-                        alert(`✅ Oui ! ${val} fait partie de notre zone d'intervention directe sous 24h.`);
-                      } else if (val.length === 4) {
-                        alert(`ℹ️ Le code postal belge ${val} fait partie de notre zone d'intervention. Contactez-nous au ${siteConfig.phoneFormatted} pour réserver votre métré.`);
+                        alert(`Oui, le code postal ${val} fait partie de notre zone d'intervention.`);
+                      } else if (/^[0-9]{4}$/.test(val)) {
+                        alert(`Le code postal ${val} se situe hors de notre zone habituelle. Envoyez-nous votre demande : nous vous dirons si nous pouvons intervenir.`);
                       } else {
-                        alert("Veuillez saisir un code postal belge (ex: 1000, 1410, 1180, 1300, 5000...).");
+                        alert("Veuillez saisir un code postal belge à quatre chiffres (ex : 1000, 1180, 1410).");
                       }
                     }}
                     className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition"

@@ -7,7 +7,6 @@ export const zincService: ServiceItem = {
   shortDescription: "Installation et remplacement de gouttières zinc/aluminium, solins, noues, entourage de cheminée et toiture en zinc à joint debout.",
   heroSubtitle: "La zinguerie constitue la clé de l'étanchéité sous la pluie belge. Nos zingueurs façonnent sur mesure vos gouttières et finitions métalliques.",
   icon: "ShieldAlert",
-  heroImage: "/images/chantiers/chantier-01.webp",
   alertSymptoms: [
     "Gouttière percée, déboîtée ou fuiante au niveau des soudures.",
     "Traces d'humidité le long des façades sous la ligne de toit.",
@@ -42,21 +41,16 @@ export const zincService: ServiceItem = {
       items: ["Zinc naturel, Zinc Quartz Rheinzink / VMZinc", "Cuivre & Aluminium thermolaqué", "Étain pur 33% pour soudures de précision"]
     }
   ],
-  priceIndicative: {
-    range: "35 € à 85 €",
-    unit: "par mètre linéaire de gouttière posée",
-    factors: [
+  priceFactors: [
       "Le matériau sélectionné (zinc naturel vs aluminium vs cuivre)",
       "Le type de gouttière (demi-ronde, pendue, chéneau encastré)",
       "La hauteur et la complexité des raccords métalliques"
-    ]
-  },
+    ],
   guarantees: [
     "Garantie Décennale 10 ans sur les soudures et la pose",
     "Zinc normé NF EN 988 / NBN",
     "Évacuation d'eau dimensionnée pour les fortes averses belges"
   ],
-  realisationIds: ["chantier-nantes-ardoise"],
   faq: [
     {
       question: "Quelle est la durée de vie d'une zinguerie en zinc en Belgique ?",

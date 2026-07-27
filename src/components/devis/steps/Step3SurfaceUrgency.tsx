@@ -80,7 +80,7 @@ export const Step3SurfaceUrgency: React.FC<Step3Props> = ({ formData, setFormDat
             }`}
           >
             <AlertTriangle className="h-4 w-4" />
-            <span>OUI - Urgence fuite 24/7</span>
+            <span>Oui, c&apos;est urgent</span>
           </button>
         </div>
       </div>

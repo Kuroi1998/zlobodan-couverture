@@ -22,7 +22,9 @@ export interface RateLimitPolicy {
 
 export const POLICIES = {
   login: { windowMs: 15 * MINUTE, maxRequests: 10 },
+  twoFactorChallenge: { windowMs: 15 * MINUTE, maxRequests: 10 },
   register: { windowMs: HOUR, maxRequests: 5 },
+  emailVerification: { windowMs: HOUR, maxRequests: 5 },
   passwordReset: { windowMs: HOUR, maxRequests: 5 },
   contactMessage: { windowMs: HOUR, maxRequests: 5 },
   contactMessagePerEmail: { windowMs: 24 * HOUR, maxRequests: 8 },
@@ -31,7 +33,17 @@ export const POLICIES = {
   quoteRequestPerEmail: { windowMs: 24 * HOUR, maxRequests: 5 },
   upload: { windowMs: HOUR, maxRequests: 20 },
   documentDownload: { windowMs: MINUTE, maxRequests: 60 },
+  /**
+   * Génération de PDF : bien plus coûteuse qu'un téléchargement — rendu,
+   * écriture dans le stockage privé, écritures en base. Le plafond reste bas
+   * car l'action est déclenchée à la main par un opérateur, jamais en rafale.
+   */
+  documentGeneration: { windowMs: HOUR, maxRequests: 30 },
   quoteDecision: { windowMs: HOUR, maxRequests: 20 },
+  /** Mutations du compte : généreux pour un usage normal, borné pour un script. */
+  accountUpdate: { windowMs: HOUR, maxRequests: 30 },
+  /** Annulation de demande : geste rare, et irréversible côté machine à états. */
+  requestCancel: { windowMs: HOUR, maxRequests: 10 },
   browse: { windowMs: MINUTE, maxRequests: 120 },
 } as const satisfies Record<string, RateLimitPolicy>;
 

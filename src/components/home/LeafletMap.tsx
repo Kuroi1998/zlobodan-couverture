@@ -25,8 +25,6 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "couvreur-uccle": [50.8038, 4.3344],
   "couvreur-wavre": [50.7167, 4.6],
   "couvreur-ixelles": [50.8333, 4.3667],
-  "couvreur-namur": [50.4669, 4.8675],
-  "couvreur-liege": [50.6326, 5.5797],
 };
 
 const MARKER_HTML =
@@ -43,7 +41,7 @@ function buildPopup(name: string, postalCode: string, slug: string): string {
   return `
     <div style="font-family: sans-serif; padding: 4px; text-align: center;">
       <strong style="font-size: 14px; color: #0F172A;">Couvreur ${escapeHtml(name)} (${escapeHtml(postalCode)})</strong>
-      <p style="font-size: 11px; color: #64748B; margin: 4px 0 8px 0;">Intervention sous 24h &amp; Devis gratuit</p>
+      <p style="font-size: 11px; color: #64748B; margin: 4px 0 8px 0;">Commune desservie</p>
       <a href="/${encodeURIComponent(slug)}" style="background-color: #EA580C; color: #FFFFFF; text-decoration: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block;">
         Page commune &rarr;
       </a>
@@ -80,14 +78,10 @@ export const LeafletMap: React.FC = () => {
           maxZoom: 18,
         }).addTo(map);
 
-        L.circle(BRUSSELS, {
-          color: "#EA580C",
-          fillColor: "#EA580C",
-          fillOpacity: 0.15,
-          radius: 40000,
-          weight: 2,
-          dashArray: "6, 6",
-        }).addTo(map);
+        // Le cercle de 40 km tracé depuis le centre de Bruxelles figurait une
+        // zone d'intervention qui n'a jamais été vérifiée, et qui contredisait
+        // par ailleurs la liste des communes desservies. La carte se contente
+        // désormais de situer les communes réellement annoncées.
 
         const customIcon = L.divIcon({
           className: "custom-leaflet-marker",

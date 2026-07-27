@@ -152,7 +152,7 @@ export function useQuoteWizard() {
       setLocationStatus({
         checked: true,
         inZone: true,
-        message: "Votre commune est bien dans notre zone d'intervention sous 24 h.",
+        message: "Votre commune fait partie de notre zone d'intervention.",
       });
     }
 

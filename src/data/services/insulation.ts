@@ -4,10 +4,9 @@ export const insulationService: ServiceItem = {
   id: "isolation-toiture",
   slug: "isolation-toiture-combles",
   title: "Isolation de Toiture (Sarking & Combles - Primes Belgique)",
-  shortDescription: "Isolation thermique par l'extérieur (Sarking) ou par l'intérieur certifiée pour réduire de 30% votre facture de chauffage et bénéficier des primes régionales.",
+  shortDescription: "Isolation thermique de toiture par l'extérieur (sarking) ou par l'intérieur, avec accompagnement au montage des dossiers de primes régionales.",
   heroSubtitle: "30% de la chaleur s'échappe par le toit. Économisez sur vos factures de chauffage et bénéficiez des Primes Renolution (Bruxelles) et Primes Wallonie.",
   icon: "Flame",
-  heroImage: "/images/chantiers/chantier-02.webp",
   alertSymptoms: [
     "Surchauffe à l'étage en été et sensation de froid vif en hiver.",
     "Factures de gaz/électricité particulièrement élevées.",
@@ -42,21 +41,16 @@ export const insulationService: ServiceItem = {
       items: ["Panneaux Polyuréthane Soprema / Recticel / Kingspan", "Laine de verre & Laine de roche Isover / Rockwool Belux", "Ouate de cellulose & Laine de bois Pavatex"]
     }
   ],
-  priceIndicative: {
-    range: "35 € à 125 €",
-    unit: "par m² (avant déduction des primes belges)",
-    factors: [
+  priceFactors: [
       "La technique choisie (soufflage combles perdus vs Sarking sous toiture)",
       "L'épaisseur et la marque de l'isolant (Recticel vs Rockwool)",
       "Les travaux annexes de finition"
-    ]
-  },
+    ],
   guarantees: [
     "Attestations conformes Primes Renolution (Bruxelles) & Wallonie",
     "Suppression des ponts thermiques",
     "TVA à taux réduit 6% pour habitations de plus de 10 ans en Belgique"
   ],
-  realisationIds: ["chantier-isolation-carquefou"],
   faq: [
     {
       question: "À combien s'élèvent les primes toiture en Belgique ?",

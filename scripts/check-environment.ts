@@ -20,6 +20,7 @@ import {
   requireDatabaseUrl,
   requireIpHashSalt,
   requireSessionSecret,
+  requireTwoFactorEncryptionKey,
 } from "../src/config/env";
 
 interface Check {
@@ -35,6 +36,10 @@ const checks: Check[] = [
   {
     name: "SESSION_SECRET",
     run: () => `${requireSessionSecret().length} caractères`,
+  },
+  {
+    name: "TWO_FACTOR_ENCRYPTION_KEY",
+    run: () => `${requireTwoFactorEncryptionKey().length} caractères`,
   },
   { name: "IP_HASH_SALT", run: () => `${requireIpHashSalt().length} caractères` },
   {
