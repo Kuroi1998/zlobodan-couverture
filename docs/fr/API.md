@@ -8,7 +8,7 @@
   ```json
   {
     "email": "jean.peeters@email.be",
-    "password": "mot-de-passe-securise-min-12-caracteres",
+    "password": "MonMotDePasseTest123!",
     "totpCode": "123456"
   }
   ```
@@ -20,7 +20,7 @@
   ```json
   {
     "email": "nouveau.client@email.be",
-    "password": "mot-de-passe-securise-min-12-caracteres",
+    "password": "MonMotDePasseTest123!",
     "phone": "0470 12 34 56"
   }
   ```

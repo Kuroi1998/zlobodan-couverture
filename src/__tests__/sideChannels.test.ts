@@ -218,8 +218,8 @@ describe("Uploads — SVG et types", () => {
 
 describe("Idempotence", () => {
   test("l'en-tête est validé en forme et en longueur", () => {
-    const ok = new Headers({ "idempotency-key": "req-2026-07-25-abc123" });
-    expect(readIdempotencyHeader(ok)).toBe("req-2026-07-25-abc123");
+    const ok = new Headers({ "idempotency-key": "test-idempotency-key" });
+    expect(readIdempotencyHeader(ok)).toBe("test-idempotency-key");
 
     expect(readIdempotencyHeader(new Headers({ "idempotency-key": "court" }))).toBeNull();
     expect(readIdempotencyHeader(new Headers({ "idempotency-key": "x".repeat(200) }))).toBeNull();

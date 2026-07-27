@@ -123,7 +123,7 @@ describe("persistance demande de devis", () => {
       .png()
       .toBuffer();
     const created = await submitQuoteRequest({
-      submissionKey: "quote-integration-0001", // gitleaks:allow
+      submissionKey: "test-integration-id", // gitleaks:allow
       userId: clientUserId,
       files: [{ buffer: png, originalName: "toiture.png" }],
       input: {
