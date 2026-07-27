@@ -11,8 +11,14 @@
 - clé UUID d’idempotence et unicité PostgreSQL ;
 - contrôle d’origine CSRF sur chaque mutation d’API ;
 - CSP, `nosniff`, politique de cache privé et suppression des en-têtes forgés ;
-- sessions opaques hachées, cookies `httpOnly`, TOTP obligatoire pour les rôles
-  privilégiés ;
+- sessions opaques hachées et révocables, cookies `HttpOnly`, `Secure` en
+  production et expiration par rôle ;
+- TOTP obligatoire pour les rôles privilégiés, secret AES-256-GCM, challenge
+  haché à cinq essais, anti-rejeu et codes de récupération hachés ;
+- tokens de vérification, réinitialisation et changement d’adresse stockés
+  uniquement hachés ; charges de lien chiffrées dans l’outbox ;
+- réauthentification par mot de passe et second facteur pour les actions
+  sensibles ;
 - autorisation dans chaque layout/handler et contrôle de propriété serveur ;
 - messages d’erreur publics génériques, événements internes sans données
   sensibles ;
@@ -58,6 +64,9 @@ n’efface pas réellement la donnée.
 
 - utiliser un compte SQL applicatif sans DDL et un compte de migration séparé ;
 - exiger TLS pour PostgreSQL et SMTP ;
+- fournir une clé `TWO_FACTOR_ENCRYPTION_KEY` distincte, aléatoire et gérée
+  comme un secret ; suivre la rotation décrite dans
+  [two-factor-authentication.md](two-factor-authentication.md) ;
 - fournir Redis partagé à toutes les instances ;
 - restreindre l’origine aux adresses du proxy déclaré ;
 - stocker les secrets dans le gestionnaire de la plateforme ;
@@ -74,7 +83,8 @@ déploiement public multi-instance.
 
 ## Réponse aux incidents
 
-1. révoquer les sessions concernées et faire tourner les secrets ;
+1. révoquer les sessions concernées et faire tourner les secrets selon leur
+   procédure ; ne jamais remplacer aveuglément la clé 2FA avant rechiffrement ;
 2. préserver les journaux et suspendre les jobs de rétention ;
 3. identifier les références affectées sans copier les messages en clair dans
    les canaux d’incident ;
@@ -82,4 +92,5 @@ déploiement public multi-instance.
 5. documenter la chronologie, la portée et les actions RGPD nécessaires.
 
 Voir aussi [SECURITY.md](../SECURITY.md) pour le modèle de sécurité historique
-du projet.
+du projet, ainsi que [authentication.md](authentication.md) et
+[sessions.md](sessions.md).

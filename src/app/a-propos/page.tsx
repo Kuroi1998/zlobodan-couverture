@@ -4,7 +4,8 @@ import { Award } from "lucide-react";
 
 export const metadata = {
   title: "À Propos | Entreprise Zlobodan Couverture Belgique",
-  description: "Découvrez notre histoire, notre équipe d'artisans couvreurs agréés en Belgique, nos agréments pour les primes Renolution/Wallonie et nos équipements.",
+  description:
+    "Notre manière de travailler, nos prestations de couverture et de zinguerie à Bruxelles et en Brabant wallon, et notre accompagnement aux primes régionales.",
 };
 
 export default function AProposPage() {
@@ -20,7 +21,8 @@ export default function AProposPage() {
           L'Entreprise Zlobodan Couverture SRL
         </h1>
         <p className="text-base text-slate-400">
-          Artisans couvreurs-zingueurs passionnés au service des propriétaires bruxellois et wallons depuis plus de {siteConfig.experienceYears} ans.
+          Couvreurs-zingueurs au service des propriétaires à Bruxelles et en
+          Brabant wallon.
         </p>
       </div>
 
@@ -36,7 +38,9 @@ export default function AProposPage() {
               Fondée à Bruxelles par des professionnels de la couverture en ardoises et tuiles terre cuite belges (Pottelberg/Koramic), la maison **Zlobodan Couverture SRL** a forgé sa réputation sur l'exigence du travail bien fait, le respect des normes STS et la réactivité d'urgence.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed">
-              L'intégralité de nos chantiers est exécutée et supervisée par nos propres équipes diplômées, agréées et assurées en Responsabilité Civile Décennale Belge.
+              Nos chantiers sont exécutés et supervisés par nos propres équipes.
+              Les travaux de toiture relevant du gros œuvre engagent notre
+              responsabilité décennale, conformément au droit belge.
             </p>
 
             <div className="grid grid-cols-2 gap-4 pt-2">
@@ -59,12 +63,17 @@ export default function AProposPage() {
 
             <div className="space-y-4 text-xs text-slate-300">
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
-                <p className="font-bold text-white text-sm">Garantie Décennale AXA Belgium</p>
-                <p>Police d'assurance n° {siteConfig.insuranceNumber} couvrant l'étanchéité et la solidité de l'ouvrage pendant 10 ans selon la loi belge.</p>
+                <p className="text-sm font-bold text-white">Responsabilité décennale</p>
+                <p>
+                  Les travaux de toiture relevant du gros œuvre engagent la
+                  responsabilité décennale de l&apos;entrepreneur en droit
+                  belge. Le détail de notre couverture figure dans les documents
+                  contractuels remis avant le démarrage du chantier.
+                </p>
               </div>
 
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
-                <p className="font-bold text-white text-sm">Entrepreneur Agréé Primes Régionales</p>
+                <p className="text-sm font-bold text-white">Accompagnement aux primes régionales</p>
                 <p>Dossier technique d'accompagnement pour les Primes Renolution (Bruxelles-Capitale) et Primes Habitation (Région Wallonne).</p>
               </div>
             </div>
