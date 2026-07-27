@@ -2,21 +2,16 @@ import Link from "next/link";
 import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db/client";
 import { contactMessages } from "@/db/schema/contacts";
+import { isContactMessageStatus } from "@/domain/request-workflow";
 import {
-  CONTACT_MESSAGE_STATUSES,
-  isContactMessageStatus,
-} from "@/domain/request-workflow";
+  contactMessageFilterOptions,
+  contactMessageLabel,
+  contactSubjectLabel,
+} from "@/domain/request-labels";
 import { PaginationSchema, SearchTermSchema } from "@/lib/validations/identifiers";
+import { requirePageRole } from "@/lib/security/guards";
 
-const STATUS_LABELS: Record<string, string> = {
-  new: "Nouveau",
-  read: "Lu",
-  in_progress: "En cours",
-  replied: "Répondu",
-  closed: "Clôturé",
-  archived: "Archivé",
-  spam: "Indésirable",
-};
+export const dynamic = "force-dynamic";
 
 function pageHref(page: number, status: string, search: string): string {
   const query = new URLSearchParams();
@@ -31,6 +26,7 @@ export default async function AdminContactsPage({
 }: Readonly<{
   searchParams: Promise<{ page?: string; status?: string; q?: string }>;
 }>) {
+  await requirePageRole(["staff", "admin"], "/admin/contacts");
   const query = await searchParams;
   const pagination = PaginationSchema.parse({ page: query.page, limit: 20 });
   const status = query.status && isContactMessageStatus(query.status) ? query.status : "";
@@ -94,9 +90,9 @@ export default async function AdminContactsPage({
           className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-white"
         >
           <option value="">Tous les statuts</option>
-          {CONTACT_MESSAGE_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {STATUS_LABELS[value]}
+          {contactMessageFilterOptions().map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -124,8 +120,8 @@ export default async function AdminContactsPage({
                   <br />
                   <span className="text-slate-500">{row.email}</span>
                 </td>
-                <td className="p-3">{row.subject}</td>
-                <td className="p-3">{STATUS_LABELS[row.status]}</td>
+                <td className="p-3">{contactSubjectLabel(row.subject)}</td>
+                <td className="p-3">{contactMessageLabel(row.status)}</td>
                 <td className="p-3 text-right">
                   <Link
                     href={`/admin/contacts/${row.id}`}

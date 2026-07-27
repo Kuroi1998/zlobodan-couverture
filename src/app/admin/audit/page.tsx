@@ -3,8 +3,15 @@ import { History, Lock } from "lucide-react";
 import { db } from "@/db/client";
 import { auditLog } from "@/db/schema/audit";
 import { users } from "@/db/schema/users";
+import { requirePageRole } from "@/lib/security/guards";
 
 export default async function AdminAuditPage() {
+  // Le layout d'administration laisse passer `staff` : c'est le bon niveau
+  // pour traiter contacts et demandes, pas pour lire le journal complet, qui
+  // expose les empreintes d'IP et l'activité de tous les opérateurs. Garde
+  // propre à la page, conformément à docs/roles-and-permissions.md.
+  await requirePageRole(["admin"], "/admin/audit");
+
   const rows = await db
     .select({
       id: auditLog.id,

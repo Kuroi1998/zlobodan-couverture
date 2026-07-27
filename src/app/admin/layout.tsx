@@ -5,12 +5,10 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import {
   LayoutDashboard,
   Inbox,
-  FileText,
-  Receipt,
-  HardHat,
-  Users,
+
   ShieldCheck,
   History,
+  Users,
 } from "lucide-react";
 
 export const metadata = {
@@ -71,45 +69,37 @@ export default async function AdminLayout({
               <span>Messages de contact</span>
             </Link>
 
-            <Link
-              href="/admin/devis"
-              className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
-            >
-              <FileText className="h-3.5 w-3.5 text-blue-400" />
-              <span>Créer / Gérer Devis</span>
-            </Link>
+            {/* « Créer / Gérer Devis » et « Facturation Immuable » retirés :
+                ces modules sont reportés en V2/V3 (feature-matrix.md) et les
+                tables correspondantes n'ont pas de chemin d'écriture en V1.
+                Voir delivery-roadmap.md, phases 4 et 6. */}
 
-            <Link
-              href="/admin/factures"
-              className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
-            >
-              <Receipt className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Facturation Immuable</span>
-            </Link>
+            {/* Ni « Gestion Chantiers » ni « Gestion Clients » : ces routes
+                n'existent pas. Elles renvoyaient un 404 depuis la navigation.
+                Elles réapparaîtront avec leur module — voir
+                docs/delivery-roadmap.md, phases 2 et 5. */}
 
-            <Link
-              href="/admin/chantiers"
-              className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
-            >
-              <HardHat className="h-3.5 w-3.5 text-orange-400" />
-              <span>Gestion Chantiers</span>
-            </Link>
-
-            <Link
-              href="/admin/clients"
-              className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
-            >
-              <Users className="h-3.5 w-3.5 text-purple-400" />
-              <span>Gestion Clients</span>
-            </Link>
-
-            <Link
-              href="/admin/audit"
-              className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
-            >
-              <History className="h-3.5 w-3.5 text-red-400" />
-              <span>Audit Log Append-Only</span>
-            </Link>
+            {/* Le journal est réservé à `admin` (garde dans la page). Un
+                opérateur ne voit donc pas l'entrée : un lien qui redirige
+                systématiquement n'est pas une navigation. */}
+            {operator.role === "admin" && (
+              <>
+                <Link
+                  href="/admin/comptes"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
+                >
+                  <Users className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>Comptes</span>
+                </Link>
+                <Link
+                  href="/admin/audit"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
+                >
+                  <History className="h-3.5 w-3.5 text-red-400" />
+                  <span>Audit Log Append-Only</span>
+                </Link>
+              </>
+            )}
           </nav>
 
         </div>

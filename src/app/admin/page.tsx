@@ -1,92 +1,106 @@
 import Link from "next/link";
-import { desc, sql } from "drizzle-orm";
-import { Inbox } from "lucide-react";
-import { db } from "@/db/client";
-import { contactMessages } from "@/db/schema/contacts";
-import { quoteRequests, quotes } from "@/db/schema/quotes";
-import { invoices } from "@/db/schema/invoices";
-import { projects } from "@/db/schema/projects";
+import { AlertTriangle, Inbox, UserX } from "lucide-react";
+import { getAdminDashboard } from "@/lib/services/admin-dashboard-service";
+import {
+  contactMessageLabel,
+  contactSubjectLabel,
+  interventionLabel,
+  quoteRequestLabel,
+} from "@/domain/request-labels";
+import { requirePageRole } from "@/lib/security/guards";
 
+export const dynamic = "force-dynamic";
+
+/**
+ * Tableau de bord du back-office.
+ *
+ * Quatre tuiles ont été retirées — « devis commerciaux émis », « € HT »,
+ * « chantiers actifs », « € à encaisser ». Elles interrogeaient bien
+ * PostgreSQL, mais sur `quotes`, `invoices` et `projects`, trois tables
+ * qu'aucun chemin d'écriture de la V1 n'alimente : elles ne pouvaient afficher
+ * que zéro. Un indicateur structurellement nul n'informe pas, il rassure à
+ * tort. Voir docs/functional-scope.md, §5.1.
+ */
 export default async function AdminDashboardPage() {
-  const [contactStats, requestStats, quoteStats, invoiceStats, projectStats, recent] =
-    await Promise.all([
-      db
-        .select({
-          total: sql<number>`count(*)::int`,
-          newCount: sql<number>`count(*) filter (where ${contactMessages.status} = 'new')::int`,
-        })
-        .from(contactMessages),
-      db
-        .select({
-          total: sql<number>`count(*)::int`,
-          active: sql<number>`count(*) filter (where ${quoteRequests.status} not in ('cancelled','archived','rejected','accepted'))::int`,
-        })
-        .from(quoteRequests),
-      db
-        .select({
-          sent: sql<number>`count(*) filter (where ${quotes.status} = 'sent')::int`,
-          amount: sql<string>`coalesce(sum(${quotes.amountHt}) filter (where ${quotes.status} = 'sent'), 0)::text`,
-        })
-        .from(quotes),
-      db
-        .select({
-          due: sql<string>`coalesce(sum(${invoices.amountTtc}) filter (where ${invoices.status} in ('issued','overdue')), 0)::text`,
-        })
-        .from(invoices),
-      db
-        .select({
-          active: sql<number>`count(*) filter (where ${projects.status} in ('planned','in_progress'))::int`,
-        })
-        .from(projects),
-      db
-        .select({
-          id: quoteRequests.id,
-          reference: quoteRequests.reference,
-          fullName: quoteRequests.fullName,
-          phone: quoteRequests.phone,
-          postalCode: quoteRequests.postalCode,
-          city: quoteRequests.city,
-          interventionType: quoteRequests.interventionType,
-          isUrgent: quoteRequests.isUrgent,
-          createdAt: quoteRequests.createdAt,
-        })
-        .from(quoteRequests)
-        .orderBy(desc(quoteRequests.createdAt))
-        .limit(10),
-    ]);
+  await requirePageRole(["staff", "admin"], "/admin");
+  const dashboard = await getAdminDashboard();
+
+  const tiles = [
+    {
+      label: "Demandes à traiter",
+      value: dashboard.requests.active,
+      detail: `${dashboard.requests.total} demande(s) au total`,
+      accent: "text-amber-400",
+      href: "/admin/demandes",
+    },
+    {
+      label: "Contacts non lus",
+      value: dashboard.contacts.unread,
+      detail: `${dashboard.contacts.total} message(s) au total`,
+      accent: "text-purple-400",
+      href: "/admin/contacts?status=new",
+    },
+    {
+      label: "Demandes urgentes",
+      value: dashboard.requests.urgent,
+      detail: "Signalées urgentes et non clôturées",
+      accent: "text-red-400",
+      href: "/admin/demandes",
+    },
+    {
+      label: "Sans responsable",
+      value: dashboard.requests.unassigned,
+      detail: "Dossiers actifs non affectés",
+      accent: "text-teal-400",
+      href: "/admin/demandes",
+    },
+  ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-1 rounded border border-slate-800 bg-slate-950 p-4">
-          <span className="text-[10px] uppercase text-slate-500">Demandes entrantes</span>
-          <p className="text-2xl font-bold text-amber-400">{requestStats[0]?.active ?? 0}</p>
-          <p className="text-[10px] text-slate-400">
-            {requestStats[0]?.total ?? 0} demande(s) au total
-          </p>
-        </div>
-        <div className="space-y-1 rounded border border-slate-800 bg-slate-950 p-4">
-          <span className="text-[10px] uppercase text-slate-500">Contacts non lus</span>
-          <p className="text-2xl font-bold text-purple-400">{contactStats[0]?.newCount ?? 0}</p>
-          <p className="text-[10px] text-slate-400">
-            {contactStats[0]?.total ?? 0} message(s) au total
-          </p>
-        </div>
-        <div className="space-y-1 rounded border border-slate-800 bg-slate-950 p-4">
-          <span className="text-[10px] uppercase text-slate-500">Devis commerciaux émis</span>
-          <p className="text-2xl font-bold text-blue-400">{quoteStats[0]?.sent ?? 0}</p>
-          <p className="text-[10px] text-slate-400">
-            {Number(quoteStats[0]?.amount ?? 0).toLocaleString("fr-BE")} € HT
-          </p>
-        </div>
-        <div className="space-y-1 rounded border border-slate-800 bg-slate-950 p-4">
-          <span className="text-[10px] uppercase text-slate-500">Exploitation</span>
-          <p className="text-2xl font-bold text-orange-400">{projectStats[0]?.active ?? 0}</p>
-          <p className="text-[10px] text-slate-400">
-            Chantiers actifs · {Number(invoiceStats[0]?.due ?? 0).toLocaleString("fr-BE")} € à encaisser
-          </p>
-        </div>
+        {tiles.map((tile) => (
+          <Link
+            key={tile.label}
+            href={tile.href}
+            className="space-y-1 rounded border border-slate-800 bg-slate-950 p-4 hover:border-slate-700"
+          >
+            <span className="text-[10px] uppercase text-slate-500">{tile.label}</span>
+            <p className={`text-2xl font-bold ${tile.accent}`}>{tile.value}</p>
+            <p className="text-[10px] text-slate-400">{tile.detail}</p>
+          </Link>
+        ))}
       </div>
+
+      {dashboard.oldestUnread.length > 0 && (
+        <div className="space-y-3 rounded border border-purple-900 bg-slate-950 p-4">
+          <h2 className="flex items-center gap-2 text-sm font-bold text-white">
+            <AlertTriangle className="h-4 w-4 text-purple-400" />
+            Contacts en attente les plus anciens
+          </h2>
+          <ul className="divide-y divide-slate-800">
+            {dashboard.oldestUnread.map((row) => (
+              <li key={row.id} className="flex items-center justify-between gap-3 py-2">
+                <div className="min-w-0">
+                  <p className="truncate text-white">
+                    {row.reference} · {row.fullName}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {contactSubjectLabel(row.subject)} ·{" "}
+                    {row.createdAt.toLocaleString("fr-BE")} · {contactMessageLabel(row.status)}
+                  </p>
+                </div>
+                <Link
+                  href={`/admin/contacts/${row.id}`}
+                  className="shrink-0 rounded bg-slate-800 px-3 py-1 font-bold text-white"
+                >
+                  Ouvrir
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="space-y-3 rounded border border-slate-800 bg-slate-950 p-4">
         <div className="flex items-center justify-between">
@@ -94,14 +108,9 @@ export default async function AdminDashboardPage() {
             <Inbox className="h-4 w-4 text-amber-400" />
             Dernières demandes de devis
           </h2>
-          <div className="flex gap-3">
-            <Link href="/admin/contacts" className="text-xs text-purple-400 hover:underline">
-              Contacts
-            </Link>
-            <Link href="/admin/demandes" className="text-xs text-brand-terracotta hover:underline">
-              Toutes les demandes
-            </Link>
-          </div>
+          <Link href="/admin/demandes" className="text-xs text-brand-terracotta hover:underline">
+            Toutes les demandes
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
@@ -112,11 +121,12 @@ export default async function AdminDashboardPage() {
                 <th className="p-3">Contact</th>
                 <th className="p-3">Lieu</th>
                 <th className="p-3">Intervention</th>
+                <th className="p-3">Statut</th>
                 <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {recent.map((row) => (
+              {dashboard.latest.map((row) => (
                 <tr key={row.id}>
                   <td className="p-3 text-slate-400">{row.createdAt.toLocaleString("fr-BE")}</td>
                   <td className="p-3 font-bold text-white">{row.reference}</td>
@@ -129,9 +139,10 @@ export default async function AdminDashboardPage() {
                     {row.postalCode} {row.city}
                   </td>
                   <td className="p-3">
-                    {row.interventionType}
+                    {interventionLabel(row.interventionType)}
                     {row.isUrgent ? " · URGENT" : ""}
                   </td>
+                  <td className="p-3">{quoteRequestLabel(row.status)}</td>
                   <td className="p-3 text-right">
                     <Link
                       href={`/admin/demandes/${row.id}`}
@@ -142,10 +153,11 @@ export default async function AdminDashboardPage() {
                   </td>
                 </tr>
               ))}
-              {recent.length === 0 && (
+              {dashboard.latest.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">
-                    Aucune demande enregistrée.
+                  <td colSpan={7} className="p-8 text-center text-slate-500">
+                    <UserX className="mx-auto mb-3 h-6 w-6" />
+                    Aucune demande enregistrée pour le moment.
                   </td>
                 </tr>
               )}

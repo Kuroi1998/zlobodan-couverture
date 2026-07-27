@@ -38,7 +38,6 @@ export async function POST(
       newStatus: parsed.data.status,
       changedByUserId: auth.user.id,
       reason: parsed.data.reason,
-      internalNotes: parsed.data.internalNotes,
       assignedToUserId: parsed.data.assignedToUserId,
     });
     await recordSecurityEvent({

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { FileText } from "lucide-react";
 import { db } from "@/db/client";
@@ -43,7 +42,6 @@ export default async function AdminQuotesPage() {
               <th className="p-3">Client</th>
               <th className="p-3">Statut</th>
               <th className="p-3 text-right">Total TTC</th>
-              <th className="p-3 text-right">Document</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
@@ -56,19 +54,11 @@ export default async function AdminQuotesPage() {
                 <td className="p-3 text-right">
                   {Number(quote.amountTtc).toLocaleString("fr-BE")} €
                 </td>
-                <td className="p-3 text-right">
-                  <Link
-                    href={`/api/pdf/quote/${quote.id}`}
-                    className="text-brand-terracotta hover:underline"
-                  >
-                    Ouvrir
-                  </Link>
-                </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
+                <td colSpan={5} className="p-8 text-center text-slate-500">
                   Aucun devis commercial n'a encore été créé. Les demandes à traiter se trouvent
                   dans la rubrique « Demandes de devis ».
                 </td>

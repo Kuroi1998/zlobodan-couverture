@@ -2,25 +2,16 @@ import Link from "next/link";
 import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db/client";
 import { quoteRequests } from "@/db/schema/quotes";
+import { isQuoteRequestStatus } from "@/domain/request-workflow";
 import {
-  QUOTE_REQUEST_STATUSES,
-  isQuoteRequestStatus,
-} from "@/domain/request-workflow";
+  interventionLabel,
+  quoteRequestFilterOptions,
+  quoteRequestLabel,
+} from "@/domain/request-labels";
 import { PaginationSchema, SearchTermSchema } from "@/lib/validations/identifiers";
+import { requirePageRole } from "@/lib/security/guards";
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon",
-  submitted: "Soumise",
-  under_review: "À étudier",
-  contacted: "Contactée",
-  visit_scheduled: "Visite planifiée",
-  estimate_in_preparation: "Devis en préparation",
-  estimate_sent: "Devis envoyé",
-  accepted: "Acceptée",
-  rejected: "Refusée",
-  cancelled: "Annulée",
-  archived: "Archivée",
-};
+export const dynamic = "force-dynamic";
 
 function pageHref(page: number, status: string, search: string): string {
   const query = new URLSearchParams();
@@ -35,6 +26,7 @@ export default async function AdminQuoteRequestsPage({
 }: Readonly<{
   searchParams: Promise<{ page?: string; status?: string; q?: string }>;
 }>) {
+  await requirePageRole(["staff", "admin"], "/admin/demandes");
   const query = await searchParams;
   const pagination = PaginationSchema.parse({ page: query.page, limit: 20 });
   const status = query.status && isQuoteRequestStatus(query.status) ? query.status : "";
@@ -55,7 +47,21 @@ export default async function AdminQuoteRequestsPage({
 
   const [rows, totalRows] = await Promise.all([
     db
-      .select()
+      // Projection explicite : `select()` rapportait les vingt-trois colonnes,
+      // dont `submission_key` et les champs de consentement, pour en afficher
+      // huit. Une colonne chargée est une colonne qui peut finir sérialisée.
+      .select({
+        id: quoteRequests.id,
+        reference: quoteRequests.reference,
+        fullName: quoteRequests.fullName,
+        email: quoteRequests.email,
+        postalCode: quoteRequests.postalCode,
+        city: quoteRequests.city,
+        interventionType: quoteRequests.interventionType,
+        isUrgent: quoteRequests.isUrgent,
+        status: quoteRequests.status,
+        createdAt: quoteRequests.createdAt,
+      })
       .from(quoteRequests)
       .where(where)
       .orderBy(desc(quoteRequests.createdAt))
@@ -86,9 +92,9 @@ export default async function AdminQuoteRequestsPage({
           className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-white"
         >
           <option value="">Tous les statuts</option>
-          {QUOTE_REQUEST_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {STATUS_LABELS[value]}
+          {quoteRequestFilterOptions().map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -121,10 +127,10 @@ export default async function AdminQuoteRequestsPage({
                   {row.postalCode} {row.city}
                 </td>
                 <td className="p-3">
-                  {row.interventionType}
+                  {interventionLabel(row.interventionType)}
                   {row.isUrgent ? " · URGENT" : ""}
                 </td>
-                <td className="p-3">{STATUS_LABELS[row.status]}</td>
+                <td className="p-3">{quoteRequestLabel(row.status)}</td>
                 <td className="p-3 text-right">
                   <Link
                     href={`/admin/demandes/${row.id}`}

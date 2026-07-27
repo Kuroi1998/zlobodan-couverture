@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { Receipt } from "lucide-react";
 import { db } from "@/db/client";
@@ -42,7 +41,6 @@ export default async function AdminInvoicesPage() {
               <th className="p-3">Émission</th>
               <th className="p-3 text-right">TTC</th>
               <th className="p-3">Statut</th>
-              <th className="p-3">Document</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
@@ -56,19 +54,11 @@ export default async function AdminInvoicesPage() {
                   {Number(invoice.amountTtc).toLocaleString("fr-BE")} €
                 </td>
                 <td className="p-3">{invoice.status}</td>
-                <td className="p-3">
-                  <Link
-                    href={`/api/pdf/invoice/${invoice.id}`}
-                    className="text-brand-terracotta hover:underline"
-                  >
-                    Ouvrir
-                  </Link>
-                </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-slate-500">
                   Aucune facture enregistrée.
                 </td>
               </tr>

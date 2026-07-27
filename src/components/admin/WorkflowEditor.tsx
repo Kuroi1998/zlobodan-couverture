@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { readApiError } from "@/lib/api/client";
 
 interface StatusOption {
   value: string;
@@ -11,26 +12,32 @@ interface StatusOption {
 interface WorkflowEditorProps {
   endpoint: string;
   currentStatus: string;
-  options: StatusOption[];
-  initialNotes?: string | null;
-  assigneeOptions?: StatusOption[];
+  options: readonly StatusOption[];
+  assigneeOptions?: readonly StatusOption[];
   initialAssigneeId?: string | null;
 }
 
+/**
+ * Transition de statut et affectation.
+ *
+ * Les notes internes ont quitté ce formulaire : elles étaient postées avec
+ * chaque changement de statut et écrasaient la note précédente. Elles vivent
+ * désormais dans `InternalNotesPanel`, avec leur propre table, leur auteur et
+ * leur historique.
+ */
 export default function WorkflowEditor({
   endpoint,
   currentStatus,
   options,
-  initialNotes,
   assigneeOptions,
   initialAssigneeId,
 }: Readonly<WorkflowEditorProps>) {
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [reason, setReason] = useState("");
-  const [internalNotes, setInternalNotes] = useState(initialNotes ?? "");
   const [assigneeId, setAssigneeId] = useState(initialAssigneeId ?? "");
   const [feedback, setFeedback] = useState("");
+  const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);
 
   async function save(event: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -38,6 +45,7 @@ export default function WorkflowEditor({
     if (saving) return;
     setSaving(true);
     setFeedback("");
+    setFailed(false);
     try {
       const response = await fetch(endpoint, {
         method: "POST",
@@ -45,29 +53,22 @@ export default function WorkflowEditor({
         body: JSON.stringify({
           status,
           reason: reason || undefined,
-          internalNotes: internalNotes || undefined,
-          ...(assigneeOptions
-            ? { assignedToUserId: assigneeId || null }
-            : {}),
+          ...(assigneeOptions ? { assignedToUserId: assigneeId || null } : {}),
         }),
       });
-      const body: unknown = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const message =
-          typeof body === "object" &&
-          body !== null &&
-          "error" in body &&
-          typeof body.error === "string"
-            ? body.error
-            : "Mise à jour impossible.";
-        setFeedback(message);
+        setFailed(true);
+        setFeedback(await readApiError(response, "Mise à jour impossible."));
         return;
       }
+
       setFeedback("Mise à jour enregistrée.");
       setReason("");
       router.refresh();
     } catch {
-      setFeedback("Mise à jour impossible pour le moment.");
+      setFailed(true);
+      setFeedback("Mise à jour impossible : le serveur est injoignable.");
     } finally {
       setSaving(false);
     }
@@ -119,19 +120,11 @@ export default function WorkflowEditor({
           className="w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-white"
         />
       </label>
-      <label className="block space-y-1">
-        <span className="text-[10px] font-bold uppercase text-slate-400">
-          Notes internes
-        </span>
-        <textarea
-          value={internalNotes}
-          maxLength={5000}
-          rows={4}
-          onChange={(event) => setInternalNotes(event.target.value)}
-          className="w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-        />
-      </label>
-      {feedback && <p className="text-xs text-amber-300">{feedback}</p>}
+      {feedback && (
+        <p role="status" className={failed ? "text-xs text-red-400" : "text-xs text-emerald-400"}>
+          {feedback}
+        </p>
+      )}
       <button
         type="submit"
         disabled={saving}

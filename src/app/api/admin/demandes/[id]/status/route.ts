@@ -8,7 +8,15 @@ import { recordSecurityEvent } from "@/lib/security/security-events";
 
 export const dynamic = "force-dynamic";
 
-const ROUTE = "/api/admin/devis/[id]/status";
+/**
+ * Transition de statut d'une **demande de devis**.
+ *
+ * La route s'appelait `/api/admin/devis/[id]/status` alors qu'elle agit sur
+ * `quote_requests`, pendant que `/admin/devis` affichait la table `quotes`. Le
+ * même mot désignait deux objets distincts dans la même arborescence. Voir le
+ * vocabulaire officiel dans docs/functional-scope.md, §6.
+ */
+const ROUTE = "/api/admin/demandes/[id]/status";
 
 export async function POST(
   req: NextRequest,
@@ -38,7 +46,6 @@ export async function POST(
       newStatus: parsed.data.status,
       changedByUserId: auth.user.id,
       reason: parsed.data.reason,
-      internalNotes: parsed.data.internalNotes,
       assignedToUserId: parsed.data.assignedToUserId,
     });
     await recordSecurityEvent({
