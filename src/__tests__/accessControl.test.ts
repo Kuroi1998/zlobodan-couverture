@@ -72,11 +72,26 @@ describe("Contrôle vertical — élévation de privilège", () => {
     expect(can(clientA, "update", "users", { ownerId: clientB.id })).toBe(false);
   });
 
-  test("le staff ne peut ni supprimer un compte ni altérer l'audit", () => {
-    expect(can(staff, "delete", "users")).toBe(false);
-    expect(can(staff, "delete", "audit_log")).toBe(false);
-    // En revanche il consulte l'audit, c'est son travail.
-    expect(can(staff, "read", "audit_log")).toBe(true);
+  test("le staff travaille sur les dossiers, jamais sur les comptes ni l'audit", () => {
+    // Son périmètre réel.
+    for (const resource of ["quote", "invoice", "project", "document", "message"] as const) {
+      expect(can(staff, "read", resource)).toBe(true);
+      expect(can(staff, "update", resource)).toBe(true);
+      // La suppression définitive reste à l'administration.
+      expect(can(staff, "delete", resource)).toBe(false);
+    }
+
+    // Comptes utilisateurs : aucun droit, pas même la lecture. La version
+    // précédente accordait `manage`, donc en droit l'élévation de rôle.
+    for (const action of ["read", "update", "manage", "delete", "create"] as const) {
+      expect(can(staff, action, "users")).toBe(false);
+    }
+
+    // Journal d'audit : réservé à `admin`, il expose l'activité de tous les
+    // opérateurs et des empreintes d'adresses IP.
+    for (const action of ["read", "manage", "delete", "download"] as const) {
+      expect(can(staff, action, "audit_log")).toBe(false);
+    }
   });
 
   test("l'administrateur conserve la supervision complète", () => {

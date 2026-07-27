@@ -114,10 +114,10 @@ describe("Cookie de session", () => {
 
 describe("Messages d'authentification", () => {
   test("un mauvais mot de passe reste générique", () => {
-    expect(toPublicAuthError(new AuthError("invalid-credentials"))).toEqual({
+    expect(toPublicAuthError(new AuthError("INVALID_CREDENTIALS"))).toEqual({
       message: "Adresse e-mail ou mot de passe incorrect.",
       status: 401,
-      code: "invalid-credentials",
+      code: "INVALID_CREDENTIALS",
     });
   });
 
@@ -125,7 +125,7 @@ describe("Messages d'authentification", () => {
     expect(toPublicAuthError(new Error("database unavailable"))).toEqual({
       message: "La connexion est temporairement indisponible. Veuillez réessayer.",
       status: 503,
-      code: "unexpected",
+      code: "UNEXPECTED_AUTH_ERROR",
     });
   });
 });

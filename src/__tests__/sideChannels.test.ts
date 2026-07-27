@@ -93,7 +93,7 @@ describe("Cache des zones authentifiées", () => {
   });
 
   test("les pages publiques restent cachables", () => {
-    for (const p of ["/", "/services", "/realisations/x", "/contact", "/couvreur-bruxelles"]) {
+    for (const p of ["/", "/services", "/a-propos", "/contact", "/couvreur-bruxelles"]) {
       expect(isPrivatePath(p)).toBe(false);
     }
   });
@@ -145,8 +145,13 @@ describe("Normalisation Unicode des identifiants", () => {
 
   test("le schéma d'inscription normalise avant de valider", () => {
     const parsed = RegisterSchema.safeParse({
+      firstName: "Jean",
+      lastName: "Dupont",
       email: "Jean@Example.BE",
       password: "motdepasse-tres-long",
+      passwordConfirmation: "motdepasse-tres-long",
+      acceptTerms: true,
+      acceptPrivacy: true,
     });
     expect(parsed.success).toBe(true);
     if (parsed.success) expect(parsed.data.email).toBe("jean@example.be");

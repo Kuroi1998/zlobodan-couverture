@@ -1,98 +1,20 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import postgres from "postgres";
-import sharp from "sharp";
 import { generateTotpToken } from "../../src/lib/auth/totp";
+import {
+  ADMIN_EMAIL,
+  ADMIN_PASSWORD,
+  ADMIN_TOTP_SECRET,
+  CLIENT_EMAIL,
+  CLIENT_PASSWORD,
+  OTHER_CLIENT_EMAIL,
+  OTHER_CLIENT_PASSWORD,
+  login,
+  logout,
+  mutatingHeaders,
+  submitQuoteWizard,
+} from "./support/portal";
 
-const CLIENT_EMAIL = "client.e2e@example.test";
-const CLIENT_PASSWORD = "Client-E2E-Password-2026!";
-const OTHER_CLIENT_EMAIL = "other.e2e@example.test";
-const OTHER_CLIENT_PASSWORD = "Other-E2E-Password-2026!";
-const ADMIN_EMAIL = "admin.e2e@example.test";
-const ADMIN_PASSWORD = "Admin-E2E-Password-2026!";
-const ADMIN_TOTP_SECRET = "JBSWY3DPEHPK3PXP";
-
-async function login(
-  page: Page,
-  email: string,
-  password: string,
-  totpCode?: string
-): Promise<void> {
-  await page.goto("/connexion");
-  await page.getByLabel(/Adresse Email/i).fill(email);
-  await page.getByLabel(/Mot de Passe/i).fill(password);
-  if (totpCode) await page.getByLabel(/Code 2FA/i).fill(totpCode);
-  await page.getByRole("button", { name: /Accéder à mon Espace/i }).click();
-  await expect(page).not.toHaveURL(/\/connexion/);
-}
-
-async function logout(page: Page): Promise<void> {
-  await page.getByRole("button", { name: /déconnecter|quitter le back-office/i }).click();
-  await expect(page).toHaveURL(/\/connexion/);
-}
-
-interface SubmitQuoteOptions {
-  email: string;
-  fullName: string;
-  verifyDraft?: boolean;
-  attachmentName?: string;
-}
-
-async function submitQuoteWizard(
-  page: Page,
-  options: SubmitQuoteOptions
-): Promise<string> {
-  await page.goto("/devis");
-  await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: /Réfection complète toiture/i }).click();
-  await page.getByRole("button", { name: /Continuer vers l'étape 2/i }).click();
-  if (options.verifyDraft) {
-    const draftBanner = page.getByText(/Brouillon serveur/);
-    await expect(draftBanner).toBeVisible();
-    const draftReference =
-      (await draftBanner.textContent())?.match(/DEV-\d{4}-\d{6}/)?.[0] ?? "";
-    expect(draftReference).toMatch(/^DEV-\d{4}-\d{6}$/);
-    await page.reload();
-    await expect(page.getByText(draftReference)).toBeVisible();
-    await page.getByRole("button", { name: /Réfection complète toiture/i }).click();
-    await page.getByRole("button", { name: /Continuer vers l'étape 2/i }).click();
-  }
-  await page.getByRole("button", { name: /Ardoise naturelle/i }).click();
-  await page.getByRole("button", { name: /Continuer vers l'étape 3/i }).click();
-  await page.getByRole("button", { name: /50 à 100 m²/i }).click();
-  await page.getByRole("button", { name: /Continuer vers l'étape 4/i }).click();
-  await page.getByLabel(/Code Postal Belge/i).fill("1000");
-  await page.getByLabel(/Commune Belge/i).fill("Bruxelles");
-  await page.getByRole("button", { name: /Continuer vers l'étape 5/i }).click();
-  await page.getByLabel(/Nom & Prénom/i).fill(options.fullName);
-  await page.getByLabel(/Numéro de Téléphone/i).fill("0470123456");
-  await page.getByLabel(/Adresse Email/i).fill(options.email);
-  await page.getByLabel(/Précisions complémentaires/i).fill(
-    "Réfection complète avec isolation et contrôle de la sous-toiture."
-  );
-  const png = await sharp({
-    create: {
-      width: 32,
-      height: 32,
-      channels: 3,
-      background: "#c2410c",
-    },
-  })
-    .png()
-    .toBuffer();
-  await page.locator("#photo-upload-input").setInputFiles({
-    name: options.attachmentName ?? "toiture-e2e.png",
-    mimeType: "image/png",
-    buffer: png,
-  });
-  await page.getByLabel(/J'accepte que mes données/i).check();
-  await page.getByRole("button", { name: /Envoyer ma Demande de Devis/i }).click();
-  await expect(page).toHaveURL(/\/devis\/merci\?reference=DEV-\d{4}-\d{6}/);
-  const reference = new URL(page.url()).searchParams.get("reference");
-  expect(reference).toMatch(/^DEV-\d{4}-\d{6}$/);
-  await page.reload();
-  await expect(page.getByText(reference ?? "")).toBeVisible();
-  return reference ?? "";
-}
 
 test.describe.serial("contacts, devis et autorisations", () => {
   let contactReference = "";
@@ -135,13 +57,13 @@ test.describe.serial("contacts, devis et autorisations", () => {
       fullName: "Client E2E",
       verifyDraft: true,
     });
-    await page.goto("/mon-compte/devis");
+    await page.goto("/mon-compte/demandes");
     await expect(page.getByText(quoteReference)).toBeVisible();
     await page.reload();
     await expect(page.getByText(quoteReference)).toBeVisible();
     await logout(page);
     await login(page, CLIENT_EMAIL, CLIENT_PASSWORD);
-    await page.goto("/mon-compte/devis");
+    await page.goto("/mon-compte/demandes");
     await expect(page.getByText(quoteReference)).toBeVisible();
 
     const databaseUrl = process.env.DATABASE_URL;
@@ -266,7 +188,7 @@ test.describe.serial("contacts, devis et autorisations", () => {
 
   test("isole les fichiers entre clients", async ({ page }) => {
     await login(page, OTHER_CLIENT_EMAIL, OTHER_CLIENT_PASSWORD);
-    await page.goto("/mon-compte/devis");
+    await page.goto("/mon-compte/demandes");
     await expect(page.getByText(quoteReference)).toHaveCount(0);
     const response = await page.request.get(
       `/api/files/quote-attachments/${attachmentId}`
@@ -306,5 +228,172 @@ test.describe.serial("contacts, devis et autorisations", () => {
     await expect(page.getByText(/Mise à jour enregistrée/i)).toBeVisible();
     const file = await page.request.get(`/api/files/quote-attachments/${attachmentId}`);
     expect(file.status()).toBe(200);
+  });
+
+  test("persiste une note interne avec son auteur, sans jamais l'exposer au client", async ({
+    page,
+  }) => {
+    const token = generateTotpToken(ADMIN_TOTP_SECRET);
+    await login(page, ADMIN_EMAIL, ADMIN_PASSWORD, token ?? undefined);
+    await page.goto(`/admin/demandes?q=${encodeURIComponent(quoteReference)}`);
+    await page.getByRole("link", { name: /Ouvrir/i }).click();
+
+    const note = `Note E2E ${Date.now()} — visite calée mardi.`;
+    await page.getByPlaceholder(/Observation, suite à donner/i).fill(note);
+    await page.getByRole("button", { name: /Ajouter la note/i }).click();
+    await expect(page.getByText(/Note enregistrée/i)).toBeVisible();
+
+    // Survit à l'actualisation, et porte l'adresse de son auteur.
+    await page.reload();
+    await expect(page.getByText(note)).toBeVisible();
+    await expect(page.getByText(ADMIN_EMAIL, { exact: false }).first()).toBeVisible();
+    await logout(page);
+
+    // Le propriétaire du dossier ne doit en trouver aucune trace, ni dans le
+    // rendu, ni dans la charge utile sérialisée de la page.
+    await login(page, CLIENT_EMAIL, CLIENT_PASSWORD);
+    await page.goto(`/mon-compte/demandes/${encodeURIComponent(quoteReference)}`);
+    await expect(page.getByRole("heading", { name: quoteReference })).toBeVisible();
+    expect(await page.content()).not.toContain(note);
+  });
+
+  test("ouvre le détail d'une demande et refuse celle d'un autre client", async ({
+    page,
+  }) => {
+    await login(page, CLIENT_EMAIL, CLIENT_PASSWORD);
+    await page.goto("/mon-compte/demandes");
+    await page.getByRole("link", { name: /Voir le détail/i }).first().click();
+    await expect(page).toHaveURL(/\/mon-compte\/demandes\/DEV-\d{4}-\d{6}/);
+    await expect(page.getByRole("heading", { name: quoteReference })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: quoteReference })).toBeVisible();
+    await logout(page);
+
+    // Même référence, autre compte : réponse neutre, identique à celle d'une
+    // référence inexistante.
+    //
+    // On vérifie le rendu et non le code HTTP : la page est `force-dynamic` et
+    // son layout interroge PostgreSQL, donc le flux de réponse est déjà
+    // commencé quand `notFound()` s'exécute — Next ne peut plus poser le 404 et
+    // sert la frontière avec un 200. La garantie qui compte est ailleurs, et
+    // elle est testée ici : rien du dossier d'autrui n'atteint le navigateur.
+    // Les routes d'API, elles, répondent bien 404 (test « isole les fichiers »).
+    await login(page, OTHER_CLIENT_EMAIL, OTHER_CLIENT_PASSWORD);
+    await page.goto(`/mon-compte/demandes/${encodeURIComponent(quoteReference)}`);
+    await expect(page.getByRole("heading", { name: /Demande introuvable/i })).toBeVisible();
+
+    // La référence figure dans l'URL saisie, donc dans la charge utile de
+    // navigation : ce n'est pas une fuite, l'appelant l'a fournie lui-même. Ce
+    // qui ne doit pas apparaître, c'est la **donnée** du dossier — description,
+    // titulaire, localisation.
+    const leaked = await page.content();
+    expect(leaked).not.toContain("Réfection complète avec isolation");
+    expect(leaked).not.toContain("Client E2E");
+
+    // Une référence qui n'existe pour personne produit exactement la même page.
+    await page.goto("/mon-compte/demandes/DEM-2026-000000");
+    await expect(page.getByRole("heading", { name: /Demande introuvable/i })).toBeVisible();
+  });
+
+  /**
+   * Un seul test pour les trois mutations client — profil, annulation,
+   * refus du back-office. Les découper coûterait trois connexions
+   * supplémentaires, et le quota de débit par IP (dix connexions par quart
+   * d'heure) est lui-même une garantie du produit : le contourner en
+   * l'assouplissant pour les tests reviendrait à ne plus le tester.
+   */
+  test("rend le compte réellement modifiable, annulable, et fermé au back-office", async ({
+    page,
+  }) => {
+    await login(page, CLIENT_EMAIL, CLIENT_PASSWORD);
+
+    // --- Profil : la modification atteint PostgreSQL ---------------------
+    await page.goto("/mon-compte/parametres");
+    await page.getByLabel(/Téléphone/i).fill("0470887766");
+    await page.getByRole("button", { name: /Enregistrer/i }).click();
+    await expect(page.getByText(/Profil mis à jour/i)).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel(/Téléphone/i)).toHaveValue("0470887766");
+    // L'adresse e-mail est affichée sans champ de saisie : elle n'est pas
+    // modifiable, et l'interface ne le laisse pas croire.
+    await expect(page.getByRole("textbox", { name: /Adresse e-mail/i })).toHaveCount(0);
+
+    // --- Annulation : machine à états respectée --------------------------
+    const reference = await submitQuoteWizard(page, {
+      email: CLIENT_EMAIL,
+      fullName: "Client E2E Annulation",
+      attachmentName: "toiture-annulation.png",
+    });
+    await page.goto(`/mon-compte/demandes/${encodeURIComponent(reference)}`);
+    await page.getByRole("button", { name: /Annuler cette demande/i }).click();
+    await page.getByRole("button", { name: /Oui, annuler/i }).click();
+    await expect(page.getByText(/annulée/i).first()).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("Annulée").first()).toBeVisible();
+    // Le bouton disparaît : la transition n'est plus déclarée, donc plus offerte.
+    await expect(page.getByRole("button", { name: /Annuler cette demande/i })).toHaveCount(0);
+    // Et le serveur refuse malgré tout l'appel direct — le bouton masqué n'est
+    // pas la sécurité, il n'en est que la conséquence visible.
+    const replay = await page.request.post(
+      `/api/client/demandes/${encodeURIComponent(reference)}/cancel`,
+      { data: {}, headers: mutatingHeaders(page) }
+    );
+    expect(replay.status()).toBe(409);
+
+    // --- Back-office : fermé au rôle client ------------------------------
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/mon-compte/);
+    await page.goto("/admin/demandes");
+    await expect(page).toHaveURL(/\/mon-compte/);
+
+    const note = await page.request.post("/api/admin/notes", {
+      data: {
+        entityType: "quote_request",
+        entityId: "3f4c1b2e-0000-4000-8000-000000000000",
+        content: "tentative client",
+      },
+      headers: mutatingHeaders(page),
+    });
+    expect(note.status()).toBe(403);
+
+    const forbidden = await page.request.post(
+      "/api/admin/demandes/3f4c1b2e-0000-4000-8000-000000000000/status",
+      { data: { status: "under_review" }, headers: mutatingHeaders(page) }
+    );
+    expect(forbidden.status()).toBe(403);
+
+    // --- Statuts invalides, depuis la session opérateur ------------------
+    await logout(page);
+    const token = generateTotpToken(ADMIN_TOTP_SECRET);
+    await login(page, ADMIN_EMAIL, ADMIN_PASSWORD, token ?? undefined);
+
+    const databaseUrl = process.env.DATABASE_URL;
+    const sql = postgres(databaseUrl ?? "", { max: 1 });
+    let requestId = "";
+    try {
+      const rows = await sql<{ id: string }[]>`
+        select id from quote_requests where reference = ${reference} limit 1
+      `;
+      requestId = rows[0]?.id ?? "";
+    } finally {
+      await sql.end();
+    }
+    expect(requestId).not.toBe("");
+
+    // Valeur hors domaine : refusée à la validation.
+    const invalid = await page.request.post(`/api/admin/demandes/${requestId}/status`, {
+      data: { status: "n_importe_quoi" },
+      headers: mutatingHeaders(page),
+    });
+    expect(invalid.status()).toBe(422);
+
+    // Valeur connue mais transition non déclarée depuis `cancelled` : refus
+    // métier, jamais un 200 complaisant.
+    const illegal = await page.request.post(`/api/admin/demandes/${requestId}/status`, {
+      data: { status: "accepted" },
+      headers: mutatingHeaders(page),
+    });
+    expect(illegal.status()).toBe(409);
   });
 });

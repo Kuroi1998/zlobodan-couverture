@@ -36,14 +36,18 @@ beforeAll(async () => {
     .values([
       {
         email: "integration-client@example.test",
+        normalizedEmail: "integration-client@example.test",
         passwordHash: "not-used-in-integration-tests",
         role: "client",
+        status: "active",
         emailVerifiedAt: new Date(),
       },
       {
         email: "integration-staff@example.test",
+        normalizedEmail: "integration-staff@example.test",
         passwordHash: "not-used-in-integration-tests",
         role: "staff",
+        status: "active",
         emailVerifiedAt: new Date(),
       },
     ])

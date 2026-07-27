@@ -2,14 +2,16 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
-  loginUser: vi.fn(),
+  beginLogin: vi.fn(),
+  completeTwoFactorLogin: vi.fn(),
   enforceRateLimit: vi.fn(),
   toPublicAuthError: vi.fn(),
   recordSecurityEvent: vi.fn(),
 }));
 
 vi.mock("@/lib/services/auth-service", () => ({
-  loginUser: mocks.loginUser,
+  beginLogin: mocks.beginLogin,
+  completeTwoFactorLogin: mocks.completeTwoFactorLogin,
 }));
 
 vi.mock("@/lib/security/rate-limit-guard", () => ({
@@ -39,15 +41,20 @@ function loginRequest(body: Record<string, unknown>): NextRequest {
 
 function authenticatedUser(role: "client" | "staff" | "admin") {
   return {
+    kind: "authenticated" as const,
     user: {
       id: `user-${role}`,
       email: `${role}@example.test`,
       role,
     },
     session: {
+      id: `session-id-${role}`,
       token: `session-${role}`,
       maxAgeSeconds: 3600,
+      knownDevice: true,
+      deviceName: "Test",
     },
+    destination: role === "client" ? "/mon-compte" : "/admin",
   };
 }
 
@@ -57,13 +64,13 @@ beforeEach(() => {
   mocks.toPublicAuthError.mockReturnValue({
     message: "Adresse e-mail ou mot de passe incorrect.",
     status: 401,
-    code: "invalid-credentials",
+    code: "INVALID_CREDENTIALS",
   });
 });
 
 describe("POST /api/auth/login", () => {
   test("crée le cookie et renvoie /mon-compte pour le parcours client exact", async () => {
-    mocks.loginUser.mockResolvedValue(authenticatedUser("client"));
+    mocks.beginLogin.mockResolvedValue(authenticatedUser("client"));
 
     const response = await POST(
       loginRequest({
@@ -88,7 +95,7 @@ describe("POST /api/auth/login", () => {
   });
 
   test("renvoie /admin à un administrateur sans next", async () => {
-    mocks.loginUser.mockResolvedValue(authenticatedUser("admin"));
+    mocks.beginLogin.mockResolvedValue(authenticatedUser("admin"));
 
     const response = await POST(
       loginRequest({
@@ -104,7 +111,10 @@ describe("POST /api/auth/login", () => {
   });
 
   test("conserve une destination client interne précise", async () => {
-    mocks.loginUser.mockResolvedValue(authenticatedUser("client"));
+    mocks.beginLogin.mockResolvedValue({
+      ...authenticatedUser("client"),
+      destination: "/mon-compte/devis",
+    });
 
     const response = await POST(
       loginRequest({
@@ -121,7 +131,7 @@ describe("POST /api/auth/login", () => {
   });
 
   test("refuse une redirection externe et revient au repli du rôle", async () => {
-    mocks.loginUser.mockResolvedValue(authenticatedUser("client"));
+    mocks.beginLogin.mockResolvedValue(authenticatedUser("client"));
 
     const response = await POST(
       loginRequest({
@@ -138,7 +148,7 @@ describe("POST /api/auth/login", () => {
   });
 
   test("un échec ne crée aucun cookie de session", async () => {
-    mocks.loginUser.mockRejectedValue(new Error("bad-password"));
+    mocks.beginLogin.mockRejectedValue(new Error("bad-password"));
 
     const response = await POST(
       loginRequest({

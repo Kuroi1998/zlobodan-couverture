@@ -6,6 +6,7 @@ import {
   maskDatabaseUrl,
   requireDatabaseUrl,
   requireSessionSecret,
+  requireTwoFactorEncryptionKey,
   resetServerEnvCache,
 } from "@/config/env";
 import { getDatabaseErrorMessage } from "@/db/diagnostics";
@@ -96,6 +97,14 @@ describe("Secrets", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("SESSION_SECRET", STRONG_SECRET);
     expect(requireSessionSecret()).toBe(STRONG_SECRET);
+  });
+
+  test("la clé de chiffrement 2FA est distincte et obligatoire en production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("TWO_FACTOR_ENCRYPTION_KEY", "");
+    expect(() => requireTwoFactorEncryptionKey()).toThrow(/absente/);
+    vi.stubEnv("TWO_FACTOR_ENCRYPTION_KEY", STRONG_SECRET);
+    expect(requireTwoFactorEncryptionKey()).toBe(STRONG_SECRET);
   });
 
   test("la clé de test Turnstile est refusée en production", () => {
