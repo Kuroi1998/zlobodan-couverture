@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { Download, Receipt, ShieldCheck } from "lucide-react";
+import { Receipt, ShieldCheck } from "lucide-react";
 import { db } from "@/db/client";
 import { invoices } from "@/db/schema/invoices";
 import { quotes } from "@/db/schema/quotes";
@@ -44,7 +43,6 @@ export default async function ClientInvoicesPage() {
               <th className="p-4">Échéance</th>
               <th className="p-4 text-right">TTC</th>
               <th className="p-4">Statut</th>
-              <th className="p-4">Document</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
@@ -58,19 +56,11 @@ export default async function ClientInvoicesPage() {
                   {Number(invoice.amountTtc).toLocaleString("fr-BE")} €
                 </td>
                 <td className="p-4">{invoice.status}</td>
-                <td className="p-4">
-                  <Link
-                    href={`/api/pdf/invoice/${invoice.id}`}
-                    className="inline-flex items-center gap-1 text-brand-terracotta hover:underline"
-                  >
-                    <Download className="h-4 w-4" /> Ouvrir
-                  </Link>
-                </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-500">
+                <td colSpan={6} className="p-8 text-center text-slate-500">
                   <Receipt className="mx-auto mb-3 h-7 w-7" />
                   Aucune facture n'est rattachée à votre compte.
                 </td>

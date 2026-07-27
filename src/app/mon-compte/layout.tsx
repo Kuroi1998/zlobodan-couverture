@@ -5,12 +5,12 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import {
   LayoutDashboard,
   FileText,
-  Receipt,
-  HardHat,
+
   MessageSquare,
   FolderOpen,
   Settings,
   ShieldCheck,
+  KeyRound,
 } from "lucide-react";
 
 export const metadata = {
@@ -55,35 +55,23 @@ export default async function ClientPortalLayout({ children }: Readonly<{ childr
             </Link>
 
             <Link
-              href="/mon-compte/devis"
+              href="/mon-compte/demandes"
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
             >
               <FileText className="h-4 w-4 text-blue-400" />
-              <span>Mes Devis</span>
+              <span>Mes Demandes</span>
             </Link>
 
-            <Link
-              href="/mon-compte/factures"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
-            >
-              <Receipt className="h-4 w-4 text-emerald-400" />
-              <span>Mes Factures</span>
-            </Link>
-
-            <Link
-              href="/mon-compte/chantiers"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
-            >
-              <HardHat className="h-4 w-4 text-amber-400" />
-              <span>Mes Chantiers</span>
-            </Link>
+            {/* « Mes Factures » et « Mes Chantiers » retirés : ces modules
+                sont reportés en V2/V3 et les tables n'ont pas de chemin
+                d'écriture en V1. Voir delivery-roadmap.md, phases 4-6. */}
 
             <Link
               href="/mon-compte/messages"
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
             >
               <MessageSquare className="h-4 w-4 text-purple-400" />
-              <span>Messagerie</span>
+              <span>Mes Échanges</span>
             </Link>
 
             <Link
@@ -91,7 +79,7 @@ export default async function ClientPortalLayout({ children }: Readonly<{ childr
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
             >
               <FolderOpen className="h-4 w-4 text-teal-400" />
-              <span>Mes Documents</span>
+              <span>Mes documents</span>
             </Link>
 
             <Link
@@ -99,7 +87,14 @@ export default async function ClientPortalLayout({ children }: Readonly<{ childr
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
             >
               <Settings className="h-4 w-4 text-slate-400" />
-              <span>Paramètres &amp; RGPD</span>
+              <span>Profil &amp; RGPD</span>
+            </Link>
+            <Link
+              href="/mon-compte/securite"
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-800 text-slate-200 hover:text-white transition"
+            >
+              <KeyRound className="h-4 w-4 text-emerald-400" />
+              <span>Sécurité</span>
             </Link>
           </nav>
 
