@@ -9,3 +9,6 @@ export * from "./messages";
 export * from "./audit";
 export * from "./contacts";
 export * from "./notifications";
+export * from "./notes";
+export * from "./accounts";
+export * from "./security-events";

@@ -29,6 +29,7 @@ export const passwordResetTokens = pgTable(
     tokenHash: varchar("token_hash", { length: 255 }).notNull().unique(),
     expiresAt: timestamp("expires_at", { mode: "date", withTimezone: true }).notNull(), // 15 min
     usedAt: timestamp("used_at", { mode: "date", withTimezone: true }),
+    requestedIpHash: varchar("requested_ip_hash", { length: 64 }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

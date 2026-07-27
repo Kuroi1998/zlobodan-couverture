@@ -39,7 +39,9 @@ export const quoteRequests = pgTable(
       .$type<QuoteRequestStatus>()
       .notNull()
       .default("submitted"),
-    internalNotes: text("internal_notes"),
+    // Les notes internes vivent dans `internal_notes` (table dédiée) : une
+    // colonne unique écrasait la note de l'opérateur précédent, sans auteur ni
+    // date. Voir `src/db/schema/notes.ts`.
     consentPrivacy: boolean("consent_privacy").notNull(),
     consentAt: timestamp("consent_at", { mode: "date", withTimezone: true }),
     privacyPolicyVersion: varchar("privacy_policy_version", { length: 30 }),
@@ -54,6 +56,10 @@ export const quoteRequests = pgTable(
     index("idx_quote_req_user_id").on(table.userId),
     index("idx_quote_req_status").on(table.status),
     index("idx_quote_req_created_at").on(table.createdAt),
+    // Index de l'espace client : « mes demandes, les plus récentes d'abord ».
+    // C'est la requête la plus fréquente de la zone authentifiée ; l'index sur
+    // `user_id` seul obligeait à trier le résultat après filtrage.
+    index("idx_quote_req_user_created").on(table.userId, table.createdAt),
     check(
       "quote_requests_status_check",
       sql`${table.status} in ('draft','submitted','under_review','contacted','visit_scheduled','estimate_in_preparation','estimate_sent','accepted','rejected','cancelled','archived')`

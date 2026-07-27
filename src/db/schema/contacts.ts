@@ -33,7 +33,7 @@ export const contactMessages = pgTable(
     assignedToUserId: uuid("assigned_to_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
-    internalNotes: text("internal_notes"),
+    // Voir `src/db/schema/notes.ts` : les notes internes sont historisées.
     consentPrivacy: boolean("consent_privacy").notNull(),
     consentAt: timestamp("consent_at", { mode: "date", withTimezone: true }).notNull(),
     privacyPolicyVersion: varchar("privacy_policy_version", { length: 30 }).notNull(),

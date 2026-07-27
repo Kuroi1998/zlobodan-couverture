@@ -22,6 +22,7 @@ export const notificationOutbox = pgTable(
     entityId: uuid("entity_id").notNull(),
     recipient: varchar("recipient", { length: 255 }).notNull(),
     payload: jsonb("payload").$type<Record<string, string>>().notNull().default({}),
+    encryptedPayload: text("encrypted_payload"),
     status: varchar("status", { length: 20 })
       .$type<NotificationStatus>()
       .notNull()
