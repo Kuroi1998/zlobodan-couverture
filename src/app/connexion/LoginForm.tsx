@@ -1,385 +1,271 @@
 "use client";
 
-import React, { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ShieldCheck } from "lucide-react";
+import TurnstileWidget from "@/components/forms/TurnstileWidget";
 import { safeReturnPath } from "@/lib/security/urls";
-import {
-  ShieldCheck,
-  Lock,
-  Mail,
-  Phone,
-  ArrowRight,
-  AlertTriangle,
-  CheckCircle2,
-  KeyRound,
-} from "lucide-react";
 
-const TEMPORARY_LOGIN_ERROR =
-  "La connexion est temporairement indisponible. Veuillez réessayer.";
-
-class LoginFeedbackError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "LoginFeedbackError";
-  }
-}
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
-
-function isResponseRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function getResponseError(value: unknown, fallback: string): string {
-  if (!isResponseRecord(value) || typeof value.error !== "string") return fallback;
-  return value.error;
-}
-
-interface LoginFormProps {
+interface Props {
   requestedNextPath: string | null;
 }
 
-export default function LoginForm({ requestedNextPath }: Readonly<LoginFormProps>) {
+interface ApiPayload {
+  success?: boolean;
+  destination?: string;
+  code?: string;
+  message?: string;
+  error?: string | { message?: string; code?: string };
+}
+
+function messageFrom(payload: ApiPayload, fallback: string): string {
+  if (typeof payload.error === "string") return payload.error;
+  if (payload.error && typeof payload.error.message === "string") {
+    return payload.error.message;
+  }
+  return payload.message ?? fallback;
+}
+
+export default function LoginForm({ requestedNextPath }: Readonly<Props>) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
+  const [twoFactorMethod, setTwoFactorMethod] = useState<"totp" | "recovery">("totp");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [failed, setFailed] = useState(false);
 
-  // Form State
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [totpCode, setTotpCode] = useState("");
+  const onCaptchaToken = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
 
-  // Status State
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  function finishLogin(destination: unknown): void {
+    const safeDestination = safeReturnPath(destination, "/mon-compte");
+    router.replace(safeDestination);
+    router.refresh();
+  }
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
+  async function submitLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setFeedback("");
+    setFailed(false);
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.get("email"),
+        password: form.get("password"),
+        totpCode: form.get("totpCode") || undefined,
+        next: requestedNextPath ?? undefined,
+        captchaToken: captchaToken || undefined,
+      }),
+    }).catch(() => null);
+    const payload = response
+      ? ((await response.json().catch(() => ({}))) as ApiPayload)
+      : {};
 
-    setErrorMsg("");
-    setSuccessMsg("");
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          totpCode: totpCode || undefined,
-          next: requestedNextPath ?? undefined,
-        }),
-      });
-
-      const data: unknown = await res.json();
-
-      if (!res.ok || !isResponseRecord(data) || data.success !== true) {
-        throw new LoginFeedbackError(
-          getResponseError(data, TEMPORARY_LOGIN_ERROR)
-        );
-      }
-
-      const destination = safeReturnPath(data.destination, "");
-      if (!destination) {
-        throw new LoginFeedbackError(TEMPORARY_LOGIN_ERROR);
-      }
-
-      // Le serveur a authentifié l'utilisateur, choisi la destination depuis
-      // son rôle réel et attaché le cookie à cette réponse. `replace` retire
-      // le formulaire (et son état) de l'historique ; `refresh` force l'arbre
-      // serveur de destination à relire immédiatement la nouvelle session.
-      setPassword("");
-      setTotpCode("");
-      setSuccessMsg("Connexion réussie. Redirection vers votre espace...");
-      router.replace(destination);
-      router.refresh();
-    } catch (error: unknown) {
-      // Un échec d'authentification est affiché, jamais contourné.
-      //
-      // La version précédente redirigeait vers /admin ou /mon-compte selon que
-      // l'adresse contenait « admin » — un raccourci de développement qui
-      // masquait toute erreur et envoyait l'utilisateur vers une zone protégée
-      // sans session. Les gardes serveur le renvoyaient aussitôt vers cette
-      // page : le symptôme visible était une boucle de redirection, et la
-      // cause réelle restait invisible.
-      setErrorMsg(
-        error instanceof LoginFeedbackError
-          ? error.message
-          : TEMPORARY_LOGIN_ERROR
-      );
-    } finally {
-      setIsSubmitting(false);
+    if (response?.status === 202 && payload.code === "TWO_FACTOR_REQUIRED") {
+      setTwoFactorStep(true);
+      setFeedback(payload.message ?? "Second facteur requis.");
+      setPending(false);
+      return;
     }
-  };
-
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-
-    setErrorMsg("");
-    setSuccessMsg("");
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, phone }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Erreur lors de l'inscription.");
-      }
-
-      // Message neutre, aligné sur la réponse du serveur : il ne confirme pas
-      // qu'un compte vient d'être créé, ce qui permettrait d'énumérer les
-      // adresses déjà inscrites. Pas de redirection : le compte doit d'abord
-      // être vérifié par email.
-      setSuccessMsg(
-        data.message ||
-          "Si cette adresse peut être utilisée, un email de vérification vient d'être envoyé."
-      );
-    } catch (error: unknown) {
-      // Plus d'annonce de succès sur un échec : la version précédente affichait
-      // « Inscription validée » puis redirigeait, quelle que soit la réponse du
-      // serveur — y compris lorsque le mot de passe était refusé.
-      setErrorMsg(getErrorMessage(error, "Erreur lors de l'inscription."));
-    } finally {
-      setIsSubmitting(false);
+    if (!response?.ok || payload.success !== true) {
+      setFailed(true);
+      setFeedback(messageFrom(payload, "Connexion temporairement indisponible."));
+      const errorCode =
+        payload.code ??
+        (typeof payload.error === "object" ? payload.error.code : undefined);
+      if (errorCode === "CHALLENGE_REQUIRED") setShowCaptcha(true);
+      setPending(false);
+      return;
     }
-  };
+    finishLogin(payload.destination);
+  }
+
+  async function submitSecondFactor(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setFeedback("");
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/auth/two-factor/challenge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: form.get("code"),
+        method: twoFactorMethod,
+      }),
+    }).catch(() => null);
+    const payload = response
+      ? ((await response.json().catch(() => ({}))) as ApiPayload)
+      : {};
+    if (!response?.ok || payload.success !== true) {
+      setFailed(true);
+      setFeedback(messageFrom(payload, "Code invalide ou expiré."));
+      setPending(false);
+      return;
+    }
+    finishLogin(payload.destination);
+  }
+
+  async function submitRegistration(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setFeedback("");
+    setFailed(false);
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: form.get("firstName"),
+        lastName: form.get("lastName"),
+        email: form.get("email"),
+        phone: form.get("phone"),
+        password: form.get("password"),
+        passwordConfirmation: form.get("passwordConfirmation"),
+        acceptTerms: form.get("acceptTerms") === "on",
+        acceptPrivacy: form.get("acceptPrivacy") === "on",
+      }),
+    }).catch(() => null);
+    const payload = response
+      ? ((await response.json().catch(() => ({}))) as ApiPayload)
+      : {};
+    setFailed(!response?.ok);
+    setFeedback(
+      messageFrom(
+        payload,
+        response?.ok
+          ? "Vérifiez votre boîte e-mail pour activer le compte."
+          : "Inscription impossible."
+      )
+    );
+    setPending(false);
+  }
+
+  const inputClass =
+    "w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-brand-terracotta focus:outline-none";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 py-16">
-      
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
-        
-        {/* Header Logo */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2.5 font-heading font-extrabold text-2xl text-white">
-            <div className="bg-brand-terracotta p-2 rounded-xl text-white shadow-accent">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-            <span>ZLOBODAN</span>
+    <main className="flex min-h-screen items-center justify-center bg-slate-950 p-4 text-white">
+      <div className="w-full max-w-lg space-y-6 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl sm:p-8">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center gap-2 text-2xl font-extrabold">
+            <ShieldCheck className="text-brand-terracotta" /> ZLOBODAN
           </Link>
-          <p className="text-xs text-slate-400">
-            Espace Client &amp; Back-Office Administration Belgique
+          <p className="mt-2 text-xs text-slate-400">Espace client et administration sécurisés</p>
+        </div>
+
+        {!twoFactorStep && (
+          <div className="grid grid-cols-2 rounded-xl bg-slate-950 p-1">
+            {(["login", "register"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  setMode(item);
+                  setFeedback("");
+                }}
+                className={`rounded-lg py-2 text-sm font-bold ${mode === item ? "bg-brand-terracotta" : "text-slate-400"}`}
+              >
+                {item === "login" ? "Se connecter" : "Créer un compte"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {feedback && (
+          <p
+            role={failed ? "alert" : "status"}
+            className={`rounded-xl border p-3 text-sm ${failed ? "border-red-800 bg-red-950 text-red-200" : "border-emerald-800 bg-emerald-950 text-emerald-200"}`}
+          >
+            {feedback}
           </p>
-        </div>
-
-        {/* Tab Toggle */}
-        <div className="grid grid-cols-2 p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("login");
-              setErrorMsg("");
-              setSuccessMsg("");
-            }}
-            className={`py-2.5 rounded-xl transition ${
-              activeTab === "login"
-                ? "bg-brand-terracotta text-white shadow-md"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Se Connecter
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("register");
-              setErrorMsg("");
-              setSuccessMsg("");
-            }}
-            className={`py-2.5 rounded-xl transition ${
-              activeTab === "register"
-                ? "bg-brand-terracotta text-white shadow-md"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Créer un Compte
-          </button>
-        </div>
-
-        {/* Feedback Alerts */}
-        {errorMsg && (
-          <div className="p-3.5 rounded-xl bg-red-950/80 border border-red-800 text-red-200 text-xs flex items-center gap-2 animate-in fade-in">
-            <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
-            <span role="alert" aria-live="polite">{errorMsg}</span>
-          </div>
         )}
 
-        {successMsg && (
-          <div className="p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-            <span role="status" aria-live="polite">{successMsg}</span>
-          </div>
-        )}
-
-        {/* LOGIN FORM */}
-        {activeTab === "login" ? (
-          <form
-            onSubmit={handleLoginSubmit}
-            aria-busy={isSubmitting}
-            className="space-y-4"
-          >
-            <div className="space-y-1">
-              <label htmlFor="login-email" className="text-xs font-bold text-slate-300 uppercase">Adresse Email *</label>
-              <div className="relative">
-                <input
-                  id="login-email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="jean.peeters@email.be"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-10 text-sm text-white focus:outline-none focus:border-brand-terracotta"
-                />
-                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="login-password" className="text-xs font-bold text-slate-300 uppercase">Mot de Passe *</label>
-              <div className="relative">
-                <input
-                  id="login-password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-10 text-sm text-white focus:outline-none focus:border-brand-terracotta"
-                />
-                <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="login-totp" className="text-xs font-bold text-slate-300 uppercase">
-                Code 2FA (administration)
-              </label>
-              <div className="relative">
-                <input
-                  id="login-totp"
-                  name="totpCode"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="[0-9]{6}"
-                  maxLength={6}
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="123456"
-                  aria-describedby="login-totp-help"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-10 text-sm text-white tracking-[0.3em] focus:outline-none focus:border-brand-terracotta"
-                />
-                <KeyRound className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
-              </div>
-              <p id="login-totp-help" className="text-[11px] text-slate-500">
-                Requis uniquement pour les comptes administrateur et staff.
-              </p>
-            </div>
-
+        {twoFactorStep ? (
+          <form onSubmit={submitSecondFactor} className="space-y-4">
+            <h1 className="text-xl font-bold">Vérification en deux étapes</h1>
+            <label className="block space-y-1">
+              <span className="text-xs font-bold uppercase">
+                {twoFactorMethod === "totp" ? "Code 2FA" : "Code de récupération"}
+              </span>
+              <input
+                name="code"
+                autoComplete="one-time-code"
+                inputMode={twoFactorMethod === "totp" ? "numeric" : "text"}
+                maxLength={32}
+                required
+                className={inputClass}
+              />
+            </label>
             <button
-              type="submit"
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-              className="w-full bg-brand-terracotta hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-70 text-white font-extrabold py-3.5 rounded-xl text-sm shadow-accent transition flex items-center justify-center gap-2 mt-2"
+              type="button"
+              onClick={() =>
+                setTwoFactorMethod((value) =>
+                  value === "totp" ? "recovery" : "totp"
+                )
+              }
+              className="text-xs text-brand-terracotta underline"
             >
-              <span>{isSubmitting ? "Connexion en cours..." : "Accéder à mon Espace"}</span>
-              <ArrowRight className="h-4 w-4" />
+              {twoFactorMethod === "totp"
+                ? "Utiliser un code de récupération"
+                : "Utiliser l'application d'authentification"}
+            </button>
+            <button disabled={pending} className="w-full rounded-xl bg-brand-terracotta py-3 font-bold disabled:opacity-60">
+              {pending ? "Vérification…" : "Terminer la connexion"}
+            </button>
+          </form>
+        ) : mode === "login" ? (
+          <form onSubmit={submitLogin} className="space-y-4">
+            <label className="block space-y-1">
+              <span className="text-xs font-bold uppercase">Adresse Email</span>
+              <input name="email" type="email" autoComplete="email" required className={inputClass} />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-bold uppercase">Mot de Passe</span>
+              <input name="password" type="password" autoComplete="current-password" required className={inputClass} />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-bold uppercase">Code 2FA (si activé)</span>
+              <input name="totpCode" inputMode="numeric" autoComplete="one-time-code" maxLength={6} className={inputClass} />
+            </label>
+            {showCaptcha && <TurnstileWidget onToken={onCaptchaToken} theme="dark" />}
+            <div className="text-right">
+              <Link href="/mot-de-passe-oublie" className="text-xs text-brand-terracotta underline">
+                Mot de passe oublié ?
+              </Link>
+            </div>
+            <button disabled={pending} className="w-full rounded-xl bg-brand-terracotta py-3 font-bold disabled:opacity-60">
+              {pending ? "Connexion…" : "Accéder à mon Espace"}
             </button>
           </form>
         ) : (
-          /* REGISTER FORM */
-          <form
-            onSubmit={handleRegisterSubmit}
-            aria-busy={isSubmitting}
-            className="space-y-4"
-          >
-            <div className="space-y-1">
-              <label htmlFor="register-email" className="text-xs font-bold text-slate-300 uppercase">Adresse Email *</label>
-              <div className="relative">
-                <input
-                  id="register-email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="jean.peeters@email.be"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-10 text-sm text-white focus:outline-none focus:border-brand-terracotta"
-                />
-                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
-              </div>
+          <form onSubmit={submitRegistration} className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1"><span className="text-xs uppercase">Prénom</span><input name="firstName" autoComplete="given-name" required maxLength={100} className={inputClass} /></label>
+              <label className="space-y-1"><span className="text-xs uppercase">Nom</span><input name="lastName" autoComplete="family-name" required maxLength={100} className={inputClass} /></label>
             </div>
-
-            <div className="space-y-1">
-              <label htmlFor="register-phone" className="text-xs font-bold text-slate-300 uppercase">Téléphone (facultatif)</label>
-              <div className="relative">
-                <input
-                  id="register-phone"
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="0470 12 34 56"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-10 text-sm text-white focus:outline-none focus:border-brand-terracotta"
-                />
-                <Phone className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="register-password" className="text-xs font-bold text-slate-300 uppercase">Mot de passe (12 caractères min) *</label>
-              <div className="relative">
-                <input
-                  id="register-password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={12}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pl-10 text-sm text-white focus:outline-none focus:border-brand-terracotta"
-                />
-                <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-              className="w-full bg-brand-terracotta hover:bg-orange-600 text-white font-extrabold py-3.5 rounded-xl text-sm shadow-accent transition flex items-center justify-center gap-2 mt-2"
-            >
-              <span>Créer mon Compte Espace Client</span>
-              <ArrowRight className="h-4 w-4" />
+            <label className="block space-y-1"><span className="text-xs uppercase">Adresse e-mail</span><input name="email" type="email" autoComplete="email" required className={inputClass} /></label>
+            <label className="block space-y-1"><span className="text-xs uppercase">Téléphone (facultatif)</span><input name="phone" type="tel" autoComplete="tel" className={inputClass} /></label>
+            <label className="block space-y-1"><span className="text-xs uppercase">Mot de passe</span><input name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required className={inputClass} /></label>
+            <label className="block space-y-1"><span className="text-xs uppercase">Confirmer le mot de passe</span><input name="passwordConfirmation" type="password" autoComplete="new-password" minLength={12} maxLength={128} required className={inputClass} /></label>
+            <label className="flex gap-2 text-xs"><input name="acceptTerms" type="checkbox" required /> J’accepte les conditions d’utilisation.</label>
+            <label className="flex gap-2 text-xs"><input name="acceptPrivacy" type="checkbox" required /> J’accepte la politique de confidentialité.</label>
+            <button disabled={pending} className="w-full rounded-xl bg-brand-terracotta py-3 font-bold disabled:opacity-60">
+              {pending ? "Création…" : "Créer mon compte"}
             </button>
           </form>
         )}
-
       </div>
-
-    </div>
+    </main>
   );
 }

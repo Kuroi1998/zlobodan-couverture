@@ -39,10 +39,36 @@ const CLIENT_ALLOWED_ACTIONS: ReadonlySet<ActionType> = new Set<ActionType>([
   "create",
 ]);
 
+/**
+ * Ressources sur lesquelles un opérateur travaille réellement.
+ *
+ * Liste blanche et non liste noire : la version précédente accordait tout à
+ * `staff` sauf deux suppressions, ce qui lui donnait `manage` sur `users` —
+ * donc, en droit, la capacité d'élever un rôle. Aucun écran ne l'exposait,
+ * mais une permission qui n'existe que par oubli finit par être utilisée le
+ * jour où l'écran arrive.
+ *
+ * Ajouter une ressource sans l'inscrire ici la rend inaccessible au staff,
+ * ce qui est le bon sens d'échec.
+ */
+const STAFF_RESOURCES: ReadonlySet<ResourceType> = new Set<ResourceType>([
+  "quote",
+  "invoice",
+  "project",
+  "document",
+  "message",
+]);
+
 function canStaff(action: ActionType, resourceType: ResourceType): boolean {
-  if (resourceType === "audit_log" && action === "delete") return false;
-  if (resourceType === "users" && action === "delete") return false;
-  return true;
+  // Comptes utilisateurs et journal d'audit : réservés à `admin`. Le journal
+  // expose l'activité de tous les opérateurs et des empreintes d'IP ; la
+  // gestion des comptes est l'opération la plus sensible du système.
+  if (!STAFF_RESOURCES.has(resourceType)) return false;
+
+  // Une suppression définitive relève de l'administration, même sur un
+  // dossier : l'archivage passe par une transition de statut, pas par un
+  // `delete`.
+  return action !== "delete";
 }
 
 function canClient(

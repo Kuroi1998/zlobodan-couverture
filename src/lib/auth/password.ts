@@ -43,6 +43,12 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
+export function needsPasswordRehash(storedHash: string): boolean {
+  const match = /^\$2[aby]\$(\d{2})\$/.exec(storedHash);
+  if (!match) return true;
+  return Number(match[1]) !== BCRYPT_ROUNDS;
+}
+
 /**
  * Comparaison factice, à appeler lorsque aucun compte ne correspond.
  *
@@ -112,4 +118,9 @@ export async function isPasswordPwned(password: string): Promise<boolean> {
   }
 }
 
-export const PASSWORD_LIMITS = { PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH, BCRYPT_MAX_BYTES };
+export const PASSWORD_LIMITS = {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  BCRYPT_MAX_BYTES,
+  BCRYPT_ROUNDS,
+};

@@ -42,6 +42,8 @@ export async function POST(req: NextRequest) {
 
   try {
     await registerUser({
+      firstName: parsed.data.firstName,
+      lastName: parsed.data.lastName,
       email: parsed.data.email,
       password: parsed.data.password,
       phone: parsed.data.phone,

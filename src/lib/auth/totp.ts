@@ -5,6 +5,11 @@ const ISSUER = "Zlobodan Couverture SRL";
 const PERIOD_SECONDS = 30;
 const CODE_DIGITS = 6;
 
+export interface TotpVerification {
+  valid: boolean;
+  timeStep: number | null;
+}
+
 function encodeBase32(bytes: Buffer): string {
   let bits = 0;
   let value = 0;
@@ -74,13 +79,21 @@ export function generateTotpSecret(userEmail: string) {
 }
 
 export function verifyTotpToken(secretBase32: string, token: string): boolean {
+  return verifyTotpTokenWithStep(secretBase32, token).valid;
+}
+
+export function verifyTotpTokenWithStep(
+  secretBase32: string,
+  token: string,
+  now = Date.now()
+): TotpVerification {
   const normalizedToken = token.trim();
-  if (!/^\d{6}$/.test(normalizedToken)) return false;
+  if (!/^\d{6}$/.test(normalizedToken)) {
+    return { valid: false, timeStep: null };
+  }
   for (const drift of [-1, 0, 1]) {
-    const expected = generateTotpToken(
-      secretBase32,
-      Date.now() + drift * PERIOD_SECONDS * 1_000
-    );
+    const candidateTime = now + drift * PERIOD_SECONDS * 1_000;
+    const expected = generateTotpToken(secretBase32, candidateTime);
     if (
       expected &&
       crypto.timingSafeEqual(
@@ -88,8 +101,17 @@ export function verifyTotpToken(secretBase32: string, token: string): boolean {
         Buffer.from(normalizedToken, "ascii")
       )
     ) {
-      return true;
+      return {
+        valid: true,
+        timeStep: Math.floor(candidateTime / 1_000 / PERIOD_SECONDS),
+      };
     }
   }
-  return false;
+  return { valid: false, timeStep: null };
 }
+
+export const TOTP_POLICY = {
+  issuer: ISSUER,
+  periodSeconds: PERIOD_SECONDS,
+  digits: CODE_DIGITS,
+} as const;

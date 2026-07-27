@@ -10,9 +10,21 @@ import { requireIpHashSalt } from "@/lib/security/env";
  */
 const isProduction = process.env.NODE_ENV === "production";
 
+function configuredCookieName(): string {
+  const value = process.env.SESSION_COOKIE_NAME?.trim();
+  if (!value || !/^[A-Za-z0-9_-]{1,80}$/.test(value)) return "zlobodan_session";
+  return value;
+}
+
+const baseCookieName = configuredCookieName();
+
 export const SESSION_COOKIE_NAME = isProduction
-  ? "__Host-zlobodan_session"
-  : "zlobodan_session";
+  ? `__Host-${baseCookieName.replace(/^__Host-/, "")}`
+  : baseCookieName.replace(/^__Host-/, "");
+
+export const TWO_FACTOR_CHALLENGE_COOKIE_NAME = isProduction
+  ? "__Host-zlobodan_2fa_challenge"
+  : "zlobodan_2fa_challenge";
 
 export const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -54,6 +66,23 @@ export function getClearedSessionCookieOptions() {
   } as const;
 }
 
+export function getChallengeCookieOptions(maxAgeSeconds = 10 * 60) {
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "strict",
+    path: "/",
+    maxAge: maxAgeSeconds,
+  } as const;
+}
+
+export function getClearedChallengeCookieOptions() {
+  return {
+    ...getChallengeCookieOptions(0),
+    maxAge: 0,
+  } as const;
+}
+
 /**
  * Depuis Next.js 15, `cookies()` retourne une promesse : l'API de requête est
  * devenue asynchrone pour permettre le rendu en flux. La fonction suit donc.
@@ -61,4 +90,9 @@ export function getClearedSessionCookieOptions() {
 export async function getSessionTokenFromCookie(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(SESSION_COOKIE_NAME)?.value;
+}
+
+export async function getChallengeTokenFromCookie(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get(TWO_FACTOR_CHALLENGE_COOKIE_NAME)?.value;
 }
