@@ -81,13 +81,20 @@ jobs:
       #
       # `--redact` : une correspondance ne doit jamais atterrir en clair dans un
       # journal d'execution public.
+      #
+      # `--log-opts HEAD` restreint le scan a l'ascendance de la ref testee.
+      # Sans cette borne, gitleaks parcourt *toutes* les refs recuperees par le
+      # checkout, y compris `archive/legacy-zlobodan` : chaque execution
+      # rejouerait alors l'ancien depot, dont la documentation d'API contenait
+      # des charges JSON d'exemple que la regle `generic-api-key` signale a
+      # tort. L'historique complet de la branche reste couvert.
       - name: Gitleaks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if gitleaks git --help >/dev/null 2>&1; then
-            gitleaks git --redact --verbose .
+            gitleaks git --redact --verbose --log-opts HEAD .
           else
-            gitleaks detect --source=. --redact --verbose
+            gitleaks detect --source=. --redact --verbose --log-opts HEAD
           fi
 
   semgrep:
