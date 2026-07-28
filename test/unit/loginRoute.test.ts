@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
+// Le nom du cookie est configurable (`SESSION_COOKIE_NAME`) et la CI le
+// surcharge. Ce qui est vérifié ici, c'est que la route pose bien le cookie
+// *configuré* — pas qu'elle en code un en dur.
+import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
 const mocks = vi.hoisted(() => ({
   beginLogin: vi.fn(),
@@ -88,7 +92,7 @@ describe("POST /api/auth/login", () => {
       user: { role: "client" },
     });
     expect(response.headers.get("set-cookie")).toContain(
-      "zlobodan_session=session-client"
+      `${SESSION_COOKIE_NAME}=session-client`
     );
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(response.headers.get("set-cookie")).toContain("SameSite=strict");

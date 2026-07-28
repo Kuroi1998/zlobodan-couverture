@@ -7,11 +7,7 @@ import {
   getPostLoginDestination,
   isUserRole,
 } from "@/lib/auth/destinations";
-import {
-  getClearedSessionCookieOptions,
-  getSessionCookieOptions,
-  SESSION_COOKIE_NAME,
-} from "@/lib/auth/session";
+import { getClearedSessionCookieOptions } from "@/lib/auth/session";
 import {
   AuthError,
   toPublicAuthError,
@@ -67,16 +63,32 @@ describe("Destinations après connexion", () => {
   });
 });
 
+/**
+ * Ces tests fixent `SESSION_COOKIE_NAME` au lieu de lire l'environnement
+ * ambiant. La CI surcharge cette variable (`zlobodan_ci_session`) pour isoler
+ * ses cookies : une assertion sur le nom par défaut y échouerait, alors que le
+ * comportement vérifié — préfixe `__Host-` en production, absence de préfixe
+ * en local — est précisément indépendant du nom choisi.
+ */
 describe("Cookie de session", () => {
-  test("le cookie local est HTTP-only, strict et disponible sur tout le site", () => {
-    expect(SESSION_COOKIE_NAME).toBe("zlobodan_session");
-    expect(getSessionCookieOptions(3600)).toMatchObject({
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 3600,
-    });
+  test("le cookie local est HTTP-only, strict et disponible sur tout le site", async () => {
+    vi.stubEnv("SESSION_COOKIE_NAME", "zlobodan_session");
+    vi.resetModules();
+
+    try {
+      const localSession = await import("@/lib/auth/session");
+      expect(localSession.SESSION_COOKIE_NAME).toBe("zlobodan_session");
+      expect(localSession.getSessionCookieOptions(3600)).toMatchObject({
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        path: "/",
+        maxAge: 3600,
+      });
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 
   test("la déconnexion expire le cookie avec les mêmes attributs de sécurité", () => {
@@ -91,6 +103,7 @@ describe("Cookie de session", () => {
 
   test("le cookie de production utilise le préfixe __Host- et exige HTTPS", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("SESSION_COOKIE_NAME", "zlobodan_session");
     vi.resetModules();
 
     try {
