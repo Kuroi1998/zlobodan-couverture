@@ -1,0 +1,112 @@
+# ---------------------------------------------------------------------------
+# Variables d'environnement
+# Seul .env.example est versionné : il ne contient que des valeurs fictives.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# Dépendances
+# ---------------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+vendor/
+
+# ---------------------------------------------------------------------------
+# Compilations Next.js
+# `.next-e2e` et `.next-restart` sont les répertoires de build dédiés utilisés
+# par scripts/run-e2e-tests.cjs et scripts/run-restart-persistence-test.cjs.
+# ---------------------------------------------------------------------------
+.next/
+.next-*/
+out/
+dist/
+build/
+
+# ---------------------------------------------------------------------------
+# Tests, couverture et rapports
+# ---------------------------------------------------------------------------
+coverage/
+.vitest/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# ---------------------------------------------------------------------------
+# Caches et fichiers temporaires
+# ---------------------------------------------------------------------------
+.cache/
+.tmp/
+temp/
+.turbo/
+.eslintcache
+*.tsbuildinfo
+
+# ---------------------------------------------------------------------------
+# Journaux
+# ---------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------------------------------------------------------------------------
+# Éditeurs et environnements de développement
+# ---------------------------------------------------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# ---------------------------------------------------------------------------
+# Systèmes d'exploitation
+# `desktop.ini` et `$RECYCLE.BIN` sont générés par Windows et OneDrive.
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------------------------------------------------------------
+# Clés privées et certificats
+# ---------------------------------------------------------------------------
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# ---------------------------------------------------------------------------
+# Bases de données locales, exports et sauvegardes
+# Les migrations Drizzle sont du code source et doivent rester versionnées.
+# ---------------------------------------------------------------------------
+*.sql
+!src/db/migrations/*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+database/backups/
+backup/
+backups/
+*.bundle
+*.bak
+*.tmp
+*.temp
+*.orig
+
+# ---------------------------------------------------------------------------
+# Fichiers téléversés par les utilisateurs
+# Le dossier doit exister au démarrage : seul le .gitkeep est versionné.
+# ---------------------------------------------------------------------------
+storage/uploads/*
+!storage/uploads/.gitkeep
+public/uploads/*
