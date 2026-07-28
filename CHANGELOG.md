@@ -41,9 +41,27 @@ tag `legacy-before-clean-rebuild`.
 
 ### Corrigé — intégration continue (2026-07-28)
 
-- **Workflow CI** : le conteneur Mailpit s'arrêtait au démarrage
+Le conteneur Mailpit s'arrêtait au démarrage et interrompait le job avant même
+les tests. Cet échec en masquait trois autres, restés invisibles tant que le
+job ne dépassait pas l'initialisation des conteneurs.
+
+- **Workflow CI, conteneur Mailpit** : arrêt au démarrage
   (`authentication requires STARTTLS or TLS encryption`). Ajout de
   `MP_SMTP_AUTH_ALLOW_INSECURE`.
+- **Tests unitaires** : trois assertions comparaient le nom du cookie de
+  session à la valeur par défaut codée en dur, alors que la CI surcharge
+  `SESSION_COOKIE_NAME`. Les tests fixent désormais eux-mêmes la variable ou
+  dérivent l'attendu de la constante exportée. Vérifié sous trois noms
+  différents.
+- **Tests d'intégration** : `NOTIFICATION_ADMIN_EMAIL` n'était pas défini en
+  CI. `getNotificationRecipient()` rendant `null` hors production, une seule
+  entrée d'outbox était produite au lieu des deux attendues (accusé au client
+  et alerte interne).
+- **Gitleaks** : le scan est borné à l'ascendance de la référence testée
+  (`--log-opts HEAD`). Le checkout récupère toutes les références : sans cette
+  borne, chaque exécution rejouait `archive/legacy-zlobodan` et signalait des
+  charges JSON d'exemple de l'ancienne documentation d'API — des faux positifs
+  `generic-api-key`, sans aucun secret réel.
 - **Workflow Securite** : Semgrep bloquait sur `gcm-no-tag-length`. La longueur
   du tag d'authentification AES-256-GCM est désormais explicite
   (`authTagLength: 16`) dans `src/lib/security/secret-box.ts` et les trois
