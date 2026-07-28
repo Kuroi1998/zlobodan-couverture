@@ -35,9 +35,7 @@ tag `legacy-before-clean-rebuild`.
   et n'était référencé nulle part.
 - **`docs/en/` et `docs/fr/`** : quatorze fichiers dupliquant, en plus court et
   sans maintenance, la documentation de référence de `docs/`.
-- **`.github/workflows/pages.yml`** et la cible `STATIC_EXPORT` de
-  `next.config.js` : l'export statique supprimait `src/app/{admin,mon-compte,
-  connexion,api}` avant compilation. L'application exige un serveur Node.
+- **`VERSION`**, voir ci-dessus.
 
 ### Corrigé — intégration continue (2026-07-28)
 
@@ -57,6 +55,12 @@ job ne dépassait pas l'initialisation des conteneurs.
   CI. `getNotificationRecipient()` rendant `null` hors production, une seule
   entrée d'outbox était produite au lieu des deux attendues (accusé au client
   et alerte interne).
+- **Vitrine GitHub Pages** : le workflow échouait au pré-rendu de
+  `/reinitialisation-mot-de-passe`. Il ne retirait que
+  `src/app/{admin,mon-compte,connexion,api}` avant l'export statique, alors que
+  `/reinitialisation-mot-de-passe`, `/verification-email`,
+  `/confirmation-changement-email` et `/mot-de-passe-oublie` exigent également
+  un serveur. La liste est complétée et l'export vérifié : 21 pages générées.
 - **Gitleaks** : le scan est borné à l'ascendance de la référence testée
   (`--log-opts HEAD`). Le checkout récupère toutes les références : sans cette
   borne, chaque exécution rejouait `archive/legacy-zlobodan` et signalait des

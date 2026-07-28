@@ -1,10 +1,18 @@
 /**
- * Cible unique : un build **serveur** Next.js.
+ * Deux cibles de déploiement, un seul dépôt.
  *
- * L'application expose des route handlers (auth, PDF, `/api/health`), un
- * middleware, des pages dynamiques et une base PostgreSQL. Tout cela exige un
- * serveur Node : `output: "export"` casserait le build.
+ * Par DÉFAUT (`npm run build`, CI, développement, production Node) : build
+ * **serveur** complet. L'application expose des route handlers (auth, PDF,
+ * `/api/health`), un middleware, des pages dynamiques et une base PostgreSQL —
+ * tout cela exige un serveur. `output: "export"` casserait ce build.
+ *
+ * Cible SECONDAIRE, opt-in : une **vitrine statique** publiée sur GitHub Pages.
+ * Le workflow `.github/workflows/pages.yml` pose `STATIC_EXPORT=true` et retire
+ * au préalable toutes les routes qui exigent un serveur. Seules les pages
+ * publiques de présentation sont exportées. Le drapeau reste faux partout
+ * ailleurs : le build par défaut n'est jamais un export statique.
  */
+const isStaticExport = process.env.STATIC_EXPORT === "true";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -22,6 +30,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
+  // Activé uniquement sous le workflow vitrine ; jamais pour le build serveur.
+  ...(isStaticExport
+    ? { output: "export", basePath: process.env.NEXT_PUBLIC_BASE_PATH || "" }
+    : {}),
 
   images: {
     unoptimized: true,

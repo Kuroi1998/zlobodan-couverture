@@ -65,9 +65,21 @@ annulés. Détail dans [docs/functional-scope.md](docs/functional-scope.md) et
 
 ## 2. Captures et démonstration
 
-Aucune capture d'écran, aucun GIF de démonstration et aucun environnement de
-préversion ne sont publiés à ce jour. Cette section sera complétée lorsqu'un
-environnement de démonstration existera.
+**Vitrine publique** — <https://kuroi1998.github.io/zlobodan-couverture/>
+
+Ce site est une **vitrine statique**, publiée automatiquement par
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) à chaque
+modification de `main`. Il contient les pages de présentation : accueil,
+à propos, services, pages de ville, mentions légales et politique de
+confidentialité.
+
+Il ne contient **ni l'espace client, ni le back-office, ni les routes `/api`** :
+GitHub Pages ne sert que des fichiers statiques. Les formulaires de contact et
+de devis y sont affichés mais **ne peuvent pas être soumis**, faute de serveur
+pour les recevoir. L'application complète exige un hébergement Node (voir
+[Déploiement](#14-déploiement)).
+
+Aucune capture d'écran ni GIF de démonstration n'est publié à ce jour.
 
 ---
 
@@ -385,8 +397,21 @@ Résumé ; le détail est dans [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 14. Déploiement
 
-**Le déploiement n'est pas configuré.** Le dépôt ne contient aucune cible de
-déploiement automatisée.
+Le dépôt a **deux cibles**, et une seule des deux est automatisée.
+
+### Vitrine statique — automatisée
+
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) publie les pages
+publiques sur GitHub Pages à chaque modification de `main`. Le workflow retire
+d'abord les routes qui exigent un serveur, puis compile avec
+`STATIC_EXPORT=true`. Aucune configuration supplémentaire n'est nécessaire.
+
+Cette cible ne sert **que** de présentation : les formulaires ne peuvent pas
+être soumis et aucune donnée n'y transite.
+
+### Application complète — à configurer
+
+**Aucune cible de déploiement serveur n'est configurée à ce jour.**
 
 L'application exige un **serveur Node.js** : elle expose des route handlers, un
 middleware, des pages dynamiques et une base PostgreSQL. Un hébergement
