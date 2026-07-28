@@ -32,8 +32,18 @@ const nextConfig = {
   },
 
   // Activé uniquement sous le workflow vitrine ; jamais pour le build serveur.
+  //
+  // `trailingSlash` fait générer `services/index.html` plutôt que
+  // `services.html`. Sans lui, GitHub Pages sert bien `/services` mais renvoie
+  // 404 sur `/services/` — la forme qu'un visiteur obtient en copiant une URL
+  // depuis sa barre d'adresse ou en la partageant. Les deux formes fonctionnent
+  // avec ce drapeau.
   ...(isStaticExport
-    ? { output: "export", basePath: process.env.NEXT_PUBLIC_BASE_PATH || "" }
+    ? {
+        output: "export",
+        trailingSlash: true,
+        basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
+      }
     : {}),
 
   images: {
