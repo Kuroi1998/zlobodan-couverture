@@ -1,0 +1,88 @@
+name: Securite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Une vulnerabilite peut etre publiee sur une dependance figee : le depot
+    # est donc reaudite chaque semaine, sans qu'un commit soit necessaire.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  dependances:
+    name: Dependances et build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      # `npm ci` et jamais `npm install` : l'installation doit reproduire le
+      # lockfile a l'identique, sans resoudre silencieusement une version plus
+      # recente au moment du build.
+      - name: Installation reproductible
+        run: npm ci
+
+      - name: Verification de la presence du lockfile
+        run: test -f package-lock.json
+
+      # Bloquant sur critique.
+      #
+      # Les advisories hautes restantes portent toutes sur Next.js et sont
+      # corrigees en 16.2.11, que `.npmrc` bloque encore via `min-release-age=7`
+      # — une protection deliberee contre une version fraichement compromise.
+      # Sept des neuf sont de surcroit structurellement inatteignables ici
+      # (aucune Server Action, aucun rewrite, Image Optimization desactivee,
+      # ni i18n ni Turbopack). Detail dans docs/audits/.
+      - name: Audit des dependances (bloquant en critical)
+        run: npm audit --omit=dev --audit-level=critical
+
+      - name: Verification des types
+        run: npm run typecheck
+
+      # `next lint` a ete supprime en Next.js 16 : ESLint s execute directement,
+      # via le script du projet pour que CI et poste local partagent la meme
+      # commande.
+      - name: Analyse statique ESLint
+        run: npm run lint:strict
+
+      - name: Build
+        run: npm run build
+
+      # Un secret qui atteint le bundle client est public. Verification par
+      # recherche directe dans les artefacts produits.
+      - name: Absence de secret dans le bundle client
+        run: node scripts/check-client-bundle.js
+
+  secrets:
+    name: Recherche de secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Historique complet : un secret retire au commit suivant reste
+          # present dans l'historique et donc toujours compromis.
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  semgrep:
+    name: Analyse statique de securite
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Semgrep
+        run: semgrep ci --config p/typescript --config p/nodejs --config p/owasp-top-ten

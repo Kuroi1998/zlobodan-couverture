@@ -1,0 +1,37 @@
+name: 🐛 Rapport de Bug
+description: Signaler un dysfonctionnement ou un problème technique.
+title: "[BUG]: "
+labels: ["bug", "needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: Merci de remplir ce formulaire pour nous aider à corriger le problème au plus vite.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description du dysfonctionnement
+      description: Résumez clairement le problème rencontré.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes de reproduction
+      description: Indiquez les étapes exactes pour reproduire le bug.
+      placeholder: |
+        1. Aller sur '/connexion'
+        2. Saisir l'email...
+        3. Cliquer sur...
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Gravité estimée
+      options:
+        - Critique (Bloque l'utilisation)
+        - Haute (Fonctionnalité majeure cassée)
+        - Moyenne (Dysfonctionnement contournable)
+        - Faible (Gêne mineure)
+    validations:
+      required: true

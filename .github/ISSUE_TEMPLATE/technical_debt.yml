@@ -1,0 +1,19 @@
+name: 🧹 Dette Technique & Refactorisation
+description: Signaler une zone de code à restructurer ou à optimiser.
+title: "[DEBT]: "
+labels: ["technical-debt", "refactor"]
+body:
+  - type: textarea
+    id: component
+    attributes:
+      label: Partie du code concernée
+      description: Fichiers ou composants concernés.
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: Problème de maintenabilité ou performance
+      description: Pourquoi cette partie nécessite-t-elle une refactorisation ?
+    validations:
+      required: true
