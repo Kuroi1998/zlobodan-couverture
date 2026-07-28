@@ -34,7 +34,8 @@ function decryptOutboxPayload(
   const decipher = crypto.createDecipheriv(
     "aes-256-gcm",
     key,
-    Buffer.from(ivValue, "base64url")
+    Buffer.from(ivValue, "base64url"),
+    { authTagLength: 16 }
   );
   decipher.setAAD(
     Buffer.from(`notification-outbox:${eventType}:${entityId}`, "utf8")

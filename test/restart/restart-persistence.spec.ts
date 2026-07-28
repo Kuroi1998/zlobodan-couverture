@@ -31,7 +31,8 @@ function decryptAuthSecret(value: string, userId: string): string {
   const decipher = crypto.createDecipheriv(
     "aes-256-gcm",
     key,
-    Buffer.from(ivValue, "base64url")
+    Buffer.from(ivValue, "base64url"),
+    { authTagLength: 16 }
   );
   decipher.setAAD(Buffer.from(`two-factor:${userId}`, "utf8"));
   decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
