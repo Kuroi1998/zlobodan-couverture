@@ -64,6 +64,8 @@ jobs:
   secrets:
     name: Recherche de secrets
     runs-on: ubuntu-latest
+    container:
+      image: zricethezav/gitleaks:latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -71,10 +73,22 @@ jobs:
           # present dans l'historique et donc toujours compromis.
           fetch-depth: 0
 
+      # Gitleaks est invoque directement plutot que via son action GitHub.
+      # L'action scanne l'intervalle `<base>^..<head>` du push ; lorsque la base
+      # est le commit racine du depot, `<base>^` n'existe pas et le scan echoue
+      # sans rien avoir lu. Un scan explicite de tout l'historique est
+      # deterministe, quel que soit l'evenement declencheur.
+      #
+      # `--redact` : une correspondance ne doit jamais atterrir en clair dans un
+      # journal d'execution public.
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if gitleaks git --help >/dev/null 2>&1; then
+            gitleaks git --redact --verbose .
+          else
+            gitleaks detect --source=. --redact --verbose
+          fi
 
   semgrep:
     name: Analyse statique de securite
