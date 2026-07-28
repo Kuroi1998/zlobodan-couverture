@@ -8,7 +8,7 @@
   ```json
   {
     "email": "jean.peeters@email.be",
-    "password": "MonMotDePasseTest123!",
+    "password": "MonMotDePasseTest123!", // gitleaks:allow
     "totpCode": "123456"
   }
   ```
@@ -20,7 +20,7 @@
   ```json
   {
     "email": "nouveau.client@email.be",
-    "password": "MonMotDePasseTest123!",
+    "password": "MonMotDePasseTest123!", // gitleaks:allow
     "phone": "0470 12 34 56"
   }
   ```
