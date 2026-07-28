@@ -51,6 +51,12 @@ jobs:
       SMTP_USER: ci
       SMTP_PASS: ci-only-smtp-password
       EMAIL_FROM: Zlobodan CI <no-reply@example.test>
+      # Boite interne recevant les demandes. Sans elle,
+      # getNotificationRecipient() renvoie null hors production et une seule
+      # notification est mise en file au lieu de deux : les tests d'integration
+      # qui prouvent l'alerte interne echouent alors sur un defaut de
+      # configuration de la CI, pas sur un defaut du code.
+      NOTIFICATION_ADMIN_EMAIL: demandes@example.test
       UPLOAD_STORAGE_DRIVER: local
       LOCAL_UPLOAD_DIRECTORY: .tmp/ci-uploads
 
