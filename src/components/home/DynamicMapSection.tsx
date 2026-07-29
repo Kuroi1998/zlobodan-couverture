@@ -84,6 +84,9 @@ export const DynamicMapSection: React.FC = () => {
           <form onSubmit={handleCheckPostalCode} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
+              aria-label="Code postal belge"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={postalInput}
               onChange={(e) => setPostalInput(e.target.value)}
               placeholder="Entrez votre code postal (ex: 1000, 1410, 1180...)"
@@ -102,6 +105,8 @@ export const DynamicMapSection: React.FC = () => {
           {/* Verification Feedback Result */}
           {verificationResult.tested && (
             <div
+              role="status"
+              aria-live="polite"
               className={`p-4 rounded-xl text-sm border flex items-start gap-3 animate-in fade-in duration-200 ${
                 verificationResult.inZone
                   ? "bg-emerald-950/60 border-emerald-800 text-emerald-200"

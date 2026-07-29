@@ -120,6 +120,9 @@ export const Hero: React.FC = () => {
                 <div className="flex gap-2">
                   <input
                     type="text"
+                    aria-label="Code postal belge"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="Ex: 1000, 1410, 1180..."
                     maxLength={5}
                     id="hero-cp-input"

@@ -6,6 +6,11 @@ import { safeReturnPath } from "@/lib/security/urls";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Connexion à l’espace client et à l’administration",
+  description: "Connexion sécurisée à l’espace client et à l’administration Zlobodan.",
+};
+
 interface ConnexionPageProps {
   searchParams?: Promise<{
     next?: string | string[];

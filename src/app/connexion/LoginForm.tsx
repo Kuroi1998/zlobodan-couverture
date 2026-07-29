@@ -157,6 +157,13 @@ export default function LoginForm({ requestedNextPath }: Readonly<Props>) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 p-4 text-white">
       <div className="w-full max-w-lg space-y-6 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl sm:p-8">
+        {!twoFactorStep && (
+          <h1 className="sr-only">
+            {mode === "login"
+              ? "Connexion à l’espace client et à l’administration"
+              : "Création d’un compte client"}
+          </h1>
+        )}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-2xl font-extrabold">
             <ShieldCheck className="text-brand-terracotta" /> ZLOBODAN
