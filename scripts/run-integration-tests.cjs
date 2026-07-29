@@ -76,6 +76,7 @@ async function main() {
     TEST_DATABASE_URL: testUrl.toString(),
     UPLOAD_STORAGE_DRIVER: "local",
     LOCAL_UPLOAD_DIRECTORY: uploadDirectory,
+    NOTIFICATION_ADMIN_EMAIL: "demandes@example.test",
   };
   runNode(
     [
