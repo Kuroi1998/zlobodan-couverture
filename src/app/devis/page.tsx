@@ -1,6 +1,5 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { QuoteWizard } from "@/components/devis/QuoteWizard";
-import { siteConfig } from "@/config/site";
 import { ShieldCheck, Clock, Award, Phone } from "lucide-react";
 
 export const metadata = {

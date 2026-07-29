@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Hero } from "@/components/home/Hero";
 import { ReassuranceBar } from "@/components/home/ReassuranceBar";
@@ -7,8 +6,7 @@ import { ProcessSection } from "@/components/home/ProcessSection";
 import { DynamicMapSection } from "@/components/home/DynamicMapSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
-import { Phone, ShieldCheck, ArrowRight } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { ShieldCheck } from "lucide-react";
 import ContactActionButton from "@/components/ui/ContactActionButton";
 
 export default function HomePage() {

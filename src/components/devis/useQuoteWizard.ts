@@ -115,8 +115,7 @@ export function useQuoteWizard() {
           });
         }
         setPhotos((prev) => [...prev, ...compressed]);
-      } catch (err: unknown) {
-        console.error("Échec de la compression d'image :", err);
+      } catch {
         setErrorMsg("Erreur lors de la compression de la photo. Veuillez réessayer.");
       } finally {
         setIsCompressing(false);
@@ -255,8 +254,7 @@ export function useQuoteWizard() {
           if (photo.preview) URL.revokeObjectURL(photo.preview);
         }
         router.push(`/devis/merci?reference=${encodeURIComponent(reference)}`);
-      } catch (err: unknown) {
-        console.error("Échec de l'envoi de la demande de devis :", err);
+      } catch {
         setErrorMsg(
           "Envoi impossible pour le moment. Vérifiez votre connexion, ou appelez-nous directement."
         );

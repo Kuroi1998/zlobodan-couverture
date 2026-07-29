@@ -1,9 +1,6 @@
-import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { servicesData } from "@/data/services";
-import { siteConfig } from "@/config/site";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
 import {

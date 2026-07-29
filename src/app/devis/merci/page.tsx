@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Phone, Home, ArrowRight } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { CheckCircle2, Phone, Home } from "lucide-react";
 import { ReferenceDisplay } from "@/components/devis/ReferenceDisplay";
 
 export const metadata = {

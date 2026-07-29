@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { Phone, FileText } from "lucide-react";
-import { siteConfig } from "@/config/site";
 import { trackEvent } from "@/lib/analytics";
 
 export const MobileCallBar: React.FC = () => {

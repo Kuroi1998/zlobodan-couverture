@@ -1,12 +1,10 @@
-import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { villesData, VilleData } from "@/data/villes";
-import { siteConfig } from "@/config/site";
+import { villesData } from "@/data/villes";
 import { servicesData } from "@/data/services";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLdSchema } from "@/components/seo/JsonLdSchema";
-import { MapPin, Phone, CheckCircle2, Clock, ArrowRight, FileText, ShieldCheck, Award } from "lucide-react";
+import { MapPin, FileText, ShieldCheck, Award } from "lucide-react";
 import ContactActionButton from "@/components/ui/ContactActionButton";
 
 export async function generateStaticParams() {
