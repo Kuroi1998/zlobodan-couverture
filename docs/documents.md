@@ -201,8 +201,8 @@ Les octets transitent par la route ; il n'y a **aucune redirection** vers le
 stockage. C'est ce qui garantit que rien n'est servi sans contrôle, et ce qui
 rend le téléchargement journalisable — impossible derrière une URL signée.
 
-`lib/security/signed-urls.ts` existe dans le dépôt mais n'est utilisé par aucun
-chemin de code : le modèle retenu est le passage par la route.
+Le module expérimental d'URL signée a été supprimé : le modèle retenu est
+exclusivement le passage par la route authentifiée.
 
 ## Journal d'audit
 
