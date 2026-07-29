@@ -8,6 +8,33 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ## [Non publié]
 
+### Sécurité — durcissement des requêtes et de la chaîne d'approvisionnement (2026-07-30)
+
+- Refus des mutations `same-site` provenant d'un autre sous-domaine : seule
+  une preuve `same-origin` est désormais acceptée.
+- Validation stricte du type `application/json` et mesure des limites de corps
+  sur les octets UTF-8 réellement reçus.
+- Réduction des détails sensibles conservés dans les journaux de sécurité et
+  dans les erreurs de livraison SMTP.
+- Audit npm bloquant au niveau `high`, déduplication d'`esbuild` et verrouillage
+  de `minimatch` sur une version corrigée.
+- Ajout de tests unitaires couvrant les contrôles CSRF et la lecture bornée du
+  JSON.
+
+### Corrigé — qualité et accessibilité (2026-07-30)
+
+- Rétablissement des erreurs TypeScript et ESLint bloquantes pendant le build,
+  puis suppression des imports et paramètres inutilisés détectés.
+- Ajout d'indications accessibles sur la navigation mobile, les champs de code
+  postal, les titres de page, le focus clavier et la réduction des animations.
+- Stabilisation des délais des suites d'intégration et E2E.
+
+### Supprimé — code hors périmètre (2026-07-30)
+
+- Retrait du composant de décision de devis non monté et des modules
+  expérimentaux de consommation de jetons et d'URL signées qui n'étaient
+  référencés par aucun chemin d'exécution.
+
 ### Modifié — reconstruction propre du dépôt (2026-07-28)
 
 L'historique Git a été réinitialisé sur une base saine. L'intégralité de
