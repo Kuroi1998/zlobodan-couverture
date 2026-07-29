@@ -188,7 +188,7 @@ export async function recordSecurityEvent(input: SecurityEventInput): Promise<vo
         ipHash,
       });
     }
-  } catch (error) {
+  } catch {
     // Une trace d'audit qui ne s'écrit pas est elle-même un incident : on la
     // signale bruyamment au lieu de l'avaler.
     emitStructuredLine({
@@ -198,7 +198,7 @@ export async function recordSecurityEvent(input: SecurityEventInput): Promise<vo
       severity: "critical" satisfies SecuritySeverity,
       alert: true,
       droppedEventKind: input.kind,
-      error: error instanceof Error ? error.message : "unknown",
+      reason: "persistence-failed",
     });
   }
 }

@@ -1,6 +1,7 @@
 import { db } from "@/db/client";
 import { auditLog } from "@/db/schema/audit";
 import { hashIpAddress } from "@/lib/auth/session";
+import { recordSecurityEvent } from "@/lib/security/security-events";
 
 export interface LogAuditEventParams {
   userId?: string | null;
@@ -31,7 +32,17 @@ export async function logAuditEvent({
       diff: diffJson,
       ipHash,
     });
-  } catch (error) {
-    console.error("Failed to write to append-only audit log:", error);
+  } catch {
+    await recordSecurityEvent({
+      kind: "AUDIT_WRITE_FAILURE",
+      severity: "critical",
+      userId,
+      targetTable,
+      targetId,
+      detail: {
+        failedAction: action,
+        reason: "persistence-failed",
+      },
+    });
   }
 }

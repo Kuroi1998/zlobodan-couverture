@@ -42,7 +42,7 @@ export async function verifyTurnstile(
 
     const data = (await res.json()) as { success?: boolean };
     return data.success === true ? "passed" : "failed";
-  } catch (error) {
+  } catch {
     // Échec fermé : une erreur réseau n'est pas une validation.
     await recordSecurityEvent({
       kind: "VALIDATION_REJECTED",
@@ -50,7 +50,7 @@ export async function verifyTurnstile(
       detail: {
         control: "turnstile",
         outcome: "transport-error",
-        message: error instanceof Error ? error.message : "unknown",
+        reason: "verification-service-unavailable",
       },
     });
     return "failed";
