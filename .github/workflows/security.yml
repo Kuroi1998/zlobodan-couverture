@@ -33,16 +33,11 @@ jobs:
       - name: Verification de la presence du lockfile
         run: test -f package-lock.json
 
-      # Bloquant sur critique.
-      #
-      # Les advisories hautes restantes portent toutes sur Next.js et sont
-      # corrigees en 16.2.11, que `.npmrc` bloque encore via `min-release-age=7`
-      # — une protection deliberee contre une version fraichement compromise.
-      # Sept des neuf sont de surcroit structurellement inatteignables ici
-      # (aucune Server Action, aucun rewrite, Image Optimization desactivee,
-      # ni i18n ni Turbopack). Detail dans docs/audits/.
-      - name: Audit des dependances (bloquant en critical)
-        run: npm audit --omit=dev --audit-level=critical
+      # Les outils de build font partie de la chaine d'approvisionnement :
+      # les vulnerabilites hautes des dependances de developpement sont donc
+      # bloquantes au meme titre que celles du code execute en production.
+      - name: Audit des dependances (bloquant en high)
+        run: npm audit --audit-level=high
 
       - name: Verification des types
         run: npm run typecheck
