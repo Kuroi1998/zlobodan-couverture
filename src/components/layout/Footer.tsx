@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, MapPin, Phone, Mail, Clock, ExternalLink, Award, FileCheck } from "lucide-react";
+import { ShieldCheck, MapPin, Mail, Clock, ExternalLink, Award } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { publishableContactPoints } from "@/config/company";
 import { servicesData } from "@/data/services";
@@ -40,9 +40,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 2: Services */}
           <div className="space-y-4">
-            <h3 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
+            <h2 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
               Nos Prestations
-            </h3>
+            </h2>
             <ul className="space-y-2.5 text-sm">
               {servicesData.map((svc) => (
                 <li key={svc.id}>
@@ -60,9 +60,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 3: Zone d'Intervention SEO (Dynamic Belgian Cities) */}
           <div className="space-y-4">
-            <h3 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
+            <h2 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
               Zone d'intervention
-            </h3>
+            </h2>
             <ul className="grid grid-cols-2 gap-2 text-sm">
               {Object.values(villesData).slice(0, 6).map((v) => (
                 <li key={v.slug}>
@@ -87,9 +87,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 4: Contact & Horaires */}
           <div className="space-y-4">
-            <h3 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
+            <h2 className="font-heading font-bold text-lg text-white tracking-wide border-b border-slate-800 pb-2">
               Contact &amp; Dépannage Belgique
-            </h3>
+            </h2>
             <div className="space-y-3 text-sm">
               {/* Adresse, téléphone et courriel ne s'affichent que s'ils sont
                   déclarés vérifiés dans `config/company.ts`. Le pied de page

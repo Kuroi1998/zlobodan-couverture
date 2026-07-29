@@ -8,7 +8,6 @@ import {
   quoteRequestNextStep,
   quoteRequestTone,
 } from "@/domain/request-labels";
-import { siteConfig } from "@/config/site";
 import StatusBadge from "@/components/ui/StatusBadge";
 
 export const dynamic = "force-dynamic";

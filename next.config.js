@@ -24,13 +24,6 @@ const nextConfig = {
     proxyClientMaxBodySize: "33mb",
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   // Activé uniquement sous le workflow vitrine ; jamais pour le build serveur.
   //
   // `trailingSlash` fait générer `services/index.html` plutôt que

@@ -1,4 +1,3 @@
-import React from "react";
 import { ServicesGrid } from "@/components/home/ServicesGrid";
 import { FAQSection } from "@/components/home/FAQSection";
 

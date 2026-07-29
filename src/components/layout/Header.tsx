@@ -141,8 +141,14 @@ export const Header: React.FC = () => {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Ouvrir le menu de navigation"
-          className="lg:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition"
+          aria-controls="mobile-navigation"
+          aria-expanded={isMobileMenuOpen}
+          aria-label={
+            isMobileMenuOpen
+              ? "Fermer le menu de navigation"
+              : "Ouvrir le menu de navigation"
+          }
+          className="lg:hidden inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-300 hover:bg-slate-800 transition"
         >
           {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -150,7 +156,10 @@ export const Header: React.FC = () => {
 
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-800 bg-brand-slate px-4 pt-4 pb-6 space-y-4">
+        <div
+          id="mobile-navigation"
+          className="lg:hidden border-t border-slate-800 bg-brand-slate px-4 pt-4 pb-6 space-y-4"
+        >
           <nav className="flex flex-col space-y-3 font-medium text-base">
             <Link
               href="/"

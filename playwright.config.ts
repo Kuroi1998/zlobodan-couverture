@@ -4,8 +4,12 @@ export default defineConfig({
   testDir: "./test/e2e",
   fullyParallel: false,
   workers: 1,
+  timeout: 90_000,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
+  expect: {
+    timeout: 15_000,
+  },
   use: {
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",

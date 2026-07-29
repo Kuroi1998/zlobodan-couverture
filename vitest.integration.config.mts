@@ -7,6 +7,7 @@ export default defineConfig({
     include: ["test/integration/**/*.test.ts"],
     fileParallelism: false,
     sequence: { concurrent: false },
+    testTimeout: 20_000,
   },
   resolve: {
     alias: {

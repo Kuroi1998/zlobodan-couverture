@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { siteConfig } from "@/config/site";

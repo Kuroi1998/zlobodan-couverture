@@ -46,7 +46,7 @@ export const ProcessSection: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((st, i) => (
+          {steps.map((st) => (
             <div
               key={st.number}
               className="relative bg-slate-950/80 border border-slate-800 p-6 rounded-2xl space-y-4 hover:border-slate-700 transition"

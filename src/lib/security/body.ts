@@ -52,6 +52,18 @@ export async function readJsonBody<T = unknown>(
   req: NextRequest,
   maxBytes = DEFAULT_MAX_BODY_BYTES
 ): Promise<BodyResult<T>> {
+  const mediaType = req.headers
+    .get("content-type")
+    ?.split(";", 1)[0]
+    ?.trim()
+    .toLowerCase();
+  if (
+    mediaType !== "application/json" &&
+    !(mediaType?.startsWith("application/") && mediaType.endsWith("+json"))
+  ) {
+    return reject(415, "Type de contenu non pris en charge.");
+  }
+
   const declared = req.headers.get("content-length");
   if (declared && Number(declared) > maxBytes) {
     return reject(413, "Corps de requête trop volumineux.");
@@ -66,7 +78,7 @@ export async function readJsonBody<T = unknown>(
 
   // `Content-Length` peut mentir ou être absent : on revérifie sur le contenu
   // réellement reçu.
-  if (raw.length > maxBytes) {
+  if (new TextEncoder().encode(raw).byteLength > maxBytes) {
     return reject(413, "Corps de requête trop volumineux.");
   }
 

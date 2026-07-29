@@ -98,9 +98,7 @@ export const LeafletMap: React.FC = () => {
             .bindPopup(buildPopup(v.name, v.postalCode, v.slug));
         });
       })
-      .catch((err: unknown) => {
-        console.error("Impossible de charger la carte Leaflet :", err);
-      });
+      .catch(() => undefined);
 
     return () => {
       cancelled = true;

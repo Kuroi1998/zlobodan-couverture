@@ -253,7 +253,7 @@ Inventaire des retraits, à exécuter aux phases indiquées.
 
 | Composant | Phase | Devenir |
 | --- | --- | --- |
-| `src/components/account/QuoteDecisionButtons.tsx` | 3 | Conservé en dépôt, non monté. Rebranché en Phase 4 |
+| `src/components/account/QuoteDecisionButtons.tsx` | 3 | Supprimé du dépôt : composant non monté et hors périmètre livré |
 
 ### Entrées de navigation retirées
 

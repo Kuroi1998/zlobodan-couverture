@@ -18,6 +18,23 @@ import { buildAuthEmail } from "./auth-email-service";
 
 const MAX_ATTEMPTS = 5;
 const BATCH_SIZE = 25;
+const SMTP_ERROR_CODES = new Set([
+  "EAUTH",
+  "ECONNECTION",
+  "EDNS",
+  "EENVELOPE",
+  "EMESSAGE",
+  "ESOCKET",
+  "ETIMEDOUT",
+]);
+
+function deliveryFailureCode(error: unknown): string {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = String(error.code).toUpperCase();
+    if (SMTP_ERROR_CODES.has(code)) return code;
+  }
+  return "DELIVERY_FAILED";
+}
 
 function buildEmail(
   eventType: string,
@@ -153,7 +170,9 @@ export async function dispatchNotificationOutbox(): Promise<{
           status: terminal ? "failed" : "pending",
           attemptCount: attempts,
           nextAttemptAt,
-          lastError: error instanceof Error ? error.message.slice(0, 500) : "unknown",
+          // Conserve une catégorie exploitable sans recopier la réponse SMTP,
+          // qui peut contenir une adresse ou un détail d'infrastructure.
+          lastError: deliveryFailureCode(error),
         })
         .where(eq(notificationOutbox.id, item.id));
       await recordSecurityEvent({

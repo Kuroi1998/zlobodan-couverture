@@ -176,12 +176,12 @@ async function resolveSessionUncached(): Promise<SessionResolution> {
 export const resolveSession = cache(async (): Promise<SessionResolution> => {
   try {
     return await resolveSessionUncached();
-  } catch (error) {
+  } catch {
     // Une base injoignable ne doit jamais accorder un accès par défaut.
     await recordSecurityEvent({
       kind: "SESSION_RESOLUTION_FAILURE",
       severity: "high",
-      detail: { message: error instanceof Error ? error.message : "unknown" },
+      detail: { reason: "session-store-unavailable" },
     }).catch(() => undefined);
     return {
       user: null,

@@ -1,5 +1,3 @@
-import React from "react";
-import { siteConfig } from "@/config/site";
 import { Award } from "lucide-react";
 
 export const metadata = {

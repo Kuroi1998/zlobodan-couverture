@@ -46,10 +46,10 @@ export function checkCsrf(request: NextRequest): CsrfVerdict {
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
 
-  // `Sec-Fetch-Site` est posé par le navigateur et non modifiable par script.
-  // Quand il est là, il fait autorité.
-  if (fetchSite) {
-    if (fetchSite === "same-origin" || fetchSite === "same-site") return { allowed: true };
+  // `same-site` inclut les autres sous-domaines du site registrable. Une
+  // application compromise sur un sous-domaine frère ne doit pas pouvoir
+  // déclencher une mutation avec les cookies de l'origine principale.
+  if (fetchSite && fetchSite !== "same-origin") {
     return { allowed: false, reason: "cross-origin" };
   }
 
@@ -64,6 +64,8 @@ export function checkCsrf(request: NextRequest): CsrfVerdict {
       ? { allowed: true }
       : { allowed: false, reason: "cross-origin" };
   }
+
+  if (fetchSite === "same-origin") return { allowed: true };
 
   // Ni `Sec-Fetch-Site` ni `Origin` : aucune preuve d'origine, donc refus.
   return { allowed: false, reason: "no-origin-proof" };
