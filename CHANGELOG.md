@@ -8,6 +8,14 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ## [Non publié]
 
+### Corrigé — reproductibilité de la CI (2026-07-30)
+
+- Alignement des postes de développement et de GitHub Actions sur Node.js
+  24.18.0 et npm 11.16.0.
+- Épinglage du runner Ubuntu et des images PostgreSQL, Mailpit, Gitleaks et
+  Semgrep validées par la pipeline.
+- Déclaration explicite des permissions de lecture du workflow principal.
+
 ### Sécurité — durcissement des requêtes et de la chaîne d'approvisionnement (2026-07-30)
 
 - Refus des mutations `same-site` provenant d'un autre sous-domaine : seule

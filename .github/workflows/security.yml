@@ -15,13 +15,13 @@ permissions:
 jobs:
   dependances:
     name: Dependances et build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: "24"
+          node-version-file: ".node-version"
           cache: npm
 
       # `npm ci` et jamais `npm install` : l'installation doit reproduire le
@@ -58,9 +58,9 @@ jobs:
 
   secrets:
     name: Recherche de secrets
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
-      image: zricethezav/gitleaks:latest
+      image: zricethezav/gitleaks:latest@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -94,9 +94,9 @@ jobs:
 
   semgrep:
     name: Analyse statique de securite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
-      image: semgrep/semgrep
+      image: semgrep/semgrep@sha256:bdf7013b2c3634a487671158da77c554f531742326b543a9464d2adf6c433ac8
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 

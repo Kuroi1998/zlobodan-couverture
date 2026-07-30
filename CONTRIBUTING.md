@@ -8,7 +8,9 @@ request et les règles de relecture.
 
 ## 1. Préparation de l'environnement
 
-Prérequis : Node.js `>=24 <25`, npm `>=11.10 <12`, PostgreSQL 14 ou supérieur.
+Prérequis : Node.js `24.18.0`, npm `11.16.0`, PostgreSQL 14 ou supérieur.
+Les fichiers `.nvmrc` et `.node-version` fournissent la version Node.js
+utilisée par les postes de développement et GitHub Actions.
 
 ```bash
 npm ci

@@ -15,7 +15,7 @@ on:
 jobs:
   analyze:
     name: Analyse CodeQL JavaScript/TypeScript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
