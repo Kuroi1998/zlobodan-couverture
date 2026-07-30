@@ -6,13 +6,16 @@ on:
   pull_request:
     branches: [main, develop]
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     name: Types, migrations, tests et build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
-        image: postgres:18
+        image: postgres:18@sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a
         env:
           POSTGRES_DB: zlobodan_test
           POSTGRES_USER: postgres
@@ -25,7 +28,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
       mailpit:
-        image: axllent/mailpit:latest
+        image: axllent/mailpit:latest@sha256:7f33095f80e901f6ad08028f06ca284aa58fe84942be5496008d041d3b9f4d4d
         env:
           MP_SMTP_AUTH_ACCEPT_ANY: "1"
           # Mailpit refuse l'authentification SMTP en clair sans ce drapeau et
@@ -64,10 +67,10 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Configurer Node.js 24
+      - name: Configurer Node.js 24.18.0
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 24
+          node-version-file: ".node-version"
           cache: npm
 
       - name: Installer les dépendances

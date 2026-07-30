@@ -112,8 +112,8 @@ Chaque ligne correspond à une dépendance réellement déclarée dans
 
 | Élément | Version requise | Vérification |
 | --- | --- | --- |
-| Node.js | `>=24 <25` | `node --version` |
-| npm | `>=11.10 <12` | `npm --version` |
+| Node.js | `24.18.0` (`.nvmrc`, `.node-version`) | `node --version` |
+| npm | `11.16.0` (`packageManager`) | `npm --version` |
 | PostgreSQL | 14 ou supérieur (18 en intégration continue) | `psql --version` |
 
 Un serveur SMTP est nécessaire pour l'expédition des courriels. En
